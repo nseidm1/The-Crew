@@ -56,6 +56,7 @@ If Playwright is already installed somewhere else on the machine, point at that 
 | `plan-in-chat.mjs` | The plan and its rounds as the chat shows them, on a computer and a phone | 10 |
 | `ticket-media.mjs` | A ticket's pictures: read, said in the chat, and kept on the ticket the team is talking about | 13 |
 | `claude-sign-in.mjs` | Signing in to Claude as a step of setting up | 8 |
+| `runner-restart.mjs` | The app replaced under an open page (an update): the page is connected to the new one again and counted as open | 3 |
 | `crawl.mjs` | A full pass over every page, hosted and live, at computer and phone sizes; prints an `ISSUE` line for anything wrong | a crawl |
 
 ### `landing/` the landing page

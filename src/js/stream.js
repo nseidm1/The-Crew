@@ -48,9 +48,23 @@ export function stream(base) {
       new Promise((release) => {
         if (!open.has(base)) return release(); // closed while it waited its turn
         conn.release = release;
-        conn.es = new EventSource(base + 'api/events');
-        conn.es.onmessage = (e) => pass('message', e.data);
-        conn.es.onerror = () => pass('error');
+        // A connection that drops is tried again by the browser itself. One that is ANSWERED with anything but a stream is not:
+        // the browser takes that as final and closes it for good. That happens when the app is updated under an open page (the
+        // launcher stands on the app's port for a moment and says "not found"), and the page was then never told anything again
+        // and was no longer counted as open. So a connection the browser has given up on is opened again here, until it holds.
+        const connect = () => {
+          if (open.get(base) !== conn) return; // let go in the meantime
+          conn.es = new EventSource(base + 'api/events');
+          conn.es.onmessage = (e) => pass('message', e.data);
+          conn.es.onerror = () => {
+            pass('error');
+            if (conn.es && conn.es.readyState === 2) {
+              conn.es = null;
+              setTimeout(connect, 1500);
+            }
+          };
+        };
+        connect();
       });
     const can =
       typeof navigator !== 'undefined' &&

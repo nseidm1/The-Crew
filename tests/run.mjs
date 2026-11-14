@@ -21,6 +21,7 @@ const SUITES = {
     'browser/plan-in-chat',
     'browser/ticket-media',
     'browser/claude-sign-in',
+    'browser/runner-restart',
     'browser/crawl',
   ],
   landing: ['landing/landing-page', 'landing/alignment', 'landing/film-smoothness'],
