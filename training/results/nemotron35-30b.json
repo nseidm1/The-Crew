@@ -1,0 +1,552 @@
+{
+ "label": "nemotron35-30b",
+ "setup": {
+  "model": "nemotron35-30b",
+  "mode": "developer",
+  "addons": [
+   "lfm3-omni-2b"
+  ]
+ },
+ "at": "2026-11-13T20:13:28.083Z",
+ "machine": "Apple M2 Ultra, 64 GB",
+ "rounds": 1,
+ "minutes": 44,
+ "note": "frozen build: harder",
+ "total": {
+  "runs": 17,
+  "good": 3,
+  "proven-right": 2,
+  "found": 1,
+  "false-green": 2,
+  "right-unproven": 4,
+  "wrong": 8,
+  "no-change": 0,
+  "not-found": 0
+ },
+ "byLang": {
+  "typescript": {
+   "runs": 5,
+   "good": 2,
+   "falseGreen": 0
+  },
+  "javascript": {
+   "runs": 5,
+   "good": 0,
+   "falseGreen": 2
+  },
+  "python": {
+   "runs": 3,
+   "good": 1,
+   "falseGreen": 0
+  },
+  "kotlin": {
+   "runs": 2,
+   "good": 0,
+   "falseGreen": 0
+  },
+  "dart": {
+   "runs": 2,
+   "good": 0,
+   "falseGreen": 0
+  }
+ },
+ "byKind": {
+  "fix": {
+   "runs": 10,
+   "good": 2,
+   "falseGreen": 2
+  },
+  "enhance": {
+   "runs": 5,
+   "good": 0,
+   "falseGreen": 0
+  },
+  "improve": {
+   "runs": 1,
+   "good": 0,
+   "falseGreen": 0
+  },
+  "find": {
+   "runs": 1,
+   "good": 1,
+   "falseGreen": 0
+  }
+ },
+ "room": {
+  "asked": 10,
+  "good": 0,
+  "off": false
+ },
+ "media": {
+  "runs": 3,
+  "saw": 3
+ },
+ "challenge": {
+  "put": 4,
+  "found": 0,
+  "fixed": 0
+ },
+ "scenarios": [
+  {
+   "id": "ts-coupon",
+   "lang": "typescript",
+   "kind": "fix",
+   "shape": "two files: the same wrong sum written twice",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 33,
+   "proofS": 119,
+   "loops": 5
+  },
+  {
+   "id": "ts-cent",
+   "lang": "typescript",
+   "kind": "fix",
+   "shape": "the ticket blames the wrong function",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 47,
+   "proofS": 19,
+   "loops": 0
+  },
+  {
+   "id": "ts-reserve",
+   "lang": "typescript",
+   "kind": "enhance",
+   "shape": "two files and a test to bring up to date: all or nothing",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 60,
+   "proofS": 70,
+   "loops": 3
+  },
+  {
+   "id": "ts-prices",
+   "lang": "typescript",
+   "kind": "improve",
+   "shape": "promises shared while in flight, and a failure not kept",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 1,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 202,
+   "proofS": 134,
+   "loops": 7
+  },
+  {
+   "id": "ts-where-free-shipping",
+   "lang": "typescript",
+   "kind": "find",
+   "shape": "find it: nine files, a constant and the function that reads it",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 0,
+   "found": 1,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 9,
+   "proofS": 0,
+   "loops": 0
+  },
+  {
+   "id": "js-cart-view",
+   "lang": "javascript",
+   "kind": "fix",
+   "shape": "what people see: a view built from three files",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 22,
+   "proofS": 83,
+   "loops": 3
+  },
+  {
+   "id": "js-bus",
+   "lang": "javascript",
+   "kind": "fix",
+   "shape": "a list changed while it is walked",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 18,
+   "proofS": 38,
+   "loops": 3
+  },
+  {
+   "id": "js-sort",
+   "lang": "javascript",
+   "kind": "enhance",
+   "shape": "one new parameter, through three files",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 1,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 21,
+   "proofS": 56,
+   "loops": 3
+  },
+  {
+   "id": "py-refund",
+   "lang": "python",
+   "kind": "fix",
+   "shape": "three files, and nothing may change when it is refused",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 1,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 18,
+   "proofS": 61,
+   "loops": 4
+  },
+  {
+   "id": "py-tier",
+   "lang": "python",
+   "kind": "fix",
+   "shape": "the easy fix breaks a rule the ticket also states",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 1,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 30,
+   "proofS": 108,
+   "loops": 5
+  },
+  {
+   "id": "kt-checkout-total",
+   "lang": "kotlin",
+   "kind": "fix",
+   "shape": "a format, a screen and a rule from a third file",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 29,
+   "proofS": 168,
+   "loops": 0
+  },
+  {
+   "id": "kt-stepper",
+   "lang": "kotlin",
+   "kind": "enhance",
+   "shape": "a new composable: what it shows, what it sends, when it is off",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 258,
+   "proofS": 148,
+   "loops": 0
+  },
+  {
+   "id": "dart-stepper",
+   "lang": "dart",
+   "kind": "enhance",
+   "shape": "a new widget: what it shows, what it sends, when it is off",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 127,
+   "proofS": 309,
+   "loops": 9
+  },
+  {
+   "id": "dart-summary",
+   "lang": "dart",
+   "kind": "enhance",
+   "shape": "two new functions and a new widget, in two files",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 30,
+   "proofS": 148,
+   "loops": 0
+  },
+  {
+   "id": "media-badge",
+   "lang": "javascript",
+   "kind": "fix",
+   "shape": "a screenshot: what is wrong, and the words it should say, are only in the picture",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 1,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 13,
+   "proofS": 34,
+   "loops": 3
+  },
+  {
+   "id": "media-crash",
+   "lang": "python",
+   "kind": "fix",
+   "shape": "a screenshot of an error, with a note that says what it should show",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 10,
+   "proofS": 18,
+   "loops": 1
+  },
+  {
+   "id": "media-stepper",
+   "lang": "javascript",
+   "kind": "fix",
+   "shape": "a screen recording: what each press does, and the limit on the page, are only in the video",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 1,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 8,
+   "proofS": 18,
+   "loops": 0
+  }
+ ],
+ "misses": [
+  {
+   "scenario": "ts-coupon",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The team could not settle it by itself: the check \"the invoice's Discount: line shows exactly what was taken off\" still fails after it was put right twice (discountFor is not defined). It took 6 rounds: the proof was written again, and what was mistaken in the proof itself was corrected or taken out, and the room was asked for ideas.",
+   "oracle": [
+    "the invoice shows what was taken off",
+    "the invoice of a coupon bigger than the goods"
+   ],
+   "missing": [],
+   "stuck": "the check \"the invoice's Discount: line shows exactly what was taken off\" still fails after it was put right twice (discountFor is not defined)"
+  },
+  {
+   "scenario": "ts-reserve",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The team could not settle it by itself: the check \"placeOrder returns false for first line that could not be reserved and stock stays\" fails, and it could not be written again without losing it (inv.placeOrder is not a function). It took 4 rounds: what was mistaken in the proof itself was corrected or taken out, and the change was put right where a check showed it wrong, and the room was asked for",
+   "oracle": [
+    "an order that fits is reserved",
+    "an order that does not fit leaves the stock as it was",
+    "the last one cannot be bought twice"
+   ],
+   "missing": [],
+   "stuck": "the check \"placeOrder returns false for first line that could not be reserved and stock stays\" fails, and it could not be written again without losing it (inv.placeOrder is not a function)"
+  },
+  {
+   "scenario": "ts-prices",
+   "round": 1,
+   "verdict": "right-unproven",
+   "says": "A check still fails after the change: same sku shares in-flight request (Expected values to be strictly equal: 1250 !== 1500 (expected 1500, got 1250)).",
+   "oracle": [],
+   "missing": [],
+   "stuck": ""
+  },
+  {
+   "scenario": "js-cart-view",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The team could not settle it by itself: the check \"empty cart shows empty state and disabled checkout\" fails, and it could not be written again without losing it (Expected values to be strictly equal: (expected '<section class=\"cart\"><h2>Your cart</h2><p class=\"empty\">Your cart is empty</p></section>',). It took 4 rounds: what was mistaken in the proof itself was corrected or taken out, and the pr",
+   "oracle": [
+    "an empty cart says so, and shows nothing else"
+   ],
+   "missing": [],
+   "stuck": "the check \"empty cart shows empty state and disabled checkout\" fails, and it could not be written again without losing it (Expected values to be strictly equal: (expected '<section class=\"cart\"><h2>Your cart</h2><p class=\"empty\">Your cart is empty</p></section>',)"
+  },
+  {
+   "scenario": "js-bus",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The team could not settle it by itself: the check \"a listener added during an emit is first called on the next emit\" still fails after it was put right twice (Expected values to be strictly deep-equal:). It took 4 rounds: what was mistaken in the proof itself was corrected or taken out, and the room was asked for ideas.",
+   "oracle": [
+    "a once listener does not make the next one miss its turn",
+    "a listener that removes itself keeps the order",
+    "a listener added during an emit waits for the next one"
+   ],
+   "missing": [],
+   "stuck": "the check \"a listener added during an emit is first called on the next emit\" still fails after it was put right twice (Expected values to be strictly deep-equal:)"
+  },
+  {
+   "scenario": "js-sort",
+   "round": 1,
+   "verdict": "right-unproven",
+   "says": "The team could not settle it by itself: the check \"getProducts with no sort returns products in stored order\" still fails after it was put right twice (Expected values to be strictly equal: 4 !== 3 (expected 3, got 4)). It took 4 rounds: what was mistaken in the proof itself was corrected or taken out, and the room was asked for ideas.",
+   "oracle": [],
+   "missing": [],
+   "stuck": "the check \"getProducts with no sort returns products in stored order\" still fails after it was put right twice (Expected values to be strictly equal: 4 !== 3 (expected 3, got 4))"
+  },
+  {
+   "scenario": "py-refund",
+   "round": 1,
+   "verdict": "right-unproven",
+   "says": "The team could not settle it by itself: the check \"Refund puts every line back in stock\" still fails after it was put right twice (ValueError: not enough A). It took 5 rounds: what was mistaken in the proof itself was corrected or taken out, and the change was put right where a check showed it wrong, and the room was asked for ideas.",
+   "oracle": [],
+   "missing": [],
+   "stuck": "the check \"Refund puts every line back in stock\" still fails after it was put right twice (ValueError: not enough A)"
+  },
+  {
+   "scenario": "py-tier",
+   "round": 1,
+   "verdict": "right-unproven",
+   "says": "The team could not settle it by itself: the check \"Known cache is not shared between different skus\" still fails after it was put right twice (AssertionError: 5 != 4, at: self.assertEqual(price_for(\"F\", \"gold\", lambda s, t: 5), 4)). It took 6 rounds: what was mistaken in the proof itself was corrected or taken out, and the change was put right where a check showed it wrong, and the room was asked ",
+   "oracle": [],
+   "missing": [],
+   "stuck": "the check \"Known cache is not shared between different skus\" still fails after it was put right twice (AssertionError: 5 != 4, at: self.assertEqual(price_for(\"F\", \"gold\", lambda s, t: 5), 4))"
+  },
+  {
+   "scenario": "kt-checkout-total",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The proof did not run on the change: e: CheckoutScreen.kt:26:9 None of the following candidates is applicable: / e: CheckoutScreen.kt:26:46 No parameter with name 'testTag' found..",
+   "oracle": [
+    "it did not build"
+   ],
+   "missing": [],
+   "stuck": ""
+  },
+  {
+   "scenario": "kt-stepper",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The proof did not run on the change: e: QuantityStepper.kt:34:27 Unresolved reference 'maxWidth'. / e: QuantityStepper.kt:35:9 No parameter with name 'maxWidth' found. / e: QuantityStepper.kt:35:26 Unresolved reference 'maxWidth'..",
+   "oracle": [
+    "it did not build"
+   ],
+   "missing": [],
+   "stuck": ""
+  },
+  {
+   "scenario": "dart-stepper",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The proof did not run on the code before the change, so it proves nothing yet.",
+   "oracle": [
+    "loading .work/train/oracle-ch6N1g/copy/test/oracle_test.dart"
+   ],
+   "missing": [],
+   "stuck": ""
+  },
+  {
+   "scenario": "dart-summary",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The proof did not run on the change: familyoffice_proof_test.dart:9:30: Error: A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}). / familyoffice_proof_test.dart:11:33: Error: A '$' has special meaning inside a string, and must be followed by an identifier or an expres.",
+   "oracle": [
+    "loading .work/train/oracle-bNgKxW/copy/test/oracle_test.dart"
+   ],
+   "missing": [],
+   "stuck": ""
+  },
+  {
+   "scenario": "media-badge",
+   "round": 1,
+   "verdict": "false-green",
+   "says": "1 of 4 checks fail before the change and pass after it. It took 4 rounds: the change was put right where a check showed it wrong, and what was mistaken in the proof itself was corrected or taken out. 4 further checks, written to challenge it, also pass.",
+   "oracle": [
+    "fewer than none is sold out",
+    "none is sold out"
+   ],
+   "missing": [],
+   "stuck": ""
+  },
+  {
+   "scenario": "media-stepper",
+   "round": 1,
+   "verdict": "false-green",
+   "says": "1 of 6 checks fail before the change and pass after it. 4 further checks, written to challenge it, also pass.",
+   "oracle": [
+    "plus stops at the limit",
+    "a limit of its own is kept"
+   ],
+   "missing": [],
+   "stuck": ""
+  }
+ ]
+}

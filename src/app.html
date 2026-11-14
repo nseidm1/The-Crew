@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0d121d">
+<title>Family Office Admin</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2305070c%27/%3E%3Cpath d=%27M16 4 4 10.5v2.5h24v-2.5z%27 fill=%27%2334d399%27/%3E%3Cpath d=%27M7 15h3v9H7zm7.5 0h3v9h-3zM22 15h3v9h-3z%27 fill=%27%2334d399%27/%3E%3Cpath d=%27M4 25.5h24v2.5H4z%27 fill=%27%2334d399%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/plan.css">
+</head>
+<body class="app">
+<header class="tbar" id="tbar">
+  <button class="tbar-home" id="tbar-home" type="button" aria-label="Family Office: the pages of the app" aria-expanded="false" aria-controls="side"><svg class="tbar-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 3 10v3h26v-3z"/><path d="M6 15h3v10H6zm8.5 0h3v10h-3zM23 15h3v10h-3z" opacity=".8"/><path d="M3 27h26v2H3z"/></svg><span class="tbar-name" id="tbar-name">Family Office</span></button>
+  <div class="tbar-mode" id="tbar-mode" role="group" aria-label="Simple or Developer"><button type="button" data-set="simple" aria-pressed="false">Simple</button><button type="button" data-set="developer" aria-pressed="false">Developer</button></div>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+<div class="shell">
+  <aside class="side" id="side">
+    <a class="wm" href="./" aria-label="Family Office: The Studio, Your Team"><svg class="wm-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 3 10v3h26v-3z"/><path d="M6 15h3v10H6zm8.5 0h3v10h-3zM23 15h3v10h-3z" opacity=".8"/><path d="M3 27h26v2H3z"/><circle class="wm-eye" cx="16" cy="8.6" r="1.6"/></svg><span class="wm-text"><b>Family Office</b></span></a>
+    <nav id="nav" aria-label="Admin">
+      <a href="#chat">Team chat</a>
+      <a href="#workspace">Workspace</a>
+      <a href="#jira">Jira</a>
+      <a href="#remote">Remote</a>
+      <a href="#learning">Soul</a>
+      <a href="#plan">Plan</a>
+    </nav>
+    <div class="side-foot">
+      <button class="btn small" id="out" type="button">Stop team</button>
+      <button class="btn small red" id="clear-all" type="button">Clear all</button>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="top brandline">
+      <h1 id="title"></h1>
+      <div class="chips" id="chips"></div>
+    </header>
+    <div id="view"></div>
+  </main>
+</div>
+<script type="module" src="js/app.js"></script>
+<script type="module" src="js/alive.js"></script>
+</body>
+</html>

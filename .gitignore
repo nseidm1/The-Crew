@@ -1,0 +1,34 @@
+# What a run makes: test state, pictures, logs, training rows
+.work/
+
+# The bundle: built by `npm run bundle`, never edited, never committed
+dist/
+
+# Dependencies (only the browser checks have one)
+node_modules/
+
+# This machine's own state when the app is run from source: sign-ins, keys, the team's work folders.
+# Nothing in it belongs to the repository, and some of it is secret.
+.runner/
+
+# The Android app is built here (node src/android/build.mjs) and its signing key is made here.
+# Neither is committed: a key in a public repository lets anyone sign an update.
+src/android/build/
+src/android/*.apk
+src/android/*.keystore
+src/android/*.jks
+
+# Large media: attach it to a release instead of the history
+assets/promo/*.mp4
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+*.swp
+
+# What the publisher set on the owner's panel: plans, access codes, the GitHub Client ID, switches.
+# The source carries neutral values; these are read by the bundle and by the server when it is run for the publisher.
+.owner/

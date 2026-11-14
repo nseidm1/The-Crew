@@ -1,0 +1,27 @@
+# What a run or a build makes
+dist/
+.work/
+node_modules/
+.runner/
+
+# Not source: pictures, the Android project, recorded results
+assets/
+docs/images/
+src/android/
+training/results/
+
+# Pages are laid out by hand: white space between elements is part of the layout
+*.html
+
+# Documents keep the line breaks they were written with
+*.md
+
+# Edited in place by the owner's tools (tools/make-code.mjs, tools/pulse.mjs, the owner's panel), which find their place
+# in each file by its layout
+src/js/billing.js
+src/js/product.js
+src/js/github.js
+src/js/pulse.js
+
+# The publisher's own values, which the owner's tools edit in place
+.owner/

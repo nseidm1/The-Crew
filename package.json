@@ -1,0 +1,28 @@
+{
+  "name": "the-crew",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "A team of five AI agents that plans, builds, proves and lands work on your own machine.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "bundle": "node tools/bundle.mjs",
+    "gateway": "node tools/gateway.mjs",
+    "owner": "FO_OWNER_DIR=.owner FO_KEEP=1 node src/server.mjs",
+    "test": "node tests/run.mjs core runner",
+    "test:core": "node tests/run.mjs core",
+    "test:runner": "node tests/run.mjs runner",
+    "test:browser": "node tests/run.mjs browser",
+    "test:landing": "node tests/run.mjs landing",
+    "test:all": "node tests/run.mjs all",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0",
+    "prettier": "3.10.1"
+  }
+}

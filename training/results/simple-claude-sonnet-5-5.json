@@ -1,0 +1,58 @@
+{
+ "label": "claude-sonnet-5-5",
+ "mode": "simple",
+ "setup": {
+  "mode": "simple",
+  "engine": "claude"
+ },
+ "at": "2026-11-14T05:53:06.864Z",
+ "machine": "Apple M2 Ultra, 64 GB",
+ "rounds": 1,
+ "minutes": 2,
+ "note": "",
+ "total": {
+  "runs": 3,
+  "good": 3,
+  "falseClaims": 0
+ },
+ "byKind": {
+  "times": {
+   "runs": 2,
+   "good": 2
+  },
+  "question": {
+   "runs": 1,
+   "good": 1
+  }
+ },
+ "byCheck": {},
+ "scenarios": [
+  {
+   "id": "weather-today",
+   "round": 1,
+   "pass": true,
+   "seconds": 36,
+   "words": 164,
+   "links": 4,
+   "misses": []
+  },
+  {
+   "id": "bunny-celery",
+   "round": 1,
+   "pass": true,
+   "seconds": 23,
+   "words": 138,
+   "links": 0,
+   "misses": []
+  },
+  {
+   "id": "museum-hours",
+   "round": 1,
+   "pass": true,
+   "seconds": 40,
+   "words": 164,
+   "links": 4,
+   "misses": []
+  }
+ ]
+}

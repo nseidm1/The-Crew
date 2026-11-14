@@ -1,0 +1,40 @@
+{
+ "label": "claude-sonnet-5-5",
+ "kind": "soul",
+ "setup": {
+  "engine": "claude"
+ },
+ "at": "2026-11-13T06:47:57.506Z",
+ "minutes": 6,
+ "note": "Soul audit, third pass: real proofs recorded",
+ "total": {
+  "checks": 32,
+  "good": 31
+ },
+ "bySystem": {
+  "soul": {
+   "checks": 17,
+   "good": 16
+  },
+  "hindsight": {
+   "checks": 7,
+   "good": 7
+  },
+  "vision": {
+   "checks": 4,
+   "good": 4
+  },
+  "flow": {
+   "checks": 4,
+   "good": 4
+  }
+ },
+ "misses": [
+  {
+   "mode": "simple",
+   "id": "soul.an-answer-obeys-the-ruling",
+   "detail": "[\"4 sentences: Hi Dana! A virus is much smaller than a bacterium and can't live or multiply on its own. It has to get inside your cells and use them to make copies of itself. \"]"
+  }
+ ],
+ "stopped": []
+}

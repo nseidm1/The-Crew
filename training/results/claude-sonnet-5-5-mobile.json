@@ -1,0 +1,227 @@
+{
+ "label": "claude-sonnet-5-5-mobile",
+ "setup": {
+  "engine": "claude",
+  "mode": "developer"
+ },
+ "at": "2026-11-13T02:55:17.988Z",
+ "machine": "Apple M2 Ultra, 64 GB",
+ "rounds": 1,
+ "minutes": 14,
+ "note": "Claude Code on Sonnet 5.5: Android (Compose) and Flutter",
+ "total": {
+  "runs": 9,
+  "good": 8,
+  "proven-right": 5,
+  "found": 3,
+  "false-green": 0,
+  "right-unproven": 1,
+  "wrong": 0,
+  "no-change": 0,
+  "not-found": 0
+ },
+ "byLang": {
+  "kotlin": {
+   "runs": 5,
+   "good": 5,
+   "falseGreen": 0
+  },
+  "dart": {
+   "runs": 4,
+   "good": 3,
+   "falseGreen": 0
+  }
+ },
+ "byKind": {
+  "fix": {
+   "runs": 4,
+   "good": 4,
+   "falseGreen": 0
+  },
+  "enhance": {
+   "runs": 2,
+   "good": 1,
+   "falseGreen": 0
+  },
+  "find": {
+   "runs": 3,
+   "good": 3,
+   "falseGreen": 0
+  }
+ },
+ "scenarios": [
+  {
+   "id": "kt-total",
+   "lang": "kotlin",
+   "kind": "fix",
+   "shape": "one function, a missing factor",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 7,
+   "proofS": 70,
+   "loops": 0
+  },
+  {
+   "id": "kt-pay-button",
+   "lang": "kotlin",
+   "kind": "fix",
+   "shape": "a composable whose size must follow the screen",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 16,
+   "proofS": 98,
+   "loops": 0
+  },
+  {
+   "id": "kt-badge",
+   "lang": "kotlin",
+   "kind": "enhance",
+   "shape": "a new function with three cases",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 10,
+   "proofS": 74,
+   "loops": 0
+  },
+  {
+   "id": "kt-where-delivery",
+   "lang": "kotlin",
+   "kind": "find",
+   "shape": "find it: an Android app, one answer",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 0,
+   "found": 1,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 17,
+   "proofS": 0,
+   "loops": 0
+  },
+  {
+   "id": "kt-where-pay-text",
+   "lang": "kotlin",
+   "kind": "find",
+   "shape": "find it: from a screen to its string resource",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 0,
+   "found": 1,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 13,
+   "proofS": 0,
+   "loops": 0
+  },
+  {
+   "id": "dart-total",
+   "lang": "dart",
+   "kind": "fix",
+   "shape": "one function, a missing factor",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 7,
+   "proofS": 36,
+   "loops": 0
+  },
+  {
+   "id": "dart-pay-button",
+   "lang": "dart",
+   "kind": "fix",
+   "shape": "a widget whose size must follow the screen",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 12,
+   "proofS": 61,
+   "loops": 0
+  },
+  {
+   "id": "dart-badge",
+   "lang": "dart",
+   "kind": "enhance",
+   "shape": "a new function with three cases",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 1,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 8,
+   "proofS": 256,
+   "loops": 5
+  },
+  {
+   "id": "dart-where-delivery",
+   "lang": "dart",
+   "kind": "find",
+   "shape": "find it: five files, one answer",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 0,
+   "found": 1,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 12,
+   "proofS": 0,
+   "loops": 0
+  }
+ ],
+ "misses": [
+  {
+   "scenario": "dart-badge",
+   "round": 1,
+   "verdict": "right-unproven",
+   "says": "The team could not settle it by itself: the check \"loading /private/var/folders/nm/_yhklyp111q8n91p9rdmc_mw0000gn/T/fo-train-Qx9s3J/state/proofs/c99864599a4b/red/test/familyoffice_proof_test.dart\" still fails after it was put right twice (The run on the change did not report this test.). It took 6 rounds: what was mistaken in the proof itself was corrected or taken out, and the change was put righ",
+   "oracle": [],
+   "missing": [],
+   "stuck": "the check \"loading /private/var/folders/nm/_yhklyp111q8n91p9rdmc_mw0000gn/T/fo-train-Qx9s3J/state/proofs/c99864599a4b/red/test/familyoffice_proof_test.dart\" still fails after it was put right twice (The run on the change did not report this test.)"
+  }
+ ]
+}

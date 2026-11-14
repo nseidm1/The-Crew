@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- film.html - the proof film. Open it alone for the player, or with #embed for the film only. -->
+<title>Nothing Lands Unproven</title>
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+/* Layout: one 16:9 film stage (type lower-left, one glass subject right of centre) over a slim player bar.
+   A single dark look by design: smoked glass over a night ground; colour only ever means a proof state. */
+:root{
+  color-scheme: dark;
+  --ink:#05070c;            /* page ground */
+  --rim:#0b1019;            /* stage ground before first paint */
+  --fog:#e9eef5;            /* primary type */
+  --mist:#a3afc1;           /* secondary type */
+  --dim:#66728a;            /* tertiary type */
+  --hair:rgba(233,238,245,.13);
+  --shade:rgba(0,0,0,.62);
+  --smoke:#becde4;          /* unproven: colourless glass */
+  --garnet:#ff5d57;         /* red: it failed */
+  --jade:#5fe3b8;           /* green: it passed */
+  --gilt:#e8b970;           /* running, and the judge's pin */
+  --display:"Instrument Serif","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --body:"Figtree","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --mono:"Martian Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--fog);font-family:var(--body);display:flex;flex-direction:column}
+#wrap{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#frame{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:var(--rim);
+  box-shadow:0 0 0 1px var(--hair),0 40px 120px var(--shade);cursor:pointer}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+#cv{position:absolute;left:0;top:0;width:1920px;height:1080px;display:block}
+
+/* captions, in stage pixels */
+.cap{position:absolute;left:140px;bottom:128px;width:max-content;visibility:hidden;will-change:transform,opacity;--dot:var(--smoke)}
+.eye{display:flex;align-items:center;gap:16px;margin:0 0 30px;font:500 18px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--mist)}
+.eye i{width:11px;height:11px;border-radius:50%;background:var(--dot);box-shadow:0 0 18px var(--dot)}
+.cap h2{margin:0;font:400 108px/1 var(--display);letter-spacing:-.012em;color:var(--fog)}
+.cap h2 em{font-style:italic;color:var(--dot)}
+.ln{display:block;overflow:hidden;padding:.05em .12em .17em 0;margin:-.05em 0 -.17em}
+.ln>span{display:block;white-space:nowrap;will-change:transform}
+.sub{margin:36px 0 0;max-width:610px;font:400 30px/1.42 var(--body);color:var(--mist);text-wrap:balance}
+.sub b{font-weight:500;color:var(--fog)}
+.fine{margin:26px 0 0;font:400 14px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.cap.narrow h2{font-size:84px}
+.cap.narrow .sub{max-width:500px;font-size:27px}
+.cap.end{bottom:auto;top:196px}
+.cap.end h2{font-size:172px;line-height:.96}
+.slot{display:inline-block;width:.59em;height:.74em;margin-left:.16em;vertical-align:-.02em}
+.stats{display:flex;gap:70px;margin:74px 0 0;padding:0;list-style:none}
+.stats li{display:flex;flex-direction:column;gap:14px}
+.stats strong{font:400 66px/1 var(--display);color:var(--fog);font-variant-numeric:tabular-nums}
+.stats span{max-width:210px;font:400 14px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mist)}
+#cnt{font-variant-numeric:tabular-nums}
+
+/* the receipt printed on the glass */
+#rc{position:absolute;left:0;top:0;width:372px;opacity:0;font:400 18px/1.5 var(--mono);color:var(--fog);transform-origin:50% 50%;will-change:transform,opacity}
+#rc h3{margin:0 0 24px;padding-bottom:20px;border-bottom:1px dashed var(--hair);font:500 15px/1 var(--mono);letter-spacing:.32em;color:var(--jade)}
+#rc dl{margin:0;display:grid;grid-template-columns:88px 1fr;row-gap:16px}
+#rc dt{color:var(--mist)}
+#rc dd{margin:0}
+#rc p{margin:24px 0 0;padding-top:18px;border-top:1px dashed var(--hair);font-size:13px;letter-spacing:.06em;color:var(--mist)}
+
+/* player */
+#bar{display:flex;align-items:center;gap:14px;width:100%;max-width:100%}
+#play{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--hair);background:transparent;color:var(--fog);cursor:pointer}
+#play:hover{border-color:var(--mist)}
+#play:focus-visible,#scrub:focus-visible{outline:2px solid var(--jade);outline-offset:3px}
+#play svg{width:14px;height:14px;fill:currentColor}
+#scrub{flex:1;min-width:0;accent-color:var(--jade);cursor:pointer}
+#clock{flex:none;font:400 12px/1 var(--mono);letter-spacing:.08em;color:var(--mist);font-variant-numeric:tabular-nums}
+#foot{margin:0;font:400 13px/1.5 var(--body);color:var(--dim);text-align:center;text-wrap:balance}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+.capture #bar,.capture #foot,.embed #bar,.embed #foot{display:none}
+.embed #wrap{padding:0;gap:0}
+.embed #frame{border-radius:0;box-shadow:none}
+.capture #wrap{padding:0;gap:0;align-items:flex-start;justify-content:flex-start}
+.capture #frame{border-radius:0;box-shadow:none;max-width:none}
+</style>
+
+<main id="wrap">
+  <div id="frame" aria-label="Animated film about the proof system">
+    <div id="stage">
+      <canvas id="cv" width="1920" height="1080" aria-hidden="true"></canvas>
+
+      <section class="cap" data-a="0.45" data-b="6.25" style="--dot:var(--smoke)">
+        <p class="eye"><i></i>The claim</p>
+        <h2><span class="ln"><span>Every change</span></span><span class="ln"><span>arrives as <em>a claim.</em></span></span></h2>
+        <p class="sub">Clear glass. Nobody has to believe it yet.</p>
+      </section>
+
+      <section class="cap" data-a="6.75" data-b="9.95" style="--dot:var(--garnet)">
+        <p class="eye"><i></i>Red first</p>
+        <h2><span class="ln"><span>First, it</span></span><span class="ln"><span>has to <em>fail.</em></span></span></h2>
+        <p class="sub">Its test must go red without the change.</p>
+      </section>
+
+      <section class="cap" data-a="10.35" data-b="13.25" style="--dot:var(--jade)">
+        <p class="eye"><i></i>Then green</p>
+        <h2><span class="ln"><span>Then it</span></span><span class="ln"><span>has to <em>pass.</em></span></span></h2>
+        <p class="sub">Same test, same bytes. Green with the change.</p>
+      </section>
+
+      <section class="cap" data-a="13.85" data-b="20.25" style="--dot:var(--gilt)">
+        <p class="eye"><i></i>The judge</p>
+        <h2><span class="ln"><span>A judge <em>pins</em></span></span><span class="ln"><span>the behaviour.</span></span></h2>
+        <p class="sub">If the judge is green, it is not a bug.</p>
+      </section>
+
+      <section class="cap narrow" data-a="20.95" data-b="30.1" style="--dot:var(--gilt)">
+        <p class="eye"><i></i>Many iterations</p>
+        <h2><span class="ln"><span><em id="cnt">2,981</em> proofs</span></span><span class="ln"><span>in one day.</span></span></h2>
+        <p class="sub"><b>99.7%</b> of proof minutes ran on the Halo, not the desk. A red is an answer too.</p>
+        <p class="fine">Measured 9 Nov 2026</p>
+      </section>
+
+      <section class="cap" data-a="30.75" data-b="37.2" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The receipt</p>
+        <h2><span class="ln"><span>One proof.</span></span><span class="ln"><span>One <em>receipt.</em></span></span></h2>
+        <p class="sub">The lander lands on the receipt. No second proof.</p>
+      </section>
+
+      <section class="cap" data-a="37.85" data-b="44.2" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The landing</p>
+        <h2><span class="ln"><span><em>Green,</em></span></span><span class="ln"><span>at a SHA.</span></span></h2>
+        <p class="sub">Recorded where it ran. Anyone can run it again.</p>
+      </section>
+
+      <section class="cap end" data-a="44.9" data-b="52" style="--dot:var(--jade)">
+        <h2><span class="ln"><span>Nothing lands</span></span><span class="ln"><span>unproven.<span class="slot" id="slot"></span></span></span></h2>
+        <ul class="stats">
+          <li><strong>2,981</strong><span>proofs in one day</span></li>
+          <li><strong>99.7%</strong><span>of proof minutes on the Halo</span></li>
+          <li><strong>100%</strong><span>of landings landed</span></li>
+          <li><strong>$1.08</strong><span>per landed commit</span></li>
+        </ul>
+      </section>
+
+      <div id="rc" aria-hidden="true">
+        <h3>RECEIPT</h3>
+        <dl>
+          <dt>key</dt><dd>bytes of every path, its tests, its judge</dd>
+          <dt>head</dt><dd>e8121fd</dd>
+          <dt>proof</dt><dd>READY</dd>
+          <dt>batch</dt><dd>3 sets, one proof</dd>
+        </dl>
+        <p>good until a path it proved changes</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="bar" role="group" aria-label="Playback">
+    <button id="play" type="button" aria-label="Pause">
+      <svg id="ic-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="1.5" y="1" width="4" height="12" rx="1"/><rect x="8.5" y="1" width="4" height="12" rx="1"/></svg>
+      <svg id="ic-play" viewBox="0 0 14 14" aria-hidden="true" hidden><path d="M3 1.2v11.6a.6.6 0 0 0 .9.5l9-5.8a.6.6 0 0 0 0-1L3.9.7a.6.6 0 0 0-.9.5z"/></svg>
+    </button>
+    <input id="scrub" type="range" min="0" max="52" step="0.01" value="0" aria-label="Position in the film">
+    <output id="clock" for="scrub">0:00 / 0:52</output>
+  </div>
+  <p id="foot">The proof system in 52 seconds. Figures measured on this system on 9 and 10 Nov 2026.</p>
+
+  <p class="sr">Transcript. Every change arrives as a claim. First, it has to fail: its test must go red without the change.
+  Then it has to pass: green with the change. A judge pins the behaviour; if the judge is green, it is not a bug.
+  2,981 proofs in one day, 99.7% of proof minutes on the Halo. One proof, one receipt: the lander lands on the receipt.
+  Green, at a SHA: recorded where it ran. Nothing lands unproven.</p>
+</main>
+
+<script>
+(() => {
+'use strict';
+const W = 1920, H = 1080, DUR = 52;
+const $ = (s) => document.querySelector(s);
+const wrap = $('#wrap'), frame = $('#frame'), stage = $('#stage'), cv = $('#cv'), bar = $('#bar'), foot = $('#foot');
+const ctx = cv.getContext('2d');
+const CAPTURE = location.hash === '#capture';
+if (CAPTURE) document.documentElement.classList.add('capture');
+const EMBED = location.hash === '#embed';   // inside the landing page: the film alone, no player
+if (EMBED) document.documentElement.classList.add('embed');
+
+/* ---------- maths ---------- */
+const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const io = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const out = (t) => 1 - Math.pow(1 - t, 3);
+const back = (t) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + Math.max(0, a).toFixed(3) + ')';
+const val = (v) => (typeof v === 'function' ? v() : v);
+
+/* ---------- colour: only ever a proof state ---------- */
+const C = { smoke: [190, 205, 228], garnet: [255, 93, 87], jade: [95, 227, 184], gilt: [232, 185, 112], fog: [233, 238, 245] };
+const D = { ind: [40, 50, 122], pet: [26, 78, 106], plum: [74, 40, 100], gar: [146, 30, 44], gar2: [98, 20, 42],
+  jad: [18, 112, 92], jad2: [12, 80, 76], gil: [128, 88, 34], gil2: [96, 54, 32] };
+const P_COOL = [D.ind, D.pet, D.plum, D.ind, D.pet];
+const P_RED = [D.gar, D.plum, D.gar2, D.ind, D.gar2];
+const P_GRN = [D.jad, D.pet, D.jad2, D.ind, D.pet];
+const P_GLT = [D.gil, D.plum, D.gil2, D.ind, D.pet];
+const P_MANY = [D.pet, D.ind, D.jad2, D.plum, D.pet];
+const P_END = [D.jad2, D.ind, D.plum, D.pet, D.jad];
+const PALK = [
+  { t: 0, c: P_COOL }, { t: 6.5, c: P_COOL }, { t: 7.6, c: P_RED }, { t: 10, c: P_RED }, { t: 11.4, c: P_GRN }, { t: 13.4, c: P_GRN },
+  { t: 14.8, c: P_GLT }, { t: 20.4, c: P_GLT }, { t: 21.8, c: P_MANY }, { t: 30.2, c: P_MANY }, { t: 31.6, c: P_GRN }, { t: 44.3, c: P_GRN },
+  { t: 45.9, c: P_END }, { t: 52, c: P_END },
+];
+function palAt(t) {
+  let k = 0; while (k < PALK.length - 2 && t >= PALK[k + 1].t) k++;
+  const a = PALK[k], b = PALK[k + 1], u = io(seg(t, a.t, b.t));
+  return a.c.map((c, i) => mix3(c, b.c[i], u));
+}
+
+/* ---------- shapes: every outline is N points, so any one can become any other ---------- */
+const N = 168;
+function resample(poly, n = N) {
+  let area = 0;
+  for (let i = 0; i < poly.length; i++) { const a = poly[i], b = poly[(i + 1) % poly.length]; area += a[0] * b[1] - b[0] * a[1]; }
+  if (area < 0) poly = poly.slice().reverse();
+  const m = poly.length, L = [0];
+  for (let i = 0; i < m; i++) { const a = poly[i], b = poly[(i + 1) % m]; L.push(L[i] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
+  const total = L[m];
+  let s0 = 0, bestY = 1e9;
+  for (let i = 0; i < m; i++) {
+    const a = poly[i], b = poly[(i + 1) % m];
+    if ((a[0] <= 0 && b[0] > 0) || (a[0] >= 0 && b[0] < 0)) {
+      const u = (0 - a[0]) / (b[0] - a[0]), y = a[1] + (b[1] - a[1]) * u;
+      if (y < bestY) { bestY = y; s0 = L[i] + (L[i + 1] - L[i]) * u; }
+    }
+  }
+  const pts = [];
+  for (let k = 0; k < n; k++) {
+    const s = (s0 + (k * total) / n) % total;
+    let i = 0; while (i < m - 1 && L[i + 1] < s) i++;
+    const a = poly[i], b = poly[(i + 1) % m], u = (s - L[i]) / ((L[i + 1] - L[i]) || 1);
+    pts.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]);
+  }
+  return pts;
+}
+const arc = (cx, cy, r, a0, a1, k = 14) => Array.from({ length: k + 1 }, (_, i) => { const a = a0 + ((a1 - a0) * i) / k; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; });
+const rrect = (w, h, r) => [...arc(w - r, -h + r, r, -Math.PI / 2, 0), ...arc(w - r, h - r, r, 0, Math.PI / 2), ...arc(-w + r, h - r, r, Math.PI / 2, Math.PI), ...arc(-w + r, -h + r, r, Math.PI, 1.5 * Math.PI)];
+const SH = {
+  shard: resample([[-.12, -1], [.5, -.7], [.98, -.02], [.42, .36], [.66, .98], [-.3, .74], [-.94, .3], [-.5, -.4]]),
+  shard2: resample([[-.3, -.92], [.38, -.98], [.9, -.3], [.6, .3], [.9, .86], [.05, .62], [-.7, .9], [-.98, -.1]]),
+  shard3: resample([[.02, -1], [.72, -.5], [.5, .05], [.96, .5], [.2, .96], [-.5, .6], [-.86, .72], [-.7, -.5]]),
+  check: resample([[-.98, .06], [-.66, -.27], [-.3, .1], [.64, -.86], [.98, -.53], [-.3, .8]]),
+  hex: resample(Array.from({ length: 6 }, (_, i) => { const a = -Math.PI / 2 + (i * Math.PI) / 3; return [Math.cos(a), Math.sin(a)]; })),
+  receipt: resample((() => { const w = .62, top = -1, bot = .9, teeth = 9, p = [[-w, top], [w, top], [w, bot]]; for (let i = 1; i <= teeth * 2; i++) p.push([w - (2 * w * i) / (teeth * 2), i % 2 ? bot + .1 : bot]); return p; })()),
+  capsule: resample([...arc(.72, 0, .3, -Math.PI / 2, Math.PI / 2, 18), ...arc(-.72, 0, .3, Math.PI / 2, 1.5 * Math.PI, 18)]),
+  cell: resample(rrect(1, 1, .3)),
+  tomb: resample(rrect(.8, 1, .16)),
+};
+
+/* ---------- the grid of proofs ---------- */
+const G = { cols: 9, rows: 6, s: 98, gap: 24, x0: 736, y0: 196, oc: 4, or: 2 };
+const PASSES = 4, P0 = 22.7, PD = 1.72, RED_P = [.36, .2, .08, 0], TRUSTED = new Set([7, 38]);
+const cells = [];
+for (let r = 0; r < G.rows; r++) for (let c = 0; c < G.cols; c++) {
+  const i = r * G.cols + c;
+  const outc = []; for (let p = 0; p < PASSES; p++) outc.push(p === PASSES - 1 ? (TRUSTED.has(i) ? 2 : 1) : (hash(i * 7.3 + p * 13.1) < RED_P[p] ? 2 : 1));
+  cells.push({ i, x: G.x0 + G.s / 2 + c * (G.s + G.gap), y: G.y0 + G.s / 2 + r * (G.s + G.gap), d: Math.hypot(c - G.oc, r - G.or),
+    wd: ((c + r * .7) / (G.cols + G.rows * .7)) * .92 + hash(i + 3.3) * .14, rd: outc.map((_, p) => .34 + hash(i * 3.1 + p * 5.7) * .46), out: outc, k: hash(i * 9.7) });
+}
+const CELL0 = { x: G.x0 + G.s / 2 + G.oc * (G.s + G.gap), y: G.y0 + G.s / 2 + G.or * (G.s + G.gap) };
+const RCP = { x: 1350, y: 540 };          // where the receipt forms
+const RAIL = { y: 510, x0: 660, x1: 1880, head: 1560, nodes: [790, 960, 1130, 1300], sha: ['ec2ec62', 'e8121fd', '6d240e0', '733ebdd'], headSha: 'de7755f' };
+const TOMB = { x: 1100, y: 470, r: 62 };  // measured from the type once fonts are in
+
+/* ---------- the subject's keyframes ---------- */
+const HX = 1400;
+const K = [
+  { t: 0, s: 'shard', x: HX, y: 540, r: 322, rot: -9, c: C.smoke, g: .22, f: 9 },
+  { t: 1.5, s: 'shard', x: HX, y: 540, r: 322, rot: -8, c: C.smoke, g: .22, f: 9 },
+  { t: 2.5, s: 'shard2', x: HX, y: 540, r: 322, rot: -3, c: C.smoke, g: .22, f: 9 },
+  { t: 3.2, s: 'shard2', x: HX, y: 540, r: 322, rot: -2, c: C.smoke, g: .22, f: 9 },
+  { t: 4.2, s: 'shard3', x: HX, y: 540, r: 322, rot: -10, c: C.smoke, g: .22, f: 9 },
+  { t: 4.9, s: 'shard3', x: HX, y: 540, r: 322, rot: -9, c: C.smoke, g: .22, f: 9 },
+  { t: 5.9, s: 'shard', x: HX, y: 540, r: 322, rot: -4, c: C.smoke, g: .22, f: 9 },
+  { t: 6.3, s: 'shard', x: HX, y: 540, r: 322, rot: -3, c: C.smoke, g: .22, f: 9 },
+  { t: 7.3, s: 'shard', x: HX, y: 540, r: 334, rot: 4, c: C.garnet, g: 1, f: 6 },
+  { t: 9.9, s: 'shard', x: HX, y: 540, r: 334, rot: 8, c: C.garnet, g: 1, f: 6 },
+  { t: 11.3, s: 'check', x: HX, y: 556, r: 318, rot: 0, c: C.jade, g: 1, f: 9 },
+  { t: 13.3, s: 'check', x: HX, y: 556, r: 318, rot: 0, c: C.jade, g: 1, f: 9 },
+  { t: 14.7, s: 'hex', x: HX, y: 540, r: 312, rot: 0, c: C.gilt, g: .85, f: 9 },
+  { t: 20.3, s: 'hex', x: HX, y: 540, r: 312, rot: 30, c: C.gilt, g: .85, f: 9 },
+  { t: 21.6, s: 'cell', x: CELL0.x, y: CELL0.y, r: 49, rot: 0, c: C.smoke, g: .2, f: 0 },
+  { t: 30.3, s: 'cell', x: RCP.x, y: RCP.y, r: 49, rot: 0, c: C.jade, g: .9, f: 0 },
+  { t: 31.8, s: 'receipt', x: RCP.x, y: RCP.y, r: 366, rot: -4, c: mix3(C.jade, C.smoke, .45), g: .55, f: 8, w: .11 },
+  { t: 37.3, s: 'receipt', x: RCP.x, y: RCP.y, r: 366, rot: -4, c: mix3(C.jade, C.smoke, .45), g: .55, f: 8, w: .11 },
+  { t: 38.7, s: 'capsule', x: RAIL.head, y: RAIL.y, r: 192, rot: 0, c: C.jade, g: 1, f: 0 },
+  { t: 44.3, s: 'capsule', x: RAIL.head, y: RAIL.y, r: 192, rot: 0, c: C.jade, g: 1, f: 0 },
+  { t: 45.9, s: 'tomb', x: () => TOMB.x, y: () => TOMB.y, r: () => TOMB.r, rot: 0, c: C.jade, g: .95, f: 0 },
+  { t: 52, s: 'tomb', x: () => TOMB.x, y: () => TOMB.y, r: () => TOMB.r, rot: 0, c: C.jade, g: .95, f: 0 },
+];
+function heroAt(t) {
+  let k = 0; while (k < K.length - 2 && t >= K[k + 1].t) k++;
+  const a = K[k], b = K[k + 1], raw = seg(t, a.t, b.t), u = io(raw);
+  const A = SH[a.s], B = SH[b.s], morph = a.s !== b.s;
+  let x = lerp(val(a.x), val(b.x), u), y = lerp(val(a.y), val(b.y), u);
+  const r = lerp(val(a.r), val(b.r), u), rot = (lerp(a.rot, b.rot, u) * Math.PI) / 180;
+  const col = mix3(a.c, b.c, u), g = lerp(a.g, b.g, u), fl = lerp(a.f, b.f, u), white = lerp(a.w || 0, b.w || 0, u);
+  y += Math.sin(t * .9) * fl; x += Math.cos(t * .6) * fl * .5;
+  const shake = seg(t, 7.25, 7.5) * (1 - seg(t, 7.7, 8.5)); x += Math.sin(t * 61) * 5 * shake; y += Math.cos(t * 53) * 3 * shake;
+  const kin = a.s.indexOf('shard') === 0 && b.s.indexOf('shard') === 0;
+  const wob = morph ? Math.sin(Math.PI * u) * (kin ? .04 : .075) : 0;
+  const cs = Math.cos(rot), sn = Math.sin(rot), pts = new Array(N);
+  for (let i = 0; i < N; i++) {
+    let ui = u;
+    if (morph) { const ph = .5 + .5 * Math.sin((i / N) * Math.PI * 4 + 1.3); ui = io(clamp(raw * 1.4 - .4 * ph)); }
+    let px = lerp(A[i][0], B[i][0], ui), py = lerp(A[i][1], B[i][1], ui);
+    const th = (i / N) * 6.2832, n1 = Math.sin(2 * th + t * 2.2) + .5 * Math.sin(5 * th - t * 2.9);
+    const kk = 1 + wob * n1 * .6 + .005 * Math.sin(3 * th + t * 1.3);
+    px *= kk; py *= kk;
+    pts[i] = [x + (px * cs - py * sn) * r, y + (px * sn + py * cs) * r];
+  }
+  return { pts, x, y, r, rot, col, g: g * (1 + .09 * Math.sin(t * 1.7)), white };
+}
+const heroAlpha = (t) => (t < 21.3 ? 1 : t < 21.9 ? 1 - seg(t, 21.3, 21.9) : t < 30.3 ? 0 : t < 30.9 ? seg(t, 30.3, 30.9) : 1);
+function pathOf(pts) {
+  const p = new Path2D(), n = pts.length;
+  p.moveTo((pts[n - 1][0] + pts[0][0]) / 2, (pts[n - 1][1] + pts[0][1]) / 2);
+  for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; p.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); }
+  p.closePath(); return p;
+}
+function boundsOf(pts) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const p of pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+}
+function rr(p, x, y, w, h, r) { p.moveTo(x + r, y); p.arcTo(x + w, y, x + w, y + h, r); p.arcTo(x + w, y + h, x, y + h, r); p.arcTo(x, y + h, x, y, r); p.arcTo(x, y, x + w, y, r); p.closePath(); return p; }
+
+/* ---------- buffers: the room behind the glass ---------- */
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const BW = 960, BH = 540, GW = 240, GH = 135, SW = 192, SHH = 108;
+const BG = mk(BW, BH), bg = BG.getContext('2d');
+const GL = mk(GW, GH), gl = GL.getContext('2d');
+const SOFT = mk(SW, SHH), sf = SOFT.getContext('2d');
+const LAT = mk(BW + 32, BH + 32);
+(() => { const l = LAT.getContext('2d'); l.fillStyle = 'rgba(233,238,245,.2)'; for (let y = 0; y < LAT.height; y += 32) for (let x = 0; x < LAT.width; x += 32) { l.beginPath(); l.arc(x + 16, y + 16, 1, 0, 6.2832); l.fill(); } })();
+const NOISE = mk(220, 220);
+(() => { const n = NOISE.getContext('2d'), im = n.createImageData(220, 220); let s = 1234567;
+  for (let i = 0; i < im.data.length; i += 4) { s = (s * 1664525 + 1013904223) >>> 0; const v = s >>> 24; im.data[i] = im.data[i + 1] = im.data[i + 2] = 255; im.data[i + 3] = v > 150 ? (v - 150) * .34 : 0; }
+  n.putImageData(im, 0, 0); })();
+const GHOST = [
+  { w: 'claim', a: 0, b: 6.5 }, { w: 'red', a: 6.9, b: 10.1 }, { w: 'green', a: 10.5, b: 13.5 }, { w: 'judge', a: 13.9, b: 20.4 },
+  { w: '2,981', a: 21.2, b: 30.2 }, { w: 'receipt', a: 30.9, b: 37.3 }, { w: 'sha', a: 37.9, b: 44.3 }, { w: 'q.e.d.', a: 45, b: 52, x: 1490, mw: 720 },
+];
+let fontsIn = false;
+function drawBG(t) {
+  gl.setTransform(1, 0, 0, 1, 0, 0); gl.globalCompositeOperation = 'source-over'; gl.filter = 'none';
+  gl.fillStyle = '#04060b'; gl.fillRect(0, 0, GW, GH);
+  gl.filter = 'blur(7px)'; gl.globalCompositeOperation = 'lighter';
+  const pal = palAt(t);
+  for (let i = 0; i < 5; i++) {
+    const ph = i * 1.7;
+    const cx = GW * (.5 + .46 * Math.sin(t * .11 * (1 + i * .13) + ph * 2.1)), cy = GH * (.5 + .42 * Math.cos(t * .09 * (1 + i * .17) + ph));
+    const R = GH * (.4 + .12 * Math.sin(t * .21 + ph));
+    gl.beginPath();
+    for (let k = 0; k <= 48; k++) {
+      const a = (k / 48) * 6.2832, q = R * (1 + .24 * Math.sin(a * 3 + t * .5 + ph) + .13 * Math.sin(a * 5 - t * .37 + ph * 2));
+      const x = cx + Math.cos(a) * q, y = cy + Math.sin(a) * q; if (k) gl.lineTo(x, y); else gl.moveTo(x, y);
+    }
+    gl.closePath(); gl.fillStyle = rgba(pal[i], .4); gl.fill();
+  }
+  gl.filter = 'none'; gl.globalCompositeOperation = 'source-over';
+
+  bg.setTransform(1, 0, 0, 1, 0, 0); bg.globalAlpha = 1; bg.imageSmoothingEnabled = true; bg.imageSmoothingQuality = 'high';
+  bg.drawImage(GL, 0, 0, BW, BH);
+  bg.drawImage(LAT, -((t * 5) % 32), -((t * 2.5) % 32));
+  bg.save(); bg.scale(.5, .5);
+  for (let i = 0; i < 9; i++) {   // out-of-focus glass dust, drifting
+    const x = ((hash(i + 1) * W + t * (5 + hash(i + 5) * 9)) % (W + 300)) - 150, y = H * (.1 + .8 * hash(i + 2)) + Math.sin(t * .25 + i) * 30;
+    const r = 22 + hash(i + 3) * 58, c = pal[i % 5], gr = bg.createRadialGradient(x, y, r * .62, x, y, r);
+    gr.addColorStop(0, rgba(mix3(c, C.fog, .3), .05)); gr.addColorStop(.86, rgba(mix3(c, C.fog, .4), .07)); gr.addColorStop(1, rgba(c, 0));
+    bg.fillStyle = gr; bg.beginPath(); bg.arc(x, y, r, 0, 6.2832); bg.fill();
+  }
+  if (fontsIn) {
+    bg.textAlign = 'center'; bg.textBaseline = 'middle';
+    for (const gh of GHOST) {
+      const a = seg(t, gh.a, gh.a + .9) * (1 - seg(t, gh.b - .7, gh.b)); if (a <= 0) continue;
+      let size = 600; bg.font = 'italic 400 ' + size + 'px "Instrument Serif"';
+      const cap = gh.mw || 1020, mw = bg.measureText(gh.w).width; if (mw > cap) { size = (size * cap) / mw; bg.font = 'italic 400 ' + size + 'px "Instrument Serif"'; }
+      bg.fillStyle = 'rgba(233,238,245,' + (.085 * a).toFixed(3) + ')';
+      bg.fillText(gh.w, (gh.x || 1350) + Math.sin(t * .3) * 20, 560 + (1 - out(seg(t, gh.a, gh.a + 1.4))) * 40);
+    }
+  }
+  railBG(t);
+  bg.restore();
+  sf.imageSmoothingEnabled = true; sf.imageSmoothingQuality = 'high'; sf.drawImage(BG, 0, 0, SW, SHH);
+}
+function railBG(t) {
+  if (t < 37.5 || t > 45.5) return;
+  const a = seg(t, 37.6, 38.3) * (1 - seg(t, 44.5, 45.3)), xe = lerp(RAIL.x0, RAIL.x1, out(seg(t, 37.6, 38.9)));
+  bg.lineCap = 'round';
+  bg.strokeStyle = 'rgba(233,238,245,' + (.3 * a).toFixed(3) + ')'; bg.lineWidth = 2.5;
+  bg.beginPath(); bg.moveTo(RAIL.x0, RAIL.y); bg.lineTo(Math.min(xe, RAIL.head), RAIL.y); bg.stroke();
+  if (xe > RAIL.head) { bg.setLineDash([3, 14]); bg.beginPath(); bg.moveTo(RAIL.head, RAIL.y); bg.lineTo(xe, RAIL.y); bg.stroke(); bg.setLineDash([]); }
+  const cu = seg(t, 38.75, 40.4);
+  if (cu > 0 && cu < 1) {
+    const cx = lerp(RAIL.head, RAIL.x0, io(cu)), lg = bg.createLinearGradient(cx - 190, 0, cx + 190, 0);
+    lg.addColorStop(0, rgba(C.jade, 0)); lg.addColorStop(.5, rgba(C.jade, .95 * a)); lg.addColorStop(1, rgba(C.jade, 0));
+    bg.strokeStyle = lg; bg.lineWidth = 6; bg.beginPath(); bg.moveTo(Math.max(RAIL.x0, cx - 190), RAIL.y); bg.lineTo(Math.min(RAIL.head, cx + 190), RAIL.y); bg.stroke();
+  }
+}
+
+/* ---------- glass ---------- */
+function blit(src, bx, m, a) {
+  const sx = src.width / W, sy = src.height / H, sw = bx.w / m, sh = bx.h / m;
+  ctx.save(); ctx.globalAlpha *= a;
+  ctx.drawImage(src, (bx.cx - sw / 2) * sx, (bx.cy - sh / 2) * sy, sw * sx, sh * sy, bx.x, bx.y, bx.w, bx.h);
+  ctx.restore();
+}
+function glass(path, bx, col, glow, alpha, t, white = 0) {
+  const lo = Math.min(bx.w, bx.h), hi = Math.max(bx.w, bx.h), depth = clamp(lo * .05, 3, 20), bev = clamp(lo * .075, 5, 30);
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.62)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 42; ctx.fillStyle = 'rgba(3,5,9,.55)'; ctx.fill(path); ctx.restore();
+  if (glow > .01) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.shadowColor = rgba(col, .5 * glow); ctx.shadowBlur = 120; ctx.fillStyle = rgba(col, .05 * glow); ctx.fill(path); ctx.restore(); }
+  // the slab's thickness: the same outline, set back and down
+  ctx.save(); ctx.translate(depth * .55, depth);
+  const sg = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  sg.addColorStop(0, rgba(mix3([8, 12, 20], col, .16), .9)); sg.addColorStop(1, rgba(mix3([8, 12, 20], col, .5), .92));
+  ctx.fillStyle = sg; ctx.fill(path); ctx.lineWidth = 1.4; ctx.strokeStyle = rgba(col, .35 + .35 * glow); ctx.stroke(path); ctx.restore();
+  ctx.save(); ctx.clip(path);
+  const rb = { x: bx.x, y: bx.y, w: bx.w, h: bx.h, cx: bx.cx - hi * .05, cy: bx.cy - hi * .035 };
+  blit(BG, rb, 1.36, 1); blit(SOFT, rb, 1.36, .42);
+  ctx.fillStyle = 'rgba(6,10,18,.2)'; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  if (white > 0) { ctx.fillStyle = 'rgba(226,236,246,' + white.toFixed(3) + ')'; ctx.fillRect(bx.x, bx.y, bx.w, bx.h); }
+  const g = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(.42, 'rgba(255,255,255,.035)'); g.addColorStop(1, rgba(col, .1 + .2 * glow));
+  ctx.fillStyle = g; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  const qx = bx.cx + bx.w * .18, qy = bx.cy + bx.h * .3, rg = ctx.createRadialGradient(qx, qy, 0, qx, qy, hi * .62);
+  rg.addColorStop(0, rgba(col, .44 * glow)); rg.addColorStop(1, rgba(col, 0)); ctx.fillStyle = rg; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  const hx = bx.x + bx.w * .3, hy = bx.y + bx.h * .22, hs = ctx.createRadialGradient(hx, hy, 0, hx, hy, hi * .44);
+  hs.addColorStop(0, 'rgba(255,255,255,.1)'); hs.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = hs; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  // the bevel: lit toward the light, shaded away from it
+  const bv = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  bv.addColorStop(0, 'rgba(255,255,255,.36)'); bv.addColorStop(.5, 'rgba(255,255,255,.03)'); bv.addColorStop(1, 'rgba(0,0,0,.4)');
+  ctx.lineJoin = 'round'; ctx.lineWidth = bev * 2; ctx.strokeStyle = bv; ctx.stroke(path);
+  ctx.save(); ctx.shadowColor = rgba(col, .85 * glow); ctx.shadowBlur = 46; ctx.lineWidth = 10; ctx.strokeStyle = rgba(col, .36 * glow); ctx.stroke(path); ctx.restore();
+  ctx.save(); ctx.shadowColor = 'rgba(255,255,255,.5)'; ctx.shadowBlur = 20; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.stroke(path); ctx.restore();
+  const span = Math.max(bx.w, bx.h) * 1.25, gp = ((t * .14) % 1.5) / 1.5, off = lerp(-span, span, gp);
+  ctx.save(); ctx.translate(bx.cx, bx.cy); ctx.rotate(-.52);
+  const lg = ctx.createLinearGradient(off - 110, 0, off + 110, 0);
+  lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(.5, 'rgba(255,255,255,.15)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = lg; ctx.fillRect(-span, -span, span * 2, span * 2); ctx.restore();
+  ctx.restore();
+  const rs = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  rs.addColorStop(0, 'rgba(255,255,255,.92)'); rs.addColorStop(.35, 'rgba(255,255,255,.16)'); rs.addColorStop(.7, rgba(col, .25)); rs.addColorStop(1, rgba(col, .9));
+  ctx.lineJoin = 'round'; ctx.lineWidth = 2.4; ctx.strokeStyle = rs; ctx.stroke(path);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineWidth = 1.4;
+  ctx.translate(2.2, 0); ctx.strokeStyle = 'rgba(255,60,96,.2)'; ctx.stroke(path);
+  ctx.translate(-4.4, 0); ctx.strokeStyle = 'rgba(60,160,255,.2)'; ctx.stroke(path); ctx.restore();
+  ctx.restore();
+}
+function cellGlass(x, y, s, col, glow, a) {
+  const h = s / 2, r = s * .27, p = rr(new Path2D(), x - h, y - h, s, s, r), bx = { x: x - h, y: y - h, w: s, h: s, cx: x, cy: y };
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fill(rr(new Path2D(), x - h + 4, y - h + 14, s, s, r));
+  ctx.fillStyle = rgba(mix3([8, 12, 20], col, .12 + .34 * glow), .92); ctx.fill(rr(new Path2D(), x - h + 2.5, y - h + 5.5, s, s, r));
+  ctx.save(); ctx.clip(p);
+  blit(BG, bx, 1.4, 1); blit(SOFT, bx, 1.4, .58);
+  ctx.fillStyle = 'rgba(6,10,18,.28)'; ctx.fillRect(bx.x, bx.y, s, s);
+  const g = ctx.createLinearGradient(bx.x, bx.y, bx.x + s, bx.y + s);
+  g.addColorStop(0, 'rgba(255,255,255,.2)'); g.addColorStop(.5, 'rgba(255,255,255,.03)'); g.addColorStop(1, rgba(col, .05 + .3 * glow));
+  ctx.fillStyle = g; ctx.fillRect(bx.x, bx.y, s, s);
+  const rg = ctx.createRadialGradient(x, y + h * .7, 0, x, y + h * .7, s * .95);
+  rg.addColorStop(0, rgba(col, .5 * glow)); rg.addColorStop(1, rgba(col, 0)); ctx.fillStyle = rg; ctx.fillRect(bx.x, bx.y, s, s);
+  const bv = ctx.createLinearGradient(bx.x, bx.y, bx.x + s, bx.y + s);
+  bv.addColorStop(0, 'rgba(255,255,255,.3)'); bv.addColorStop(.5, 'rgba(255,255,255,.02)'); bv.addColorStop(1, 'rgba(0,0,0,.34)');
+  ctx.lineWidth = s * .16; ctx.strokeStyle = bv; ctx.stroke(p);
+  ctx.restore();
+  const rs = ctx.createLinearGradient(bx.x, bx.y, bx.x + s, bx.y + s);
+  rs.addColorStop(0, 'rgba(255,255,255,.8)'); rs.addColorStop(.45, 'rgba(255,255,255,.1)'); rs.addColorStop(1, rgba(col, .2 + .6 * glow));
+  ctx.lineWidth = 1.6; ctx.strokeStyle = rs; ctx.stroke(p);
+  ctx.restore();
+}
+
+/* ---------- scene parts ---------- */
+let doneFrac = 1, passNow = PASSES;
+function drawCells(t) {
+  let done = 0, pn = 0;
+  for (let p = 0; p < PASSES; p++) if (t >= P0 + p * PD) pn = p + 1;
+  for (const c of cells) {
+    let res = 0, since = 9, running = false, runU = 0, prev = 0;
+    for (let p = 0; p < PASSES; p++) {
+      const st = P0 + p * PD + c.wd, en = st + c.rd[p];
+      if (t >= st && t < en) { running = true; runU = (t - st) / (en - st); }
+      if (t >= en) { prev = res; res = c.out[p]; since = t - en; done++; }
+    }
+    const tb = 21.5 + c.d * .085, sc0 = back(seg(t, tb, tb + .55)), al0 = seg(t, tb, tb + .3);
+    if (al0 <= 0) continue;
+    const base = (q) => (q === 1 ? C.jade : q === 2 ? C.garnet : C.smoke), bg0 = (q) => (q === 1 ? .8 : q === 2 ? .95 : .14);
+    let col = base(res), glow = bg0(res);
+    if (running) { const k = clamp(runU * 5); col = mix3(col, C.gilt, k); glow = lerp(glow, 1, k); }
+    else if (since < .28 && res) { const k = since / .28; col = mix3(C.gilt, col, k); }
+    const pop = since < .4 && res ? 1 + .1 * Math.sin(Math.PI * (since / .4)) : 1;
+    let x = c.x, y = c.y, sc = sc0 * pop, al = al0;
+    const te = 30.05 + c.k * .5, ue = io(seg(t, te, te + .8));
+    if (res === 2 && t > 29.9) { al *= 1 - seg(t, 29.95, 30.55); y += 34 * seg(t, 29.95, 30.55); }
+    else if (ue > 0) { x = lerp(x, RCP.x, ue); y = lerp(y, RCP.y, ue); sc *= 1 - .7 * ue; al *= 1 - ue * ue; }
+    if (al <= .004) continue;
+    cellGlass(x, y, G.s * sc, col, glow, al);
+    ctx.save(); ctx.globalAlpha = al; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 3.2 * sc;
+    if (running) { const a0 = t * 7 + c.i; ctx.strokeStyle = rgba(C.gilt, .95); ctx.beginPath(); ctx.arc(x, y, G.s * .17 * sc, a0, a0 + 4.2); ctx.stroke(); }
+    else if (res === 1) { const q = G.s * .15 * sc, k = clamp(since / .25); ctx.strokeStyle = rgba(mix3(C.jade, C.fog, .5), .95 * k); ctx.beginPath(); ctx.moveTo(x - q * 1.15, y + q * .05); ctx.lineTo(x - q * .3, y + q * .85); ctx.lineTo(x + q * 1.2, y - q * .8); ctx.stroke(); }
+    else if (res === 2) { const q = G.s * .13 * sc; ctx.strokeStyle = rgba(mix3(C.garnet, C.fog, .45), .95); ctx.beginPath(); ctx.moveTo(x - q, y - q); ctx.lineTo(x + q, y + q); ctx.moveTo(x + q, y - q); ctx.lineTo(x - q, y + q); ctx.stroke(); }
+    ctx.restore();
+  }
+  doneFrac = done / (cells.length * PASSES); passNow = pn;
+  // legend above the grid
+  const la = seg(t, 22.2, 22.9) * (1 - seg(t, 29.7, 30.2));
+  if (la > 0 && fontsIn) {
+    const y = G.y0 - 40, gx1 = G.x0 + G.cols * G.s + (G.cols - 1) * G.gap;
+    ctx.save(); ctx.globalAlpha = la; ctx.font = '400 15px "Martian Mono"'; ctx.textBaseline = 'middle';
+    try { ctx.letterSpacing = '2.2px'; } catch (e) {}
+    let x = G.x0;
+    for (const [c, label] of [[C.gilt, 'RUNNING'], [C.jade, 'GREEN'], [C.garnet, 'RED, TRUSTED']]) {
+      ctx.fillStyle = rgba(c, 1); ctx.beginPath(); ctx.arc(x + 5, y, 5, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = 'rgba(163,175,193,.95)'; ctx.textAlign = 'left'; ctx.fillText(label, x + 20, y + 1); x += 20 + ctx.measureText(label).width + 40;
+    }
+    ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(163,175,193,.95)'; ctx.fillText('ITERATION ' + Math.max(1, pn) + ' OF ' + PASSES, gx1, y + 1);
+    ctx.restore();
+  }
+}
+function drawRailNodes(t) {
+  if (t < 37.7 || t > 45.4 || !fontsIn) return;
+  const fade = 1 - seg(t, 44.4, 45.2), cu = seg(t, 38.75, 40.4), cx = lerp(RAIL.head, RAIL.x0, io(cu));
+  RAIL.nodes.forEach((x, i) => {
+    const a = seg(t, 38.0 + (3 - i) * .12, 38.5 + (3 - i) * .12) * fade; if (a <= 0) return;
+    const hit = cu > 0 && cu < 1 ? Math.max(0, 1 - Math.abs(cx - x) / 150) : 0, y = RAIL.y;
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.shadowColor = rgba(C.jade, .5 + .5 * hit); ctx.shadowBlur = 20 + 34 * hit;
+    ctx.fillStyle = rgba(mix3([10, 30, 30], C.jade, .32 + .5 * hit), 1); ctx.beginPath(); ctx.arc(x, y, 18 + 5 * hit, 0, 6.2832); ctx.fill();
+    ctx.shadowBlur = 0; ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(255,255,255,.78)'; ctx.stroke();
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 2.4; ctx.strokeStyle = 'rgba(240,250,246,.95)';
+    ctx.beginPath(); ctx.moveTo(x - 7, y + .5); ctx.lineTo(x - 2, y + 5.5); ctx.lineTo(x + 7.5, y - 5); ctx.stroke();
+    ctx.font = '400 18px "Martian Mono"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(163,175,193,' + (.82 + .18 * hit) + ')';
+    ctx.fillText(RAIL.sha[i], x, y + 58);
+    ctx.restore();
+  });
+  const ma = seg(t, 37.9, 38.6) * fade;
+  if (ma > 0) {
+    ctx.save(); ctx.globalAlpha = ma; ctx.font = '400 14px "Martian Mono"'; try { ctx.letterSpacing = '4px'; } catch (e) {}
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(163,175,193,.9)'; ctx.fillText('MASTER', RAIL.x0, RAIL.y - 40); ctx.restore();
+  }
+}
+function heroExtras(t, h, ha) {
+  const tf = (p) => { const cs = Math.cos(h.rot), sn = Math.sin(h.rot); return [h.x + (p[0] * cs - p[1] * sn) * h.r, h.y + (p[0] * sn + p[1] * cs) * h.r]; };
+  // the failure: a crack through the claim
+  const ca = seg(t, 7.3, 7.36) * (1 - seg(t, 9.9, 10.5));
+  if (ca > 0) {
+    const pts = [[-.03, -.9], [.12, -.52], [-.14, -.22], [.1, .08], [-.06, .4], [.16, .78]].map(tf), rev = out(seg(t, 7.32, 7.95));
+    let tot = 0; const ls = []; for (let i = 0; i < pts.length - 1; i++) { const l = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]); ls.push(l); tot += l; }
+    let left = tot * rev;
+    ctx.save(); ctx.globalAlpha = ca * ha; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.shadowColor = rgba(C.garnet, 1); ctx.shadowBlur = 22;
+    ctx.strokeStyle = 'rgba(255,236,232,.92)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 0; i < ls.length && left > 0; i++) { const k = Math.min(1, left / ls[i]); ctx.lineTo(lerp(pts[i][0], pts[i + 1][0], k), lerp(pts[i][1], pts[i + 1][1], k)); left -= ls[i]; }
+    ctx.stroke();
+    const br = out(seg(t, 7.7, 8.3));
+    if (br > 0) {
+      ctx.lineWidth = 1.8; ctx.globalAlpha = ca * ha * .8; ctx.beginPath();
+      for (const [a, b] of [[[-.14, -.22], [-.42, -.08]], [[.1, .08], [.4, .2]], [[-.06, .4], [-.3, .56]]]) {
+        const A = tf(a), B = tf(b); ctx.moveTo(A[0], A[1]); ctx.lineTo(lerp(A[0], B[0], br), lerp(A[1], B[1], br));
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // the judge's pin
+  const pa = seg(t, 14.7, 15.5) * (1 - seg(t, 20.0, 20.5));
+  if (pa > 0) {
+    ctx.save(); ctx.globalAlpha = pa * ha; ctx.translate(h.x, h.y);
+    ctx.rotate(-h.rot * 1.6); ctx.strokeStyle = 'rgba(255,255,255,.42)'; ctx.lineWidth = 1.6; ctx.beginPath();
+    for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 3, x = Math.cos(a) * h.r * .56, y = Math.sin(a) * h.r * .56; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
+    ctx.closePath(); ctx.stroke(); ctx.rotate(h.rot * 1.6);
+    ctx.shadowColor = rgba(C.gilt, 1); ctx.shadowBlur = 30; ctx.fillStyle = rgba(mix3(C.gilt, C.fog, .35), 1); ctx.beginPath(); ctx.arc(0, -6, 11 * back(seg(t, 14.9, 15.6)), 0, 6.2832); ctx.fill();
+    if (fontsIn) { ctx.shadowBlur = 0; ctx.font = '400 15px "Martian Mono"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; try { ctx.letterSpacing = '3px'; } catch (e) {}
+      ctx.fillStyle = 'rgba(233,238,245,.78)'; ctx.fillText('PINNED', 1.5, 42); }
+    ctx.restore();
+  }
+  // the commit on the rail
+  const sa = seg(t, 38.9, 39.5) * (1 - seg(t, 44.0, 44.4));
+  if (sa > 0 && fontsIn) {
+    ctx.save(); ctx.globalAlpha = sa * ha; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '500 38px "Martian Mono"'; ctx.fillStyle = 'rgba(233,238,245,.97)'; ctx.fillText(RAIL.headSha, h.x, h.y + 2);
+    ctx.font = '400 15px "Martian Mono"'; try { ctx.letterSpacing = '5px'; } catch (e) {} ctx.fillStyle = rgba(C.jade, .95); ctx.fillText('HEAD', h.x + 2, h.y - 100);
+    ctx.font = '400 14px "Martian Mono"'; try { ctx.letterSpacing = '3px'; } catch (e) {} ctx.fillStyle = 'rgba(163,175,193,.95)';
+    ctx.globalAlpha = sa * ha * seg(t, 39.6, 40.3); ctx.fillText('LANDED ON ITS RECEIPT', h.x + 1.5, h.y + 104);
+    ctx.restore();
+  }
+}
+const PULSES = [
+  { t: 7.3, d: 1.1, x: HX, y: 540, r0: 300, r1: 560, c: C.garnet },
+  { t: 11.25, d: 1.3, x: HX, y: 556, r0: 280, r1: 640, c: C.jade },
+  { t: 38.7, d: 1.4, x: RAIL.head, y: RAIL.y, r0: 120, r1: 520, c: C.jade },
+  { t: 45.9, d: 1.5, x: () => TOMB.x, y: () => TOMB.y, r0: 50, r1: 380, c: C.jade },
+];
+function pulses(t) {
+  for (const p of PULSES) {
+    const u = seg(t, p.t, p.t + p.d); if (u <= 0 || u >= 1) continue;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = rgba(p.c, .55 * (1 - u) * (1 - u)); ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(val(p.x), val(p.y), lerp(p.r0, p.r1, out(u)), 0, 6.2832); ctx.stroke(); ctx.restore();
+  }
+}
+
+/* the film's own furniture: the mark, and where in the proof's life we are */
+const STAGES = [[0, 'CLAIM'], [6.5, 'RED, THEN GREEN'], [13.5, 'JUDGE'], [20.5, 'ITERATE'], [30.5, 'RECEIPT'], [37.5, 'LAND'], [44.5, 'Q.E.D.'], [DUR, '']];
+function chrome(t) {
+  if (!fontsIn) return;
+  ctx.save(); ctx.textBaseline = 'middle';
+  ctx.fillStyle = rgba(C.jade, .92); ctx.fill(rr(new Path2D(), 140, 82, 14, 18, 3));
+  ctx.font = '500 14px "Martian Mono"'; try { ctx.letterSpacing = '5px'; } catch (e) {}
+  ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(233,238,245,.86)'; ctx.fillText('THE PROOF SYSTEM', 172, 92);
+  const sw = 70, gap = 10, x1 = W - 140, x0 = x1 - (7 * sw + 6 * gap);
+  let cur = 0;
+  for (let i = 0; i < 7; i++) {
+    const u = seg(t, STAGES[i][0], STAGES[i + 1][0]), x = x0 + i * (sw + gap); if (u > 0) cur = i;
+    ctx.fillStyle = 'rgba(233,238,245,.16)'; ctx.fillRect(x, 90.5, sw, 3);
+    if (u > 0) { ctx.fillStyle = 'rgba(233,238,245,.9)'; ctx.fillRect(x, 90.5, sw * u, 3); }
+  }
+  ctx.font = '400 13px "Martian Mono"'; try { ctx.letterSpacing = '3px'; } catch (e) {}
+  ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(163,175,193,.95)'; ctx.fillText(STAGES[cur][1], x0 - 26, 92);
+  ctx.restore();
+}
+
+/* ---------- one frame ---------- */
+let KX = 1, T = 0;
+function render(t) {
+  drawBG(t);
+  ctx.setTransform(KX, 0, 0, KX, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(BG, 0, 0, W, H);
+  const scrim = ctx.createLinearGradient(0, 0, W * .62, 0);
+  scrim.addColorStop(0, 'rgba(4,6,11,.62)'); scrim.addColorStop(1, 'rgba(4,6,11,0)'); ctx.fillStyle = scrim; ctx.fillRect(0, 0, W, H);
+  if (t > 21.3 && t < 31.6) drawCells(t); else { doneFrac = t < 21.3 ? (t > 20 ? 0 : 1) : 1; }
+  drawRailNodes(t);
+  const h = heroAt(t), ha = heroAlpha(t);
+  if (ha > .003) { glass(pathOf(h.pts), boundsOf(h.pts), h.col, h.g, ha, t, h.white); heroExtras(t, h, ha); }
+  pulses(t);
+  chrome(t);
+  const vg = ctx.createRadialGradient(W * .56, H * .5, H * .3, W * .56, H * .5, W * .78);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.6)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.globalAlpha = .5; ctx.globalCompositeOperation = 'lighter';
+  const f = Math.floor(t * 24); ctx.translate(-(hash(f) * 220), -(hash(f + 9.1) * 220));
+  ctx.fillStyle = ctx.createPattern(NOISE, 'repeat'); ctx.fillRect(0, 0, W + 220, H + 220); ctx.restore();
+  const fade = Math.max(firstRun ? 0 : 1 - seg(t, 0, .7), seg(t, DUR - .7, DUR));
+  if (fade > 0) { ctx.fillStyle = 'rgba(5,7,12,' + fade.toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+  dom(t, h);
+}
+
+/* ---------- type ---------- */
+const caps = [...document.querySelectorAll('.cap')].map((el) => ({
+  el, a: +el.dataset.a, b: +el.dataset.b, vis: false, eye: el.querySelector('.eye'),
+  lines: [...el.querySelectorAll('.ln>span')], rest: [...el.querySelectorAll('.sub,.fine,.stats li')],
+}));
+const cnt = $('#cnt'), rc = $('#rc'), slot = $('#slot');
+const fmt = (n) => n.toLocaleString('en-US');
+function dom(t, h) {
+  for (const c of caps) {
+    const on = t >= c.a - .02 && t <= c.b + .02;
+    if (!on) { if (c.vis) { c.el.style.visibility = 'hidden'; c.vis = false; } continue; }
+    if (!c.vis) { c.el.style.visibility = 'visible'; c.vis = true; }
+    const o = 1 - io(seg(t, c.b - .5, c.b));
+    c.el.style.opacity = o.toFixed(3);
+    c.el.style.transform = 'translate3d(0,' + (-22 * (1 - o)).toFixed(2) + 'px,0)';
+    if (c.eye) c.eye.style.opacity = seg(t, c.a, c.a + .5).toFixed(3);
+    c.lines.forEach((l, i) => { const u = out(seg(t, c.a + .08 + i * .14, c.a + .88 + i * .14)); l.style.transform = 'translate3d(0,' + ((1 - u) * 116).toFixed(2) + '%,0)'; });
+    c.rest.forEach((el, i) => { const u = out(seg(t, c.a + .6 + i * .16, c.a + 1.3 + i * .16)); el.style.opacity = u.toFixed(3); el.style.transform = 'translate3d(0,' + ((1 - u) * 16).toFixed(2) + 'px,0)'; });
+  }
+  const n = fmt(Math.round(2981 * doneFrac)); if (cnt.textContent !== n) cnt.textContent = n;
+  const ra = seg(t, 31.7, 32.5) * (1 - seg(t, 36.8, 37.3));
+  rc.style.opacity = ra.toFixed(3);
+  if (ra > 0) rc.style.transform = 'translate3d(' + (h.x - 186).toFixed(1) + 'px,' + (h.y - 178).toFixed(1) + 'px,0) rotate(' + ((h.rot * 180) / Math.PI).toFixed(2) + 'deg)';
+}
+function measure() {
+  const c7 = caps[caps.length - 1];
+  c7.el.style.transform = 'none'; c7.lines.forEach((l) => { l.style.transform = 'none'; });
+  const r = slot.getBoundingClientRect(), s = stage.getBoundingClientRect(), k = s.width / W || 1;
+  if (r.width > 0) { TOMB.x = (r.left + r.width / 2 - s.left) / k; TOMB.y = (r.top + r.height / 2 - s.top) / k; TOMB.r = r.height / 2 / k; }
+}
+
+/* ---------- fit, clock, controls ---------- */
+function fit() {
+  let fw = W;
+  if (!CAPTURE) {
+    const cs = getComputedStyle(wrap);
+    const iw = wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const ih = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - bar.offsetHeight - foot.offsetHeight - (EMBED ? 0 : 28);
+    fw = Math.max(240, Math.min(iw, (ih * 16) / 9, 1760));
+  }
+  frame.style.width = fw + 'px'; bar.style.width = fw + 'px';
+  stage.style.transform = 'scale(' + fw / W + ')';
+  const dpr = CAPTURE ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+  const bw = Math.min(1920, Math.max(480, Math.round(fw * dpr)));
+  if (cv.width !== bw) { cv.width = bw; cv.height = Math.round((bw * 9) / 16); }
+  KX = cv.width / W;
+  measure(); render(T);
+}
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let playing = !CAPTURE && !reduce && !EMBED, firstRun = !CAPTURE, last = 0, dragging = false;   // embedded: the page that holds the film says when to play
+T = CAPTURE ? 0 : reduce ? 48 : 2.2;
+const playBtn = $('#play'), scrub = $('#scrub'), clock = $('#clock'), icPause = $('#ic-pause'), icPlay = $('#ic-play');
+const mmss = (s) => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function ui() {
+  if (!dragging) scrub.value = T.toFixed(2);
+  clock.textContent = mmss(T) + ' / ' + mmss(DUR);
+  icPause.hidden = !playing; icPlay.hidden = playing; playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+}
+function tick(now) {
+  if (playing) {
+    const dt = Math.min(.1, (now - last) / 1000 || 0); T += dt;
+    if (T >= DUR) { T -= DUR; firstRun = false; }
+    render(T); ui();
+  }
+  last = now; requestAnimationFrame(tick);
+}
+function toggle() { playing = !playing; ui(); }
+playBtn.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+frame.addEventListener('click', toggle);
+scrub.addEventListener('pointerdown', () => { dragging = true; });
+scrub.addEventListener('pointerup', () => { dragging = false; });
+scrub.addEventListener('input', () => { T = clamp(+scrub.value, 0, DUR - .001); firstRun = false; render(T); ui(); });
+document.addEventListener('keydown', (e) => { if (e.code === 'Space' && !/INPUT|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); toggle(); } });
+window.addEventListener('resize', fit);
+if (window.ResizeObserver) new ResizeObserver(fit).observe(wrap);
+
+const ready = (document.fonts && document.fonts.load
+  ? Promise.all([document.fonts.load('italic 400 200px "Instrument Serif"'), document.fonts.load('400 100px "Instrument Serif"'),
+      document.fonts.load('400 20px "Martian Mono"'), document.fonts.load('500 20px "Martian Mono"'), document.fonts.load('400 20px "Figtree"')]).then(() => document.fonts.ready)
+  : Promise.resolve()).catch(() => {}).then(() => { fontsIn = true; fit(); window.__ready = true; });
+window.__seek = (t) => ready.then(() => { T = t; firstRun = false; render(T); return true; });
+window.__dur = DUR;
+window.addEventListener('message', (e) => { if (EMBED && e.source === window.parent && e.data && e.data.fo === 'film') { playing = !!e.data.play && !reduce; ui(); } });
+fit(); ui(); requestAnimationFrame(tick);
+})();
+</script>
+
+</html>
+<script type="module" src="js/alive.js"></script>

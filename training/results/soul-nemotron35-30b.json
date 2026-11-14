@@ -1,0 +1,45 @@
+{
+ "label": "nemotron35-30b",
+ "kind": "soul",
+ "setup": {
+  "model": "nemotron35-30b"
+ },
+ "at": "2026-11-13T05:37:27.709Z",
+ "minutes": 8,
+ "note": "local, Soul audit, third pass",
+ "total": {
+  "checks": 32,
+  "good": 30
+ },
+ "bySystem": {
+  "soul": {
+   "checks": 17,
+   "good": 16
+  },
+  "hindsight": {
+   "checks": 7,
+   "good": 7
+  },
+  "vision": {
+   "checks": 4,
+   "good": 4
+  },
+  "flow": {
+   "checks": 4,
+   "good": 3
+  }
+ },
+ "misses": [
+  {
+   "mode": "developer",
+   "id": "soul.it-does-not-ask-what-the-code-says",
+   "detail": "[]"
+  },
+  {
+   "mode": "developer",
+   "id": "flow.the-change-is-proven",
+   "detail": "d settle whether the check \"Old code was broken\" or the code is wrong (AssertionError: 328 != 400, at: self.assertEqual(pay_button_width(360), 400)). The proof image is below.\nIt is not proven, so it waits for you. Say \"land it\" (it goes on the branch team/fix-pay-button-cut-off) or \"throw it away\"."
+  }
+ ],
+ "stopped": []
+}

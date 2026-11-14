@@ -1,0 +1,38 @@
+name: test
+
+# Runs on a pull request, or by hand from the Actions tab. It is not run on every push to main yet:
+# these checks have been run on one machine so far, and the first run here should be looked at before it gates anything.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The version is the one package.json pins, so a newer Prettier never fails a pull request by itself.
+      - run: npx --yes prettier@3.10.1 --check .
+
+  core-and-runner:
+    name: core and runner
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # No install step: the app and these checks have no dependencies.
+      - run: npm test
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: .work/logs/
+          if-no-files-found: ignore

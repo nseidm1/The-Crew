@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- reset.html - the context reset film. Open it alone for the player, or with #embed for the film only. -->
+<title>Drop the Weight</title>
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+/* Layout: one 16:9 film stage (type lower-left, one glass column right of centre) over a slim player bar.
+   A single dark look by design: smoked glass over a night ground; colour only ever means weight (gilt), waste (garnet) or a reset (jade). */
+:root{
+  color-scheme: dark;
+  --ink:#05070c;
+  --rim:#0b1019;
+  --fog:#e9eef5;
+  --mist:#a3afc1;
+  --dim:#66728a;
+  --hair:rgba(233,238,245,.13);
+  --shade:rgba(0,0,0,.62);
+  --smoke:#becde4;          /* light: little carried */
+  --garnet:#ff5d57;         /* what is carried for nothing */
+  --jade:#5fe3b8;           /* a reset, and what it saves */
+  --gilt:#e8b970;           /* weight building up */
+  --display:"Instrument Serif","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --body:"Figtree","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --mono:"Martian Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--fog);font-family:var(--body);display:flex;flex-direction:column}
+#wrap{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#frame{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:var(--rim);
+  box-shadow:0 0 0 1px var(--hair),0 40px 120px var(--shade);cursor:pointer}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+#cv{position:absolute;left:0;top:0;width:1920px;height:1080px;display:block}
+
+.cap{position:absolute;left:140px;bottom:128px;width:max-content;visibility:hidden;will-change:transform,opacity;--dot:var(--smoke);filter:opacity(var(--veil,1))}
+.eye{display:flex;align-items:center;gap:16px;margin:0 0 30px;font:500 18px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--mist)}
+.eye i{width:11px;height:11px;border-radius:50%;background:var(--dot);box-shadow:0 0 18px var(--dot)}
+.cap h2{margin:0;font:400 108px/1 var(--display);letter-spacing:-.012em;color:var(--fog)}
+.cap h2 em{font-style:italic;color:var(--dot)}
+.ln{display:block;overflow:hidden;padding:.05em .12em .17em 0;margin:-.05em 0 -.17em}
+.ln>span{display:block;white-space:nowrap;will-change:transform}
+.sub{margin:36px 0 0;max-width:610px;font:400 30px/1.42 var(--body);color:var(--mist);text-wrap:balance}
+.sub b{font-weight:500;color:var(--fog)}
+.fine{margin:26px 0 0;font:400 14px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.cap.narrow h2{font-size:84px}
+.cap.narrow .sub{max-width:500px;font-size:27px}
+.cap.end{bottom:auto;top:196px}
+.cap.end h2{font-size:132px;line-height:1}
+.cap.end .tagline{margin-top:30px;max-width:none;font:italic 400 46px/1.1 var(--display);color:var(--fog)}
+.cap.end .stats{margin-top:56px}
+.slot{display:inline-block;width:.7em;height:.52em;margin-left:.14em;vertical-align:.02em}
+.stats{display:flex;gap:64px;margin:70px 0 0;padding:0;list-style:none}
+.stats li{display:flex;flex-direction:column;gap:14px}
+.stats strong{font:400 66px/1 var(--display);color:var(--fog);font-variant-numeric:tabular-nums}
+.stats span{max-width:230px;font:400 14px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mist)}
+#cnt{font-variant-numeric:tabular-nums}
+
+/* what is written on the packet */
+#rc{position:absolute;left:0;top:0;width:360px;opacity:0;font:400 16px/1.5 var(--mono);color:var(--fog);transform-origin:50% 50%;will-change:transform,opacity}
+#rc h3{margin:0 0 22px;padding-bottom:18px;border-bottom:1px dashed var(--hair);font:500 15px/1 var(--mono);letter-spacing:.32em;color:var(--jade)}
+#rc dl{margin:0;display:grid;grid-template-columns:116px 1fr;row-gap:15px}
+#rc dt{color:var(--mist)}
+#rc dd{margin:0}
+#rc p{margin:22px 0 0;padding-top:18px;border-top:1px dashed var(--hair);font-size:13px;letter-spacing:.06em;color:var(--mist)}
+
+#bar{display:flex;align-items:center;gap:14px;width:100%;max-width:100%}
+#play{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--hair);background:transparent;color:var(--fog);cursor:pointer}
+#play:hover{border-color:var(--mist)}
+#play:focus-visible,#scrub:focus-visible{outline:2px solid var(--jade);outline-offset:3px}
+#play svg{width:14px;height:14px;fill:currentColor}
+#scrub{flex:1;min-width:0;accent-color:var(--jade);cursor:pointer}
+#clock{flex:none;font:400 12px/1 var(--mono);letter-spacing:.08em;color:var(--mist);font-variant-numeric:tabular-nums}
+#foot{margin:0;font:400 13px/1.5 var(--body);color:var(--dim);text-align:center;text-wrap:balance}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+.capture #bar,.capture #foot,.embed #bar,.embed #foot{display:none}
+.embed #wrap{padding:0;gap:0}
+.embed #frame{border-radius:0;box-shadow:none}
+.capture #wrap{padding:0;gap:0;align-items:flex-start;justify-content:flex-start}
+.capture #frame{border-radius:0;box-shadow:none;max-width:none}
+</style>
+
+<main id="wrap">
+  <div id="frame" aria-label="Animated film about context reset">
+    <div id="stage">
+      <canvas id="cv" width="1920" height="1080" aria-hidden="true"></canvas>
+
+      <section class="cap" data-a="0.45" data-b="5.8" style="--dot:var(--smoke)">
+        <p class="eye"><i></i>The cost</p>
+        <h2><span class="ln"><span>Every turn carries</span></span><span class="ln"><span>the <em>whole</em> session.</span></span></h2>
+        <p class="sub">The model is sent everything the session holds, again, on every turn.</p>
+      </section>
+
+      <section class="cap" data-a="6.25" data-b="12.3" style="--dot:var(--gilt)">
+        <p class="eye"><i></i>The weight</p>
+        <h2><span class="ln"><span>And it only</span></span><span class="ln"><span>gets <em>heavier.</em></span></span></h2>
+        <p class="sub">Each turn adds to the pile. Nothing ever leaves it.</p>
+      </section>
+
+      <section class="cap" data-a="12.75" data-b="18.3" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The reset</p>
+        <h2><span class="ln"><span>At a safe break,</span></span><span class="ln"><span>it <em>resets.</em></span></span></h2>
+        <p class="sub">A fresh session starts. The transcript stays behind.</p>
+      </section>
+
+      <section class="cap" data-a="18.75" data-b="24.8" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The packet</p>
+        <h2><span class="ln"><span>A <em>packet</em></span></span><span class="ln"><span>crosses over.</span></span></h2>
+        <p class="sub">What is owed, what is in flight, and where to find the rest.</p>
+      </section>
+
+      <section class="cap narrow" data-a="25.25" data-b="30.8" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The check</p>
+        <h2><span class="ln"><span>Then it proves</span></span><span class="ln"><span>it <em>remembers.</em></span></span></h2>
+        <p class="sub">A retention check follows every reset. A pointer counts: the fact only has to be reachable.</p>
+      </section>
+
+      <section class="cap narrow" data-a="31.4" data-b="40.9" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The savings</p>
+        <h2><span class="ln"><span><em>61%</em> shed</span></span><span class="ln"><span>at every reset.</span></span></h2>
+        <p class="sub">Measured on our own system: 231K tokens carried before a reset, 95K after.</p>
+        <p class="fine">The median of 726 resets in one week</p>
+      </section>
+
+      <section class="cap end" data-a="41.4" data-b="48" style="--dot:var(--jade)">
+        <h2><span class="ln"><span>Sheds <em>61%</em> of its context</span></span><span class="ln"><span>at every reset.<span class="slot" id="slot"></span></span></span></h2>
+        <p class="sub tagline">Drop the weight. Keep the knowledge.</p>
+        <ul class="stats">
+          <li><strong>231K</strong><span>tokens carried before a reset</span></li>
+          <li><strong>95K</strong><span>tokens carried after it</span></li>
+          <li><strong>47%</strong><span>less sent in a week than without the latest reset</span></li>
+          <li><strong>726</strong><span>resets measured, across four seats</span></li>
+        </ul>
+        <p class="fine">Measured on our own system, 4 to 11 Nov 2026. Medians.</p>
+      </section>
+
+      <div id="rc" aria-hidden="true">
+        <h3>PACKET</h3>
+        <dl>
+          <dt>owed</dt><dd>what the seat still owes</dd>
+          <dt>in flight</dt><dd>the work on the bench</dd>
+          <dt>result</dt><dd>how the last turn ended</dd>
+          <dt>pointers</dt><dd>the ledger and Vision, for the rest</dd>
+        </dl>
+        <p>kept afterwards as searchable hindsight</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="bar" role="group" aria-label="Playback">
+    <button id="play" type="button" aria-label="Pause">
+      <svg id="ic-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="1.5" y="1" width="4" height="12" rx="1"/><rect x="8.5" y="1" width="4" height="12" rx="1"/></svg>
+      <svg id="ic-play" viewBox="0 0 14 14" aria-hidden="true" hidden><path d="M3 1.2v11.6a.6.6 0 0 0 .9.5l9-5.8a.6.6 0 0 0 0-1L3.9.7a.6.6 0 0 0-.9.5z"/></svg>
+    </button>
+    <input id="scrub" type="range" min="0" max="50.6" step="0.01" value="0" aria-label="Position in the film">
+    <output id="clock" for="scrub">0:00 / 0:50</output>
+  </div>
+  <p id="foot">Context reset in 50 seconds. The session shown is drawn from measured medians: 726 resets on our own system, 4 to 11 Nov 2026.</p>
+
+  <p class="sr">Transcript. Every turn carries the whole session: the model is sent everything the session holds, again, on every turn.
+  And it only gets heavier. At a safe break, it resets: a fresh session starts and the transcript stays behind. A packet crosses over:
+  what is owed, what is in flight, and where to find the rest. Then it proves it remembers, with a retention check after every reset.
+  Measured on our own system over 726 resets in one week: a seat carried 231 thousand tokens before a reset and 95 thousand after, so 61% is shed at every reset,
+  and 47% less was sent than without the latest reset. Drop the weight. Keep the knowledge.</p>
+</main>
+
+<script>
+(() => {
+'use strict';
+const W = 1920, H = 1080, FILM = 48;
+const INTRO = 2.6, STILL = 46.6, DUR = INTRO + FILM;   // the film opens on a still of its own closing card, then runs
+const $ = (s) => document.querySelector(s);
+const wrap = $('#wrap'), frame = $('#frame'), stage = $('#stage'), cv = $('#cv'), bar = $('#bar'), foot = $('#foot');
+const ctx = cv.getContext('2d');
+const CAPTURE = location.hash === '#capture';
+if (CAPTURE) document.documentElement.classList.add('capture');
+const EMBED = location.hash === '#embed';   // inside the landing page: the film alone, no player
+if (EMBED) document.documentElement.classList.add('embed');
+
+/* ---------- maths ---------- */
+const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const io = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const out = (t) => 1 - Math.pow(1 - t, 3);
+const back = (t) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + Math.max(0, a).toFixed(3) + ')';
+const val = (v) => (typeof v === 'function' ? v() : v);
+const mono = (px, w = 400) => w + ' ' + px + 'px "Martian Mono"';
+const track = (px) => { try { ctx.letterSpacing = px + 'px'; } catch (e) {} };
+
+/* ---------- THE MEASURED SESSION: medians of 726 resets on our own system, 4 to 11 Nov 2026 (the sessions are private; these medians are what is published) ----------
+   95K carried after a reset (base + pack), 231K before one, about 104 requests between resets, so about 1.3K added per request. */
+const EX = { base: 88, add: 1.3, bar: 231, pack: 7 };   // thousands of tokens
+const MEAS = { shed: 61, lessSent: 47, resets: 726, before: 231, after: 95 };
+function simulate(n) {
+  const no = [], re = []; let c = EX.base + EX.pack, resets = 0;
+  for (let i = 0; i < n; i++) { no.push(EX.base + EX.pack + EX.add * i); re.push(c); if (c + EX.add > EX.bar) { c = EX.base + EX.pack; resets++; } else c += EX.add; }
+  return { no, re, resets };
+}
+const LONG = 440, SIM = simulate(LONG + 1);
+const FIRST = SIM.re.findIndex((c, i) => SIM.re[i + 1] < c);   // the last turn before the first reset
+const SECOND = SIM.re.findIndex((c, i) => i > FIRST && SIM.re[i + 1] < c);   // and before the second
+const sum = (a, n) => { let s = 0; for (let i = 0; i < n; i++) s += a[i]; return s; };
+const savedOver = (n) => (n < 1 ? 0 : 1 - sum(SIM.re, n) / sum(SIM.no, n));
+const pct = (x) => Math.round(x * 100) + '%';
+
+/* ---------- colour ---------- */
+const C = { smoke: [190, 205, 228], garnet: [255, 93, 87], jade: [95, 227, 184], gilt: [232, 185, 112], fog: [233, 238, 245] };
+const D = { ind: [40, 50, 122], pet: [26, 78, 106], plum: [74, 40, 100], gar: [146, 30, 44], jad: [18, 112, 92], jad2: [12, 80, 76], gil: [128, 88, 34], gil2: [96, 54, 32] };
+const P_COOL = [D.ind, D.pet, D.plum, D.ind, D.pet], P_GLT = [D.gil, D.plum, D.gil2, D.ind, D.pet], P_GRN = [D.jad, D.pet, D.jad2, D.ind, D.pet];
+const P_DEEP = [D.pet, D.ind, D.jad2, D.plum, D.pet], P_END = [D.jad2, D.ind, D.plum, D.pet, D.jad];
+const PALK = [{ t: 0, c: P_COOL }, { t: 5.6, c: P_COOL }, { t: 7.4, c: P_GLT }, { t: 12.2, c: P_GLT }, { t: 13.4, c: P_GRN }, { t: 24.8, c: P_GRN },
+  { t: 26, c: P_DEEP }, { t: 40.8, c: P_DEEP }, { t: 42.4, c: P_END }, { t: 48, c: P_END }];
+function palAt(t) {
+  let k = 0; while (k < PALK.length - 2 && t >= PALK[k + 1].t) k++;
+  const a = PALK[k], b = PALK[k + 1], u = io(seg(t, a.t, b.t));
+  return a.c.map((c, i) => mix3(c, b.c[i], u));
+}
+
+/* ---------- shapes: every outline is N points, so any one can become any other ---------- */
+const N = 168;
+function resample(poly, n = N) {
+  let area = 0;
+  for (let i = 0; i < poly.length; i++) { const a = poly[i], b = poly[(i + 1) % poly.length]; area += a[0] * b[1] - b[0] * a[1]; }
+  if (area < 0) poly = poly.slice().reverse();
+  const m = poly.length, L = [0];
+  for (let i = 0; i < m; i++) { const a = poly[i], b = poly[(i + 1) % m]; L.push(L[i] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
+  const total = L[m];
+  let s0 = 0, bestY = 1e9;
+  for (let i = 0; i < m; i++) {
+    const a = poly[i], b = poly[(i + 1) % m];
+    if ((a[0] <= 0 && b[0] > 0) || (a[0] >= 0 && b[0] < 0)) { const u = (0 - a[0]) / (b[0] - a[0]), y = a[1] + (b[1] - a[1]) * u; if (y < bestY) { bestY = y; s0 = L[i] + (L[i + 1] - L[i]) * u; } }
+  }
+  const pts = [];
+  for (let k = 0; k < n; k++) {
+    const s = (s0 + (k * total) / n) % total;
+    let i = 0; while (i < m - 1 && L[i + 1] < s) i++;
+    const a = poly[i], b = poly[(i + 1) % m], u = (s - L[i]) / ((L[i + 1] - L[i]) || 1);
+    pts.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]);
+  }
+  return pts;
+}
+const arc = (cx, cy, r, a0, a1, k = 14) => Array.from({ length: k + 1 }, (_, i) => { const a = a0 + ((a1 - a0) * i) / k; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; });
+const rrect = (w, h, r) => [...arc(w - r, -h + r, r, -Math.PI / 2, 0), ...arc(w - r, h - r, r, 0, Math.PI / 2), ...arc(-w + r, h - r, r, Math.PI / 2, Math.PI), ...arc(-w + r, -h + r, r, Math.PI, 1.5 * Math.PI)];
+
+/* the column: its height IS the tokens carried, to scale. The reset bar sits at the top of its travel. */
+const COL = { x: 1400, base: 900, r: 330, hw: .5, top: 1.06 };
+const hOf = (c) => (c / EX.bar) * COL.top;                 // half-height in units of r
+const levelY = (c) => COL.base - hOf(c) * 2 * COL.r;        // the stage y of a token level
+const SH = {
+  colHi: resample(rrect(COL.hw, hOf(SIM.re[SECOND + 30]), .1)),
+  pack: resample(rrect(.62, .46, .16)),
+  card: resample(rrect(.72, 1, .07)),
+  panel: resample(rrect(1, .58, .05)),
+};
+/* which turn the session is on at time t (0-based, fractional), following the example exactly */
+const TURNS = [[0, 0], [12.3, FIRST], [13.5, FIRST + 1], [16.0, SECOND], [16.9, SECOND + 1], [18.5, SECOND + 12], [25, SECOND + 12], [30.6, SECOND + 30], [48, SECOND + 30]];
+function turnAt(t) { let k = 0; while (k < TURNS.length - 2 && t >= TURNS[k + 1][0]) k++; const a = TURNS[k], b = TURNS[k + 1]; return lerp(a[1], b[1], seg(t, a[0], b[0])); }
+function carriedAt(t) {
+  const n = turnAt(t), i = Math.floor(n), f = n - i, a = SIM.re[i], b = SIM.re[Math.min(i + 1, LONG)];
+  return b < a ? lerp(a, b, io(f)) : lerp(a, b, f);          // a drop is a reset: it eases; growth is steady
+}
+const TOMB = { x: 1500, y: 560, r: 90 };   // where the end mark sits, measured from the type
+const PKT_AT = { x: COL.x, y: () => levelY(EX.base + EX.pack / 2) };
+
+function objAt(K, t) {   // a glass object on a keyframe track: shape, place, size, colour
+  let k = 0; while (k < K.length - 2 && t >= K[k + 1].t) k++;
+  const a = K[k], b = K[k + 1], raw = seg(t, a.t, b.t), u = io(raw), A = SH[a.s], B = SH[b.s], morph = a.s !== b.s;
+  const x = lerp(val(a.x), val(b.x), u), y = lerp(val(a.y), val(b.y), u), r = lerp(val(a.r), val(b.r), u), rot = (lerp(a.rot || 0, b.rot || 0, u) * Math.PI) / 180;
+  const col = mix3(a.c, b.c, u), g = lerp(a.g, b.g, u), white = lerp(a.w || 0, b.w || 0, u), wob = morph ? Math.sin(Math.PI * u) * .06 : 0;
+  const cs = Math.cos(rot), sn = Math.sin(rot), pts = new Array(N);
+  for (let i = 0; i < N; i++) {
+    let ui = u; if (morph) { const ph = .5 + .5 * Math.sin((i / N) * Math.PI * 4 + 1.3); ui = io(clamp(raw * 1.4 - .4 * ph)); }
+    let px = lerp(A[i][0], B[i][0], ui), py = lerp(A[i][1], B[i][1], ui);
+    const th = (i / N) * 6.2832, kk = 1 + wob * (Math.sin(2 * th + t * 2.2) + .5 * Math.sin(5 * th - t * 2.9)) * .6;
+    px *= kk; py *= kk;
+    pts[i] = [x + (px * cs - py * sn) * r, y + (px * sn + py * cs) * r];
+  }
+  return { pts, x, y, r, rot, col, g: g * (1 + .08 * Math.sin(t * 1.7)), white };
+}
+const K_LATE = [   // the column after the session: it becomes the chart's pane, then the end mark
+  { t: 31, s: 'colHi', x: COL.x, y: COL.base - hOf(SIM.re[SECOND + 30]) * COL.r, r: COL.r, c: C.gilt, g: .7 },
+  { t: 32.4, s: 'panel', x: 1290, y: 528, r: 520, c: C.smoke, g: .2, w: .015 },
+  { t: 41.2, s: 'panel', x: 1290, y: 528, r: 520, c: C.smoke, g: .2, w: .015 },
+  { t: 42.8, s: 'pack', x: () => TOMB.x, y: () => TOMB.y, r: () => TOMB.r, c: C.jade, g: .95 },
+  { t: 48, s: 'pack', x: () => TOMB.x, y: () => TOMB.y, r: () => TOMB.r, c: C.jade, g: .95 },
+];
+const K_PKT = [   // the packet lifts out of the column, opens, and goes back in
+  { t: 18.6, s: 'pack', x: PKT_AT.x, y: PKT_AT.y, r: 60, c: C.jade, g: 1 },
+  { t: 19.1, s: 'pack', x: PKT_AT.x, y: PKT_AT.y, r: 110, c: C.jade, g: 1 },
+  { t: 20.3, s: 'card', x: 1390, y: 540, r: 300, rot: -4, c: mix3(C.jade, C.smoke, .4), g: .6, w: .1 },
+  { t: 23.8, s: 'card', x: 1390, y: 540, r: 300, rot: -4, c: mix3(C.jade, C.smoke, .4), g: .6, w: .1 },
+  { t: 24.9, s: 'pack', x: PKT_AT.x, y: PKT_AT.y, r: 60, c: C.jade, g: 1 },
+  { t: 26, s: 'pack', x: PKT_AT.x, y: PKT_AT.y, r: 60, c: C.jade, g: 1 },
+];
+const RESETS = [12.3, 16.0];
+function columnAt(t) {   // the session, drawn to scale
+  const c = carriedAt(t), h = hOf(c), sh = resample(rrect(COL.hw, h, .1)), cy = COL.base - h * COL.r;
+  const full = clamp((c - EX.base) / (EX.bar - EX.base));
+  let flash = 0; for (const rt of RESETS) flash = Math.max(flash, seg(t, rt + .1, rt + .5) * (1 - seg(t, rt + .9, rt + 2.2)));
+  const col = mix3(mix3(C.smoke, C.gilt, clamp(full * 1.25)), C.jade, flash);
+  return { pts: sh.map((p) => [COL.x + p[0] * COL.r, cy + p[1] * COL.r]), x: COL.x, y: cy, r: COL.r, rot: 0, col, g: (.22 + .62 * full) * (1 - flash) + flash, white: 0, c };
+}
+const colAlpha = (t) => 1 - .72 * seg(t, 18.8, 19.8) * (1 - seg(t, 24.2, 25.1));
+const pktAlpha = (t) => seg(t, 18.6, 19.0) * (1 - seg(t, 24.75, 25.15));
+
+function pathOf(pts) {
+  const p = new Path2D(), n = pts.length;
+  p.moveTo((pts[n - 1][0] + pts[0][0]) / 2, (pts[n - 1][1] + pts[0][1]) / 2);
+  for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; p.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); }
+  p.closePath(); return p;
+}
+function boundsOf(pts) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const p of pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+}
+function rr(p, x, y, w, h, r) { p.moveTo(x + r, y); p.arcTo(x + w, y, x + w, y + h, r); p.arcTo(x + w, y + h, x, y + h, r); p.arcTo(x, y + h, x, y, r); p.arcTo(x, y, x + w, y, r); p.closePath(); return p; }
+
+/* ---------- buffers: the room behind the glass ---------- */
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const BW = 960, BH = 540, GW = 240, GH = 135, SW = 192, SHH = 108;
+const BG = mk(BW, BH), bg = BG.getContext('2d'), GL = mk(GW, GH), gl = GL.getContext('2d'), SOFT = mk(SW, SHH), sf = SOFT.getContext('2d');
+const LAT = mk(BW + 32, BH + 32);
+(() => { const l = LAT.getContext('2d'); l.fillStyle = 'rgba(233,238,245,.2)'; for (let y = 0; y < LAT.height; y += 32) for (let x = 0; x < LAT.width; x += 32) { l.beginPath(); l.arc(x + 16, y + 16, 1, 0, 6.2832); l.fill(); } })();
+const NOISE = mk(220, 220);
+(() => { const n = NOISE.getContext('2d'), im = n.createImageData(220, 220); let s = 1234567;
+  for (let i = 0; i < im.data.length; i += 4) { s = (s * 1664525 + 1013904223) >>> 0; const v = s >>> 24; im.data[i] = im.data[i + 1] = im.data[i + 2] = 255; im.data[i + 3] = v > 150 ? (v - 150) * .34 : 0; }
+  n.putImageData(im, 0, 0); })();
+const GHOST = [{ w: 'turn', a: 0, b: 5.9 }, { w: 'weight', a: 6.3, b: 12.2 }, { w: 'reset', a: 12.8, b: 18.4 }, { w: 'packet', a: 18.9, b: 24.8 },
+  { w: 'recall', a: 25.3, b: 30.8, x: 1560, mw: 620 }, { w: 'lighter', a: 42.2, b: 48, x: 1480, mw: 760 }];
+let fontsIn = false;
+function drawBG(t) {
+  gl.setTransform(1, 0, 0, 1, 0, 0); gl.globalCompositeOperation = 'source-over'; gl.filter = 'none';
+  gl.fillStyle = '#04060b'; gl.fillRect(0, 0, GW, GH);
+  gl.filter = 'blur(7px)'; gl.globalCompositeOperation = 'lighter';
+  const pal = palAt(t);
+  for (let i = 0; i < 5; i++) {
+    const ph = i * 1.7, cx = GW * (.5 + .46 * Math.sin(t * .11 * (1 + i * .13) + ph * 2.1)), cy = GH * (.5 + .42 * Math.cos(t * .09 * (1 + i * .17) + ph)), R = GH * (.4 + .12 * Math.sin(t * .21 + ph));
+    gl.beginPath();
+    for (let k = 0; k <= 48; k++) { const a = (k / 48) * 6.2832, q = R * (1 + .24 * Math.sin(a * 3 + t * .5 + ph) + .13 * Math.sin(a * 5 - t * .37 + ph * 2)), x = cx + Math.cos(a) * q, y = cy + Math.sin(a) * q; if (k) gl.lineTo(x, y); else gl.moveTo(x, y); }
+    gl.closePath(); gl.fillStyle = rgba(pal[i], .4); gl.fill();
+  }
+  gl.filter = 'none'; gl.globalCompositeOperation = 'source-over';
+  bg.setTransform(1, 0, 0, 1, 0, 0); bg.globalAlpha = 1; bg.imageSmoothingEnabled = true; bg.imageSmoothingQuality = 'high';
+  bg.drawImage(GL, 0, 0, BW, BH); bg.drawImage(LAT, -((t * 5) % 32), -((t * 2.5) % 32));
+  bg.save(); bg.scale(.5, .5);
+  for (let i = 0; i < 9; i++) {
+    const x = ((hash(i + 1) * W + t * (5 + hash(i + 5) * 9)) % (W + 300)) - 150, y = H * (.1 + .8 * hash(i + 2)) + Math.sin(t * .25 + i) * 30;
+    const r = 22 + hash(i + 3) * 58, c = pal[i % 5], gr = bg.createRadialGradient(x, y, r * .62, x, y, r);
+    gr.addColorStop(0, rgba(mix3(c, C.fog, .3), .05)); gr.addColorStop(.86, rgba(mix3(c, C.fog, .4), .07)); gr.addColorStop(1, rgba(c, 0));
+    bg.fillStyle = gr; bg.beginPath(); bg.arc(x, y, r, 0, 6.2832); bg.fill();
+  }
+  if (fontsIn) {
+    bg.textAlign = 'center'; bg.textBaseline = 'middle';
+    for (const gh of GHOST) {
+      const a = seg(t, gh.a, gh.a + .9) * (1 - seg(t, gh.b - .7, gh.b)); if (a <= 0) continue;
+      let size = 600; bg.font = 'italic 400 ' + size + 'px "Instrument Serif"';
+      const cap = gh.mw || 1020, mw = bg.measureText(gh.w).width; if (mw > cap) { size = (size * cap) / mw; bg.font = 'italic 400 ' + size + 'px "Instrument Serif"'; }
+      bg.fillStyle = 'rgba(233,238,245,' + (.085 * a).toFixed(3) + ')';
+      bg.fillText(gh.w, (gh.x || 1350) + Math.sin(t * .3) * 20, 560 + (1 - out(seg(t, gh.a, gh.a + 1.4))) * 40);
+    }
+  }
+  bg.restore();
+  sf.imageSmoothingEnabled = true; sf.imageSmoothingQuality = 'high'; sf.drawImage(BG, 0, 0, SW, SHH);
+}
+
+/* ---------- glass ---------- */
+function blit(src, bx, m, a) {
+  const sx = src.width / W, sy = src.height / H, sw = bx.w / m, sh = bx.h / m;
+  ctx.save(); ctx.globalAlpha *= a; ctx.drawImage(src, (bx.cx - sw / 2) * sx, (bx.cy - sh / 2) * sy, sw * sx, sh * sy, bx.x, bx.y, bx.w, bx.h); ctx.restore();
+}
+function glass(path, bx, col, glow, alpha, t, white = 0) {
+  const lo = Math.min(bx.w, bx.h), hi = Math.max(bx.w, bx.h), depth = clamp(lo * .05, 3, 20), bev = clamp(lo * .075, 5, 30);
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.62)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 42; ctx.fillStyle = 'rgba(3,5,9,.55)'; ctx.fill(path); ctx.restore();
+  if (glow > .01) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.shadowColor = rgba(col, .5 * glow); ctx.shadowBlur = 120; ctx.fillStyle = rgba(col, .05 * glow); ctx.fill(path); ctx.restore(); }
+  ctx.save(); ctx.translate(depth * .55, depth);
+  const sg = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  sg.addColorStop(0, rgba(mix3([8, 12, 20], col, .16), .9)); sg.addColorStop(1, rgba(mix3([8, 12, 20], col, .5), .92));
+  ctx.fillStyle = sg; ctx.fill(path); ctx.lineWidth = 1.4; ctx.strokeStyle = rgba(col, .35 + .35 * glow); ctx.stroke(path); ctx.restore();
+  ctx.save(); ctx.clip(path);
+  const rb = { x: bx.x, y: bx.y, w: bx.w, h: bx.h, cx: bx.cx - hi * .05, cy: bx.cy - hi * .035 };
+  blit(BG, rb, 1.36, 1); blit(SOFT, rb, 1.36, .42);
+  ctx.fillStyle = 'rgba(6,10,18,.2)'; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  if (white > 0) { ctx.fillStyle = 'rgba(226,236,246,' + white.toFixed(3) + ')'; ctx.fillRect(bx.x, bx.y, bx.w, bx.h); }
+  const g = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(.42, 'rgba(255,255,255,.035)'); g.addColorStop(1, rgba(col, .1 + .2 * glow));
+  ctx.fillStyle = g; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  const qx = bx.cx + bx.w * .18, qy = bx.cy + bx.h * .3, rg = ctx.createRadialGradient(qx, qy, 0, qx, qy, hi * .62);
+  rg.addColorStop(0, rgba(col, .44 * glow)); rg.addColorStop(1, rgba(col, 0)); ctx.fillStyle = rg; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  const hx = bx.x + bx.w * .3, hy = bx.y + bx.h * .22, hs = ctx.createRadialGradient(hx, hy, 0, hx, hy, hi * .44);
+  hs.addColorStop(0, 'rgba(255,255,255,.1)'); hs.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = hs; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  const bv = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  bv.addColorStop(0, 'rgba(255,255,255,.36)'); bv.addColorStop(.5, 'rgba(255,255,255,.03)'); bv.addColorStop(1, 'rgba(0,0,0,.4)');
+  ctx.lineJoin = 'round'; ctx.lineWidth = bev * 2; ctx.strokeStyle = bv; ctx.stroke(path);
+  ctx.save(); ctx.shadowColor = rgba(col, .85 * glow); ctx.shadowBlur = 46; ctx.lineWidth = 10; ctx.strokeStyle = rgba(col, .36 * glow); ctx.stroke(path); ctx.restore();
+  ctx.save(); ctx.shadowColor = 'rgba(255,255,255,.5)'; ctx.shadowBlur = 20; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.stroke(path); ctx.restore();
+  const span = hi * 1.25, gp = ((t * .14) % 1.5) / 1.5, off = lerp(-span, span, gp);
+  ctx.save(); ctx.translate(bx.cx, bx.cy); ctx.rotate(-.52);
+  const lg = ctx.createLinearGradient(off - 110, 0, off + 110, 0);
+  lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(.5, 'rgba(255,255,255,.13)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = lg; ctx.fillRect(-span, -span, span * 2, span * 2); ctx.restore();
+  ctx.restore();
+  const rs = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  rs.addColorStop(0, 'rgba(255,255,255,.92)'); rs.addColorStop(.35, 'rgba(255,255,255,.16)'); rs.addColorStop(.7, rgba(col, .25)); rs.addColorStop(1, rgba(col, .9));
+  ctx.lineJoin = 'round'; ctx.lineWidth = 2.4; ctx.strokeStyle = rs; ctx.stroke(path);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineWidth = 1.4;
+  ctx.translate(2.2, 0); ctx.strokeStyle = 'rgba(255,60,96,.2)'; ctx.stroke(path); ctx.translate(-4.4, 0); ctx.strokeStyle = 'rgba(60,160,255,.2)'; ctx.stroke(path); ctx.restore();
+  ctx.restore();
+}
+
+/* ---------- the session, to scale ---------- */
+const X0 = COL.x - COL.hw * COL.r, X1 = COL.x + COL.hw * COL.r;
+function behindColumn(t, a) {   // the bar it must not cross, and where it would be without a reset
+  if (!fontsIn || a <= 0) return;
+  const yb = levelY(EX.bar), ba = seg(t, 1.4, 2.4) * a;
+  ctx.save(); ctx.lineCap = 'round';
+  if (ba > 0) {
+    ctx.globalAlpha = ba; ctx.setLineDash([3, 12]); ctx.strokeStyle = 'rgba(233,238,245,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X0 - 70, yb); ctx.lineTo(X1 + 150, yb); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font = mono(14); track(3); ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = 'rgba(163,175,193,.95)';
+    ctx.fillText('RESET AT ' + EX.bar + 'K', X1 + 150, yb - 22);
+  }
+  const ga = seg(t, 12.5, 13.4) * a;
+  if (ga > 0) {
+    const cNo = EX.base + EX.pack + EX.add * turnAt(t), yNo = levelY(cNo), top = Math.max(150, yNo), yc = levelY(carriedAt(t));
+    ctx.globalAlpha = ga; ctx.setLineDash([10, 10]); ctx.strokeStyle = rgba(C.garnet, .8); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X0, yc); ctx.lineTo(X0, top); ctx.moveTo(X1, yc); ctx.lineTo(X1, top); if (yNo >= 150) { ctx.moveTo(X0, yNo); ctx.lineTo(X1, yNo); } ctx.stroke(); ctx.setLineDash([]);
+    if (yNo < 150) { ctx.fillStyle = rgba(C.garnet, .9); for (const x of [X0, X1]) { ctx.beginPath(); ctx.moveTo(x - 7, 152); ctx.lineTo(x + 7, 152); ctx.lineTo(x, 138); ctx.closePath(); ctx.fill(); } }
+    const ly = Math.max(top + 40, yb + 44);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = mono(14); track(3); ctx.fillStyle = rgba(C.garnet, .95); ctx.fillText('WITHOUT A RESET', X1 + 34, ly);
+    ctx.fillStyle = 'rgba(233,238,245,.8)'; ctx.fillText('IT KEEPS GROWING', X1 + 34, ly + 26);
+  }
+  ctx.restore();
+}
+function insideColumn(t, o, path, a) {   // the layers: what was loaded at the start, the packet, and one line per turn
+  if (a <= 0) return;
+  const c = o.c, n = turnAt(t), yBase = levelY(EX.base), after = n > FIRST, pk = after ? clamp(n - FIRST) : 0;
+  ctx.save(); ctx.globalAlpha = a; ctx.clip(path);
+  ctx.fillStyle = 'rgba(190,205,228,.07)'; ctx.fillRect(X0, yBase, X1 - X0, COL.base - yBase);
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(X0, yBase); ctx.lineTo(X1, yBase); ctx.stroke();
+  let from = EX.base;
+  if (pk > 0) {
+    const yp = levelY(EX.base + EX.pack);
+    ctx.save(); ctx.shadowColor = rgba(C.jade, .9); ctx.shadowBlur = 26; ctx.fillStyle = rgba(C.jade, .62 * pk); ctx.fillRect(X0, yp, X1 - X0, yBase - yp); ctx.restore();
+    from = EX.base + EX.pack;
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 1.2;
+  for (let lv = from + EX.add * 10; lv < c - .5; lv += EX.add * 10) { const y = levelY(lv); ctx.beginPath(); ctx.moveTo(X0, y); ctx.lineTo(X1, y); ctx.stroke(); }
+  const yTop = levelY(c), newest = Math.min(levelY(c - EX.add), levelY(from));
+  if (c > from + .5) { const lg = ctx.createLinearGradient(0, yTop, 0, newest); lg.addColorStop(0, rgba(C.gilt, .34)); lg.addColorStop(1, rgba(C.gilt, .04)); ctx.fillStyle = lg; ctx.fillRect(X0, yTop, X1 - X0, newest - yTop); }
+  if (fontsIn) {
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = mono(13); track(3); ctx.fillStyle = 'rgba(163,175,193,.9)'; ctx.fillText('STARTS AT', COL.x + 1.5, (yBase + COL.base) / 2 - 28);
+    ctx.font = '400 62px "Instrument Serif"'; track(0); ctx.fillStyle = 'rgba(233,238,245,.9)'; ctx.fillText((EX.base + EX.pack) + 'K', COL.x, (yBase + COL.base) / 2 + 22);
+  }
+  ctx.restore();
+  if (fontsIn) {
+    ctx.save(); ctx.globalAlpha = a * seg(t, .6, 1.4); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = mono(15); track(3); ctx.fillStyle = 'rgba(233,238,245,.9)';
+    ctx.fillText('TURN ' + String(Math.floor(n + .001) + 1).padStart(2, '0') + '  ·  ' + Math.round(c) + 'K CARRIED', COL.x, COL.base + 52); ctx.restore();
+  }
+}
+const FACTS = ['WHAT IS OWED', 'WHAT IS IN FLIGHT', 'THE LAST RESULT', 'THE RULINGS  ·  VIA VISION', 'THE PLAN  ·  VIA THE LEDGER'];
+function retention(t) {   // after the reset: every fact it needs is still within reach
+  const a = seg(t, 25.5, 26.1) * (1 - seg(t, 30.4, 31)); if (a <= 0 || !fontsIn) return;
+  const x = 846, y0 = 372, gap = 62, py = levelY(EX.base + EX.pack / 2); let got = 0;
+  ctx.save(); ctx.globalAlpha = a; ctx.textBaseline = 'middle'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  FACTS.forEach((f, i) => {
+    const u = seg(t, 26.0 + i * .62, 26.5 + i * .62), y = y0 + i * gap; if (u <= 0) return; if (u >= 1) got++;
+    ctx.globalAlpha = a * u;
+    ctx.strokeStyle = rgba(C.jade, .4); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x + 330, y); ctx.bezierCurveTo(x + 372, y, X0 - 44, py, lerp(x + 330, X0 - 4, out(u)), lerp(y, py, out(u))); ctx.stroke();
+    ctx.fillStyle = rgba(mix3([10, 30, 30], C.jade, .3), 1); ctx.beginPath(); ctx.arc(x, y, 14, 0, 6.2832); ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.stroke();
+    ctx.lineWidth = 2.3; ctx.strokeStyle = 'rgba(240,250,246,.95)'; ctx.beginPath(); ctx.moveTo(x - 6, y + .5); ctx.lineTo(x - 1.5, y + 5); ctx.lineTo(x + 6.5, y - 4.5); ctx.stroke();
+    ctx.font = mono(15); track(2.4); ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(233,238,245,.92)'; ctx.fillText(f, x + 30, y + 1);
+  });
+  ctx.globalAlpha = a; ctx.font = mono(14, 500); track(4); ctx.textAlign = 'left'; ctx.fillStyle = rgba(C.jade, .95); ctx.fillText(got + ' OF ' + FACTS.length + ' REACHABLE', x - 14, y0 - 62);
+  ctx.restore();
+}
+
+/* ---------- the savings, drawn from the same example ---------- */
+function chart(t) {
+  const a = seg(t, 32.3, 33.0) * (1 - seg(t, 40.5, 41.2)); if (a <= 0 || !fontsIn) return;
+  const xmax = LONG, ymax = 260, nd = lerp(0, LONG, io(seg(t, 33.0, 39.2)));
+  const x0 = 880, x1 = 1730, yt = 334, ybm = 716, X = (n) => x0 + (n / xmax) * (x1 - x0), Y = (c) => ybm - (c / ymax) * (ybm - yt);
+  const last = Math.min(Math.floor(nd), LONG), fr = nd - Math.floor(nd);
+  ctx.save(); ctx.globalAlpha = a; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.fillStyle = 'rgba(5,7,12,.42)'; ctx.fill(rr(new Path2D(), x0 - 76, yt - 66, x1 - x0 + 124, ybm - yt + 150, 18));
+  ctx.font = mono(13); track(2); ctx.textBaseline = 'middle';
+  for (let c = 0; c <= ymax; c += 50) { const y = Y(c); ctx.strokeStyle = 'rgba(233,238,245,.09)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(163,175,193,.8)'; ctx.fillText(c ? c + 'K' : '0', x0 - 16, y); }
+  for (let n = 0; n <= xmax + .01; n += 100) { ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(163,175,193,.8)'; ctx.fillText(String(n), X(n), ybm + 26); }
+  ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(163,175,193,.95)'; ctx.fillText('TOKENS CARRIED ON EACH REQUEST', x0, yt - 36);
+  ctx.textAlign = 'right'; ctx.fillText('REQUEST', x0 - 16, ybm + 26);
+  // the band a reset removes: everything between the two measured levels
+  ctx.fillStyle = rgba(C.garnet, .1); ctx.fillRect(x0, Y(MEAS.before), x1 - x0, Y(MEAS.after) - Y(MEAS.before));
+  ctx.setLineDash([3, 11]); ctx.lineWidth = 1.6; ctx.strokeStyle = rgba(C.garnet, .7); ctx.beginPath(); ctx.moveTo(x0, Y(MEAS.before)); ctx.lineTo(x1, Y(MEAS.before)); ctx.stroke();
+  ctx.strokeStyle = rgba(C.jade, .7); ctx.beginPath(); ctx.moveTo(x0, Y(MEAS.after)); ctx.lineTo(x1, Y(MEAS.after)); ctx.stroke(); ctx.setLineDash([]);
+  if (nd > 0) {
+    const line = new Path2D(), under = new Path2D(); under.moveTo(X(0), Y(0));
+    for (let i = 0; i <= last; i++) { const x = X(i), y = Y(SIM.re[i]); if (i === 0) line.moveTo(x, y); else { if (SIM.re[i] < SIM.re[i - 1]) { line.lineTo(x, Y(SIM.re[i - 1] + EX.add)); under.lineTo(x, Y(SIM.re[i - 1] + EX.add)); } line.lineTo(x, y); } under.lineTo(x, y); }
+    if (fr > 0 && last < LONG && SIM.re[last + 1] > SIM.re[last]) { const y = Y(lerp(SIM.re[last], SIM.re[last + 1], fr)); line.lineTo(X(nd), y); under.lineTo(X(nd), y); }
+    under.lineTo(X(nd), Y(0)); under.closePath(); ctx.fillStyle = rgba(C.jade, .1); ctx.fill(under);
+    ctx.shadowBlur = 16; ctx.lineWidth = 3; ctx.shadowColor = rgba(C.jade, .8); ctx.strokeStyle = rgba(C.jade, 1); ctx.stroke(line); ctx.shadowBlur = 0;
+  }
+  ctx.font = mono(13); track(2.4); ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+  ctx.fillStyle = rgba(C.garnet, 1); ctx.fillText('BEFORE A RESET  ' + MEAS.before + 'K', x1 - 8, Y(MEAS.before) - 20);
+  ctx.fillStyle = rgba(C.jade, 1); ctx.fillText('AFTER  ' + MEAS.after + 'K', x1 - 8, Y(MEAS.after) + 22);
+  { const lx = (x0 + x1) / 2, ly = (Y(MEAS.before) + Y(MEAS.after)) / 2, lw = ctx.measureText('SHED AT EVERY RESET').width + 36; ctx.fillStyle = 'rgba(5,7,12,.82)'; ctx.fill(rr(new Path2D(), lx - lw / 2, ly - 17, lw, 34, 17));
+    ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,214,210,.95)'; ctx.fillText('SHED AT EVERY RESET', lx, ly + 1); }
+  ctx.globalAlpha = a * seg(t, 33.4, 34.2); ctx.font = mono(12); track(1.8); ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(163,175,193,.85)';
+  ctx.fillText('MEASURED MEDIANS  ·  ' + MEAS.resets + ' RESETS  ·  FOUR SEATS  ·  4 TO 11 NOV 2026', x0, ybm + 58);
+  ctx.restore();
+}
+
+const PULSES = [
+  { t: 12.4, d: 1.4, x: COL.x, y: 560, r0: 200, r1: 620, c: C.jade }, { t: 16.1, d: 1.2, x: COL.x, y: 560, r0: 200, r1: 560, c: C.jade },
+  { t: 42.8, d: 1.5, x: () => TOMB.x, y: () => TOMB.y, r0: 50, r1: 380, c: C.jade },
+];
+function pulses(t) {
+  for (const p of PULSES) { const u = seg(t, p.t, p.t + p.d); if (u <= 0 || u >= 1) continue;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = rgba(p.c, .55 * (1 - u) * (1 - u)); ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(val(p.x), val(p.y), lerp(p.r0, p.r1, out(u)), 0, 6.2832); ctx.stroke(); ctx.restore(); }
+}
+const STAGES = [[0, 'COST'], [6, 'WEIGHT'], [12.5, 'RESET'], [18.5, 'PACKET'], [25, 'CHECK'], [31, 'SAVINGS'], [41, 'LIGHTER'], [FILM, '']];
+function chrome(t) {
+  if (!fontsIn) return;
+  ctx.save(); ctx.textBaseline = 'middle';
+  ctx.fillStyle = rgba(C.jade, .92); ctx.fill(rr(new Path2D(), 138, 85, 18, 13, 3.5));
+  ctx.font = mono(14, 500); track(5); ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(233,238,245,.86)'; ctx.fillText('CONTEXT RESET', 174, 92);
+  const sw = 70, gap = 10, x1 = W - 140, x0 = x1 - (7 * sw + 6 * gap); let cur = 0;
+  for (let i = 0; i < 7; i++) { const u = seg(t, STAGES[i][0], STAGES[i + 1][0]), x = x0 + i * (sw + gap); if (u > 0) cur = i;
+    ctx.fillStyle = 'rgba(233,238,245,.16)'; ctx.fillRect(x, 90.5, sw, 3); if (u > 0) { ctx.fillStyle = 'rgba(233,238,245,.9)'; ctx.fillRect(x, 90.5, sw * u, 3); } }
+  ctx.font = mono(13); track(3); ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(163,175,193,.95)'; ctx.fillText(STAGES[cur][1], x0 - 26, 92);
+  ctx.restore();
+}
+
+/* ---------- one frame ---------- */
+let KX = 1, T = 0, PK = null;
+function render(T) {   // player time -> film time: the closing still first, then the film from its start
+  if (T < INTRO) renderFilm(STILL, io(seg(T, INTRO - .5, INTRO)));
+  else { const t = T - INTRO; renderFilm(t, Math.max(1 - seg(t, 0, .7), seg(t, FILM - .7, FILM))); }
+}
+function renderFilm(t, veil) {
+  drawBG(t);
+  ctx.setTransform(KX, 0, 0, KX, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(BG, 0, 0, W, H);
+  const scrim = ctx.createLinearGradient(0, 0, W * .62, 0);
+  scrim.addColorStop(0, 'rgba(4,6,11,.62)'); scrim.addColorStop(1, 'rgba(4,6,11,0)'); ctx.fillStyle = scrim; ctx.fillRect(0, 0, W, H);
+  if (t < 31) {
+    const ca = colAlpha(t), fade = 1 - seg(t, 30.5, 31), o = columnAt(t), path = pathOf(o.pts);
+    behindColumn(t, ca * fade);
+    glass(path, boundsOf(o.pts), o.col, o.g, ca, t, 0);
+    insideColumn(t, o, path, ca);
+    retention(t);
+  } else {
+    const o = objAt(K_LATE, t); glass(pathOf(o.pts), boundsOf(o.pts), o.col, o.g, 1, t, o.white);
+    chart(t);
+  }
+  const pa = pktAlpha(t); PK = null;
+  if (pa > .003) { PK = objAt(K_PKT, t); glass(pathOf(PK.pts), boundsOf(PK.pts), PK.col, PK.g, pa, t, PK.white); }
+  pulses(t); chrome(t);
+  const vg = ctx.createRadialGradient(W * .56, H * .5, H * .3, W * .56, H * .5, W * .78);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.6)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.globalAlpha = .5; ctx.globalCompositeOperation = 'lighter';
+  const f = Math.floor(t * 24); ctx.translate(-(hash(f) * 220), -(hash(f + 9.1) * 220));
+  ctx.fillStyle = ctx.createPattern(NOISE, 'repeat'); ctx.fillRect(0, 0, W + 220, H + 220); ctx.restore();
+  if (veil > 0) { ctx.fillStyle = 'rgba(5,7,12,' + veil.toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+  dom(t);
+  stage.style.setProperty('--veil', (1 - veil).toFixed(3));
+}
+
+/* ---------- type ---------- */
+const caps = [...document.querySelectorAll('.cap')].map((el) => ({ el, a: +el.dataset.a, b: +el.dataset.b, vis: false, eye: el.querySelector('.eye'),
+  lines: [...el.querySelectorAll('.ln>span')], rest: [...el.querySelectorAll('.sub,.fine,.stats li')] }));
+const rc = $('#rc'), slot = $('#slot');
+function dom(t) {
+  for (const c of caps) {
+    const on = t >= c.a - .02 && t <= c.b + .02;
+    if (!on) { if (c.vis) { c.el.style.visibility = 'hidden'; c.vis = false; } continue; }
+    if (!c.vis) { c.el.style.visibility = 'visible'; c.vis = true; }
+    const o = 1 - io(seg(t, c.b - .5, c.b));
+    c.el.style.opacity = o.toFixed(3); c.el.style.transform = 'translate3d(0,' + (-22 * (1 - o)).toFixed(2) + 'px,0)';
+    if (c.eye) c.eye.style.opacity = seg(t, c.a, c.a + .5).toFixed(3);
+    c.lines.forEach((l, i) => { const u = out(seg(t, c.a + .08 + i * .14, c.a + .88 + i * .14)); l.style.transform = 'translate3d(0,' + ((1 - u) * 116).toFixed(2) + '%,0)'; });
+    c.rest.forEach((el, i) => { const u = out(seg(t, c.a + .6 + i * .16, c.a + 1.3 + i * .16)); el.style.opacity = u.toFixed(3); el.style.transform = 'translate3d(0,' + ((1 - u) * 16).toFixed(2) + 'px,0)'; });
+  }
+  const ra = seg(t, 20.2, 21.0) * (1 - seg(t, 23.4, 23.9));
+  rc.style.opacity = ra.toFixed(3);
+  if (ra > 0 && PK) rc.style.transform = 'translate3d(' + (PK.x - 180).toFixed(1) + 'px,' + (PK.y - 160).toFixed(1) + 'px,0) rotate(' + ((PK.rot * 180) / Math.PI).toFixed(2) + 'deg)';
+}
+function measure() {
+  const c7 = caps[caps.length - 1];
+  c7.el.style.transform = 'none'; c7.lines.forEach((l) => { l.style.transform = 'none'; });
+  const r = slot.getBoundingClientRect(), s = stage.getBoundingClientRect(), k = s.width / W || 1;
+  if (r.width > 0) { TOMB.x = (r.left + r.width / 2 - s.left) / k; TOMB.y = (r.top + r.height / 2 - s.top) / k; TOMB.r = r.height / 2 / .46 / k; }
+}
+
+/* ---------- fit, clock, controls ---------- */
+function fit() {
+  let fw = W;
+  if (!CAPTURE) {
+    const cs = getComputedStyle(wrap), iw = wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const ih = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - bar.offsetHeight - foot.offsetHeight - (EMBED ? 0 : 28);
+    fw = Math.max(240, Math.min(iw, (ih * 16) / 9, 1760));
+  }
+  frame.style.width = fw + 'px'; bar.style.width = fw + 'px'; stage.style.transform = 'scale(' + fw / W + ')';
+  const dpr = CAPTURE ? 1 : Math.min(window.devicePixelRatio || 1, 2), bw = Math.min(1920, Math.max(480, Math.round(fw * dpr)));
+  if (cv.width !== bw) { cv.width = bw; cv.height = Math.round((bw * 9) / 16); }
+  KX = cv.width / W; measure(); render(T);
+}
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let playing = !CAPTURE && !reduce && !EMBED, firstRun = !CAPTURE, last = 0, dragging = false;   // embedded: the page that holds the film says when to play
+T = 0;   // every run opens on the closing still
+const playBtn = $('#play'), scrub = $('#scrub'), clock = $('#clock'), icPause = $('#ic-pause'), icPlay = $('#ic-play');
+const mmss = (s) => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function ui() {
+  if (!dragging) scrub.value = T.toFixed(2);
+  clock.textContent = mmss(T) + ' / ' + mmss(DUR);
+  icPause.hidden = !playing; icPlay.hidden = playing; playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+}
+function tick(now) {
+  if (playing) { const dt = Math.min(.1, (now - last) / 1000 || 0); T += dt; if (T >= DUR) { T -= DUR; firstRun = false; } render(T); ui(); }
+  last = now; requestAnimationFrame(tick);
+}
+function toggle() { playing = !playing; ui(); }
+playBtn.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+frame.addEventListener('click', toggle);
+scrub.addEventListener('pointerdown', () => { dragging = true; });
+scrub.addEventListener('pointerup', () => { dragging = false; });
+scrub.addEventListener('input', () => { T = clamp(+scrub.value, 0, DUR - .001); firstRun = false; render(T); ui(); });
+document.addEventListener('keydown', (e) => { if (e.code === 'Space' && !/INPUT|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); toggle(); } });
+window.addEventListener('resize', fit);
+if (window.ResizeObserver) new ResizeObserver(fit).observe(wrap);
+
+const ready = (document.fonts && document.fonts.load
+  ? Promise.all([document.fonts.load('italic 400 200px "Instrument Serif"'), document.fonts.load('400 100px "Instrument Serif"'),
+      document.fonts.load('400 20px "Martian Mono"'), document.fonts.load('500 20px "Martian Mono"'), document.fonts.load('400 20px "Figtree"')]).then(() => document.fonts.ready)
+  : Promise.resolve()).catch(() => {}).then(() => { fontsIn = true; fit(); window.__ready = true; });
+window.__seek = (t) => ready.then(() => { T = t; firstRun = false; render(T); return true; });
+window.__dur = DUR;
+window.addEventListener('message', (e) => { if (EMBED && e.source === window.parent && e.data && e.data.fo === 'film') { playing = !!e.data.play && !reduce; ui(); } });
+fit(); ui(); requestAnimationFrame(tick);
+})();
+</script>
+
+</html>
+<script type="module" src="js/alive.js"></script>

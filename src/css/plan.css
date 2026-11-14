@@ -1,0 +1,170 @@
+/* plan.css - the plan panel (js/plan-panel.js). One panel, shown in two places: the Plan page of the app, and the Plan step of
+   Start your team. Everything it needs is here, so it reads the same wherever it is put. */
+.plan-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.plan-back {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  margin: 0;
+}
+.plan-back .t {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--mist);
+}
+.plan-lede {
+  margin: 0;
+  max-width: 78ch;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--mist);
+}
+.plan-lede strong {
+  color: var(--fog);
+}
+.plan-said {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fog);
+}
+.plan-tiers {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  align-items: start;
+}
+.plan-card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: 22px;
+  min-width: 0;
+}
+.plan-card > h2 {
+  margin: 0;
+  font: 400 26px/1.1 var(--display);
+}
+.plan-card > p {
+  margin: 0;
+}
+.plan-card.on {
+  border-color: rgba(52, 211, 153, 0.6);
+  background: linear-gradient(150deg, rgba(52, 211, 153, 0.12), rgba(255, 255, 255, 0.02) 65%);
+  box-shadow:
+    0 0 0 1px rgba(52, 211, 153, 0.25),
+    0 0 40px rgba(52, 211, 153, 0.08);
+}
+.plan-on {
+  justify-self: start;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--jade);
+  color: var(--jade-ink);
+  font: 800 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.plan-card .price {
+  font: 400 clamp(30px, 3.4vw, 42px)/1.1 var(--display);
+}
+.plan-card .price span {
+  font: 500 15px/1 var(--body);
+  color: var(--mist);
+}
+.plan-card .small {
+  font-size: 13px;
+}
+.feats {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.feats li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
+}
+.feats li::before {
+  content: '✓';
+  color: var(--jade);
+  font-weight: 800;
+}
+.feats li.no {
+  color: var(--dim);
+}
+.feats li.no::before {
+  content: '–';
+  color: var(--dim);
+}
+.plan-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.plan-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+}
+.plan-field input {
+  flex: 1 1 200px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--fog);
+  font: 400 15px var(--body);
+}
+.plan-field input::placeholder {
+  color: var(--dim);
+}
+.plan-field input:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+.by-hand summary {
+  cursor: pointer;
+  color: var(--mist);
+  font-size: 14px;
+}
+.to-sign {
+  margin: 8px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  font: 500 13px/1.5 var(--code);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/* the code in use, with the way to remove it beside it */
+.code-on {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.code-on p {
+  margin: 0;
+}

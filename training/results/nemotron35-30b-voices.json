@@ -1,0 +1,299 @@
+{
+ "label": "nemotron35-30b",
+ "setup": {
+  "model": "nemotron35-30b"
+ },
+ "at": "2026-11-13T13:56:58.188Z",
+ "minutes": 1.3,
+ "good": 10,
+ "of": 12,
+ "checks": [
+  {
+   "id": "simple.every-seat-answered",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "simple.no-two-seats-say-the-same",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "simple.a-reader-can-tell-who-said-what",
+   "ok": false,
+   "detail": "1 of 5 named rightly. The reader said: A: Alex B: Pat C: Jamie D: Robin E: Sam"
+  },
+  {
+   "id": "simple.no-seat-uses-a-developer-word",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "developer.every-seat-answered",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "developer.no-two-seats-say-the-same",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "developer.a-reader-can-tell-who-said-what",
+   "ok": false,
+   "detail": "1 of 5 named rightly. The reader said: A: Steward B: Operations C: Overseer D: Steward E: Master"
+  },
+  {
+   "id": "developer.each-keeps-to-its-length",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "room.the-seats-answer-in-the-form-asked",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "room.more-than-one-idea-comes-back",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "room.it-blames-the-code-here",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "room.it-works-the-value-out",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-13T13:56:44.165Z",
+   "label": "nemotron35-30b",
+   "mode": "simple",
+   "ask": "I have a free Saturday and no plans at all. What would you do with it?",
+   "said": [
+    {
+     "id": "overseer",
+     "name": "Sam",
+     "text": "I would spend a free Saturday catching up on things I've been meaning to do. I'd organize my space, read something I enjoy, and maybe try a new recipe. It's a chance to rest and get ready for the week ahead."
+    },
+    {
+     "id": "steward",
+     "name": "Robin",
+     "text": "I would spend it walking somewhere new, reading a book I have been meaning to start, and meeting a friend for coffee. I would also try one thing I have not done before, like a short class or a local event. I would rest, too, and not fill every hour."
+    },
+    {
+     "id": "operations",
+     "name": "Alex",
+     "text": "I would check if any of my teammates have plans I could join. If not, I'd use it to catch up on things I've been putting off—maybe organize photos, finish a writing project, or just rest. A free Saturday is rare, so I'd make it count however felt right in the moment. Would you like me to check with the team first, or shall I just suggest something?"
+    },
+    {
+     "id": "ask",
+     "name": "Jamie",
+     "text": "I'd grab my camera and head to the nearest park or waterfront. I'd spend the morning shooting light and texture—maybe street signs, puddles, anything that catches my eye. Midday I'd find a cafe with a window seat and people-watch. Afternoon I'd edit photos, then maybe find a local gig or exhibit if something's on. If the weather's off, I'd stay in and shoot around the flat—objects, shadows, anything that makes me notice something new. I'd end the day with a walk, camera in hand, seeing what I missed. That's my free Saturday: looking, shooting, noticing. What about you?"
+    },
+    {
+     "id": "master",
+     "name": "Pat",
+     "text": "I would pick one thing and do it well. I'd choose a walk somewhere new, then a simple lunch, then rest. I'd leave the rest open. What would you like to do?"
+    }
+   ],
+   "pairs": [
+    {
+     "a": "Sam",
+     "b": "Robin",
+     "share": 0.12
+    },
+    {
+     "a": "Sam",
+     "b": "Alex",
+     "share": 0.2
+    },
+    {
+     "a": "Sam",
+     "b": "Jamie",
+     "share": 0.1
+    },
+    {
+     "a": "Sam",
+     "b": "Pat",
+     "share": 0.09
+    },
+    {
+     "a": "Robin",
+     "b": "Alex",
+     "share": 0.02
+    },
+    {
+     "a": "Robin",
+     "b": "Jamie",
+     "share": 0.04
+    },
+    {
+     "a": "Robin",
+     "b": "Pat",
+     "share": 0.12
+    },
+    {
+     "a": "Alex",
+     "b": "Jamie",
+     "share": 0.09
+    },
+    {
+     "a": "Alex",
+     "b": "Pat",
+     "share": 0.05
+    },
+    {
+     "a": "Jamie",
+     "b": "Pat",
+     "share": 0.05
+    }
+   ],
+   "right": 1,
+   "guess": "A: Alex B: Pat C: Jamie D: Robin E: Sam"
+  },
+  {
+   "at": "2026-11-13T13:56:51.328Z",
+   "label": "nemotron35-30b",
+   "mode": "developer",
+   "ask": "Our checkout page feels slow on phones. What is the first thing you would do about it?",
+   "said": [
+    {
+     "id": "overseer",
+     "name": "Overseer",
+     "text": "I would first check the current performance metrics on mobile devices. I would look at the page load time, time to interactive, and any render-blocking resources. Then I would identify the largest contentful paint and any heavy third-party scripts. After gathering this data, I would share the findings with the team to decide on optimization priorities."
+    },
+    {
+     "id": "steward",
+     "name": "Steward",
+     "text": "I would first look at the network tab on a phone to see what requests are slow and why. I would not guess. I would follow the slowest request by hand, one line at a time, and ask how we know it is the cause. If I cannot see the network tab, I would need a tool to show me the page's loading behavior on a phone."
+    },
+    {
+     "id": "operations",
+     "name": "Operations",
+     "text": "Measure the load on a phone."
+    },
+    {
+     "id": "ask",
+     "name": "Ask",
+     "text": "I'd pull up the checkout page on a phone and just watch where it stalls—big images, heavy scripts, or something else? Then I'd check if the same page loads fast on a computer. That tells me if it's a phone thing or a page thing."
+    },
+    {
+     "id": "master",
+     "name": "Master",
+     "text": "I would first check the checkout page’s mobile waterfall in the browser dev tools, focusing on images, scripts, and network requests. I’d ask the Steward for the test that defines done, and the Overseer for the recent performance budget. If I cannot see the waterfall, I’d need the Operations team to run a mobile Lighthouse audit."
+    }
+   ],
+   "pairs": [
+    {
+     "a": "Overseer",
+     "b": "Steward",
+     "share": 0.04
+    },
+    {
+     "a": "Overseer",
+     "b": "Operations",
+     "share": 0.03
+    },
+    {
+     "a": "Overseer",
+     "b": "Ask",
+     "share": 0.08
+    },
+    {
+     "a": "Overseer",
+     "b": "Master",
+     "share": 0.11
+    },
+    {
+     "a": "Steward",
+     "b": "Operations",
+     "share": 0.04
+    },
+    {
+     "a": "Steward",
+     "b": "Ask",
+     "share": 0.02
+    },
+    {
+     "a": "Steward",
+     "b": "Master",
+     "share": 0.1
+    },
+    {
+     "a": "Operations",
+     "b": "Ask",
+     "share": 0.04
+    },
+    {
+     "a": "Operations",
+     "b": "Master",
+     "share": 0
+    },
+    {
+     "a": "Ask",
+     "b": "Master",
+     "share": 0.11
+    }
+   ],
+   "right": 1,
+   "guess": "A: Steward B: Operations C: Overseer D: Steward E: Master"
+  },
+  {
+   "at": "2026-11-13T13:56:57.383Z",
+   "label": "nemotron35-30b",
+   "mode": "room",
+   "answers": [
+    {
+     "seat": "overseer",
+     "also": [],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "Subtract 32 from screen_width (16 margin on each side) before comparing to 400"
+    },
+    {
+     "seat": "steward",
+     "also": [],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "Change the subtraction to first subtract 32 (16 on each side) from the screen width before passing to min."
+    },
+    {
+     "seat": "ask",
+     "also": [],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "Subtract 32 (16 margin left + 16 margin right) from the screen width before capping at 400"
+    },
+    {
+     "seat": "master",
+     "also": [],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "Return 328 directly when the screen is 360 wide, so the margin math works exactly"
+    },
+    {
+     "seat": "operations",
+     "also": [],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "change return to min(400, screen_width - 32) so the total margin is 16 per side"
+    }
+   ],
+   "tally": {
+    "code": 5,
+    "check": 0,
+    "task": 0,
+    "of": 5,
+    "value": "328",
+    "agree": 5,
+    "gave": 5
+   }
+  }
+ ]
+}

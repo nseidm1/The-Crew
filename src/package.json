@@ -1,0 +1,6 @@
+{
+  "name": "familyoffice-app",
+  "private": true,
+  "type": "module",
+  "description": "The app as it ships. No dependencies and no build step: this file only tells Node that js/*.js are ES modules, so the runner can share js/catalog.js with the pages."
+}

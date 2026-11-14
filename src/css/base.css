@@ -1,0 +1,494 @@
+/* base.css - tokens, type and glass for the whole product.
+   One dark look by design: smoked glass over a night ground. Colour only ever means a proof state. */
+@import url('fonts.css'); /* the four faces, carried with the product (css/fonts/): nothing is asked of Google */
+
+:root {
+  color-scheme: dark;
+  --ink: #05070c;
+  --panel: #0a0f18;
+  --fog: #e9eef5;
+  --mist: #a3afc1;
+  --dim: #6b7790;
+  --line: rgba(233, 238, 245, 0.12);
+  --line-2: rgba(233, 238, 245, 0.24);
+  --sheen: rgba(255, 255, 255, 0.14);
+  --shade: rgba(0, 0, 0, 0.5);
+  --smoke: #becde4; /* unproven */
+  --garnet: #ff5d57; /* red: it failed */
+  --jade: #34d399; /* green: it passed. Also Family Office's own emerald */
+  --em2: #10b981;
+  --sky: #38bdf8;
+  --vio: #c084fc; /* the brand's signature line, used nowhere else */
+  --gilt: #e8b970; /* running, and the judge */
+  --jade-ink: #04251c;
+  --display: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --body: 'Figtree', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  --mono:
+    'Nunito', 'Figtree', 'Avenir Next', system-ui, sans-serif; /* labels: a round, friendly face. The name is historical. */
+  --code: 'Martian Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace; /* only for commands and output */
+  --r: 26px;
+  --gut: max(20px, env(safe-area-inset-left, 0px));
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--ink);
+  color: var(--fog);
+  font: 400 16px/1.55 var(--body);
+}
+[hidden] {
+  display: none !important;
+}
+a {
+  color: inherit;
+}
+img,
+svg {
+  max-width: 100%;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1,
+h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+em {
+  font-style: italic;
+}
+:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* the room behind the glass: slow, dark, morphing light */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 34% at 22% 28%, rgba(40, 50, 122, 0.5), transparent 70%),
+    radial-gradient(34% 38% at 78% 22%, rgba(74, 40, 100, 0.38), transparent 70%),
+    radial-gradient(42% 40% at 68% 78%, rgba(18, 112, 92, 0.32), transparent 70%),
+    radial-gradient(36% 36% at 18% 82%, rgba(26, 78, 106, 0.42), transparent 70%);
+  filter: blur(40px);
+  animation: drift 46s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -2%, 0) rotate(8deg) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-3%, 3%, 0) rotate(-6deg) scale(1.02);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+.eye {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font: 500 12px/1.5 var(--mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+.dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--s, var(--smoke));
+  box-shadow: 0 0 14px var(--s, var(--smoke));
+}
+.is-red {
+  --s: var(--garnet);
+}
+.is-green {
+  --s: var(--jade);
+}
+.is-run {
+  --s: var(--gilt);
+}
+.is-clear {
+  --s: var(--smoke);
+}
+.mono {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  letter-spacing: 0.02em;
+}
+.muted {
+  color: var(--mist);
+}
+.dim {
+  color: var(--dim);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.glass {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.085),
+    rgba(255, 255, 255, 0.02) 46%,
+    rgba(95, 227, 184, 0.03)
+  );
+  -webkit-backdrop-filter: blur(22px) saturate(1.3);
+  backdrop-filter: blur(22px) saturate(1.3);
+  box-shadow:
+    inset 0 1px 0 var(--sheen),
+    0 30px 80px var(--shade);
+}
+.glass.flat {
+  box-shadow: inset 0 1px 0 var(--sheen);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--fog);
+  font: 500 15px/1 var(--body);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
+}
+.btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--fog);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn.primary {
+  border-color: transparent;
+  background: var(--jade);
+  color: var(--jade-ink);
+  font-weight: 600;
+}
+.btn.primary:hover {
+  background: #6ee7b7;
+}
+.btn.small {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mist);
+  white-space: nowrap;
+}
+.tag.warn {
+  border-color: rgba(232, 185, 112, 0.45);
+  color: var(--gilt);
+}
+.tag.ok {
+  border-color: rgba(95, 227, 184, 0.4);
+  color: var(--jade);
+}
+.tag.bad {
+  border-color: rgba(255, 93, 87, 0.45);
+  color: var(--garnet);
+}
+
+/* the Family Office wordmark: the house, the name, the line under it */
+.wm {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--fog);
+  text-decoration: none;
+}
+.wm-mark {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  fill: var(--jade);
+  filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.4));
+}
+.wm-eye {
+  fill: var(--ink);
+}
+.wm-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.1;
+}
+.wm-text b {
+  font: 800 18px/1.15 var(--body);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  background: linear-gradient(90deg, var(--fog), var(--jade));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.wm-text small {
+  font-size: 11px;
+  color: var(--mist);
+  white-space: nowrap;
+}
+.brandline {
+  position: relative;
+}
+.brandline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  opacity: 0.75;
+  background: linear-gradient(90deg, transparent, var(--em2), var(--sky), var(--vio), transparent);
+  background-size: 300% 100%;
+  animation: foSlide 14s ease-in-out infinite alternate;
+}
+@keyframes foSlide {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brandline::after {
+    animation: none;
+  }
+}
+
+.seat-mark {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 var(--sheen);
+}
+.seat-mark svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--fog);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.seat-mark.sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+.seat-mark.sm svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* friendlier, rounder: labels in a round face with less tracking, commands still in a code face, softer corners everywhere */
+.eye,
+.tag,
+.k {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+code,
+.term,
+.plan code {
+  font-family: var(--code);
+}
+.tag {
+  padding: 6px 12px;
+}
+.dots {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  height: 1em;
+  vertical-align: middle;
+}
+.dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--jade);
+  animation: bounce 1s ease-in-out infinite;
+}
+.dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+.w {
+  animation: wordIn 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes wordIn {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(4px);
+  }
+}
+.eq {
+  display: inline-flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 14px;
+  margin-right: 10px;
+}
+.eq i {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--jade);
+  animation: eq 0.9s ease-in-out infinite;
+}
+.eq i:nth-child(1) {
+  height: 60%;
+}
+.eq i:nth-child(2) {
+  height: 100%;
+  animation-delay: 0.15s;
+}
+.eq i:nth-child(3) {
+  height: 45%;
+  animation-delay: 0.3s;
+}
+@keyframes eq {
+  50% {
+    transform: scaleY(0.35);
+  }
+}
+.eq i {
+  transform-origin: bottom;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dots i,
+  .w,
+  .eq i {
+    animation: none;
+  }
+}
+
+/* the runner on this machine stopped while a page was still open (js/alive.js) */
+.gone-bar {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 90;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 18px;
+  border: 1px solid rgba(232, 185, 112, 0.55);
+  border-radius: 22px;
+  background: rgb(28, 22, 12);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+}
+.gone-bar p {
+  margin: 0;
+  font-size: 15px;
+}
+.gone-bar code {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  font: 500 13px/1.4 var(--code);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+/* ONE SET OF AVATARS: wherever a seat is shown it is the same character (js/avatar.js draws its body). In the box that used to hold
+   a line shape it stands free: no frame, a little larger than the box, so that what it wears can stand out of it. */
+.seat-mark.av {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.seat-mark.av svg,
+.seat-mark.sm.av svg {
+  width: 124%;
+  height: 124%;
+  fill: initial;
+  stroke: none;
+  stroke-width: 0;
+  overflow: visible;
+}

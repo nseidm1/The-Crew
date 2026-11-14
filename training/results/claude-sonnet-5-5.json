@@ -1,0 +1,136 @@
+{
+ "label": "claude-sonnet-5-5",
+ "setup": {
+  "engine": "claude",
+  "mode": "developer"
+ },
+ "at": "2026-11-13T21:19:59.662Z",
+ "machine": "Apple M2 Ultra, 64 GB",
+ "rounds": 1,
+ "minutes": 7,
+ "note": "swift: proof run in parallel",
+ "total": {
+  "runs": 4,
+  "good": 4,
+  "proven-right": 3,
+  "found": 1,
+  "false-green": 0,
+  "right-unproven": 0,
+  "wrong": 0,
+  "no-change": 0,
+  "not-found": 0
+ },
+ "byLang": {
+  "swift": {
+   "runs": 4,
+   "good": 4,
+   "falseGreen": 0
+  }
+ },
+ "byKind": {
+  "fix": {
+   "runs": 2,
+   "good": 2,
+   "falseGreen": 0
+  },
+  "enhance": {
+   "runs": 1,
+   "good": 1,
+   "falseGreen": 0
+  },
+  "find": {
+   "runs": 1,
+   "good": 1,
+   "falseGreen": 0
+  }
+ },
+ "room": {
+  "asked": 0,
+  "good": 0,
+  "off": false
+ },
+ "media": {
+  "runs": 0,
+  "saw": 0
+ },
+ "challenge": {
+  "put": 0,
+  "found": 0,
+  "fixed": 0
+ },
+ "scenarios": [
+  {
+   "id": "swift-total",
+   "lang": "swift",
+   "kind": "fix",
+   "shape": "one function, a missing factor",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 23,
+   "proofS": 60,
+   "loops": 0
+  },
+  {
+   "id": "swift-format",
+   "lang": "swift",
+   "kind": "fix",
+   "shape": "one function, formatting by rule",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 25,
+   "proofS": 61,
+   "loops": 0
+  },
+  {
+   "id": "swift-badge",
+   "lang": "swift",
+   "kind": "enhance",
+   "shape": "a new function with three cases",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 26,
+   "proofS": 55,
+   "loops": 0
+  },
+  {
+   "id": "swift-where-delivery",
+   "lang": "swift",
+   "kind": "find",
+   "shape": "find it: four files, one answer",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 0,
+   "found": 1,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 12,
+   "proofS": 0,
+   "loops": 0
+  }
+ ],
+ "misses": []
+}

@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- rsi.html - the proof loop film: a number, a judge, red, green, read again, and the loop turned on itself. Open it alone for the player, or with #embed for the film only. -->
+<title>The Proof Loop</title>
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+/* Layout: one 16:9 film stage (type lower-left, one glass column right of centre) over a slim player bar.
+   A single dark look by design: smoked glass over a night ground; colour only ever means weight (gilt), waste (garnet) or a reset (jade). */
+:root{
+  color-scheme: dark;
+  --ink:#05070c;
+  --rim:#0b1019;
+  --fog:#e9eef5;
+  --mist:#a3afc1;
+  --dim:#66728a;
+  --hair:rgba(233,238,245,.13);
+  --shade:rgba(0,0,0,.62);
+  --smoke:#becde4;          /* light: little carried */
+  --garnet:#ff5d57;         /* what is carried for nothing */
+  --jade:#5fe3b8;           /* a reset, and what it saves */
+  --gilt:#e8b970;           /* weight building up */
+  --display:"Instrument Serif","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --body:"Figtree","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --mono:"Martian Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--fog);font-family:var(--body);display:flex;flex-direction:column}
+#wrap{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#frame{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:var(--rim);
+  box-shadow:0 0 0 1px var(--hair),0 40px 120px var(--shade);cursor:pointer}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+#cv{position:absolute;left:0;top:0;width:1920px;height:1080px;display:block}
+
+.cap{position:absolute;left:140px;bottom:128px;width:max-content;visibility:hidden;will-change:transform,opacity;--dot:var(--smoke);filter:opacity(var(--veil,1))}
+.eye{display:flex;align-items:center;gap:16px;margin:0 0 30px;font:500 18px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--mist)}
+.eye i{width:11px;height:11px;border-radius:50%;background:var(--dot);box-shadow:0 0 18px var(--dot)}
+.cap h2{margin:0;font:400 108px/1 var(--display);letter-spacing:-.012em;color:var(--fog)}
+.cap h2 em{font-style:italic;color:var(--dot)}
+.ln{display:block;overflow:hidden;padding:.05em .12em .17em 0;margin:-.05em 0 -.17em}
+.ln>span{display:block;white-space:nowrap;will-change:transform}
+.sub{margin:36px 0 0;max-width:610px;font:400 30px/1.42 var(--body);color:var(--mist);text-wrap:balance}
+.sub b{font-weight:500;color:var(--fog)}
+.fine{margin:26px 0 0;font:400 14px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.cap.narrow h2{font-size:84px}
+.cap.narrow .sub{max-width:500px;font-size:27px}
+.cap.end{bottom:auto;top:196px}
+.cap.end h2{font-size:132px;line-height:1}
+.cap.end .tagline{margin-top:30px;max-width:none;font:italic 400 46px/1.1 var(--display);color:var(--fog)}
+.cap.end .stats{margin-top:56px}
+.slot{display:inline-block;width:.7em;height:.52em;margin-left:.14em;vertical-align:.02em}
+.stats{display:flex;gap:64px;margin:70px 0 0;padding:0;list-style:none}
+.stats li{display:flex;flex-direction:column;gap:14px}
+.stats strong{font:400 66px/1 var(--display);color:var(--fog);font-variant-numeric:tabular-nums}
+.stats span{max-width:230px;font:400 14px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mist)}
+#cnt{font-variant-numeric:tabular-nums}
+
+/* what is written on the packet */
+#rc{position:absolute;left:0;top:0;width:360px;opacity:0;font:400 16px/1.5 var(--mono);color:var(--fog);transform-origin:50% 50%;will-change:transform,opacity}
+#rc h3{margin:0 0 22px;padding-bottom:18px;border-bottom:1px dashed var(--hair);font:500 15px/1 var(--mono);letter-spacing:.32em;color:var(--jade)}
+#rc dl{margin:0;display:grid;grid-template-columns:116px 1fr;row-gap:15px}
+#rc dt{color:var(--mist)}
+#rc dd{margin:0}
+#rc p{margin:22px 0 0;padding-top:18px;border-top:1px dashed var(--hair);font-size:13px;letter-spacing:.06em;color:var(--mist)}
+
+#bar{display:flex;align-items:center;gap:14px;width:100%;max-width:100%}
+#play{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--hair);background:transparent;color:var(--fog);cursor:pointer}
+#play:hover{border-color:var(--mist)}
+#play:focus-visible,#scrub:focus-visible{outline:2px solid var(--jade);outline-offset:3px}
+#play svg{width:14px;height:14px;fill:currentColor}
+#scrub{flex:1;min-width:0;accent-color:var(--jade);cursor:pointer}
+#clock{flex:none;font:400 12px/1 var(--mono);letter-spacing:.08em;color:var(--mist);font-variant-numeric:tabular-nums}
+#foot{margin:0;font:400 13px/1.5 var(--body);color:var(--dim);text-align:center;text-wrap:balance}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+.capture #bar,.capture #foot,.embed #bar,.embed #foot{display:none}
+.embed #wrap{padding:0;gap:0}
+.embed #frame{border-radius:0;box-shadow:none}
+.capture #wrap{padding:0;gap:0;align-items:flex-start;justify-content:flex-start}
+.capture #frame{border-radius:0;box-shadow:none;max-width:none}
+</style>
+<style>
+.cap h2{font-size:104px}
+.cap.narrow h2{font-size:84px}
+.cap.end h2{font-size:112px;line-height:1.02}
+.cap.end .stats{margin-top:52px;gap:58px}
+.stats span{max-width:220px}
+</style>
+
+<main id="wrap">
+  <div id="frame" aria-label="Animated film about the proof loop">
+    <div id="stage">
+      <canvas id="cv" width="1920" height="1080" aria-hidden="true"></canvas>
+
+      <section class="cap" data-a="0.45" data-b="5.9" style="--dot:var(--smoke)">
+        <p class="eye"><i></i>The number</p>
+        <h2><span class="ln"><span>Every change</span></span><span class="ln"><span>names its <em>number.</em></span></span></h2>
+        <p class="sub">Before any code is written: the measure it should move. One of 292, each with a target.</p>
+      </section>
+
+      <section class="cap" data-a="6.4" data-b="12.1" style="--dot:var(--gilt)">
+        <p class="eye"><i></i>The judge</p>
+        <h2><span class="ln"><span>Someone else</span></span><span class="ln"><span>writes the <em>test.</em></span></span></h2>
+        <p class="sub">One seat pins the behaviour. Another builds it. The test must fail first, or it proves nothing.</p>
+      </section>
+
+      <section class="cap" data-a="12.6" data-b="18.1" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The proof</p>
+        <h2><span class="ln"><span>Red.</span></span><span class="ln"><span>Then <em>green.</em></span></span></h2>
+        <p class="sub">Same judge, same bytes, and a receipt. Without one, nothing lands.</p>
+      </section>
+
+      <section class="cap" data-a="18.6" data-b="24.5" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The reading</p>
+        <h2><span class="ln"><span>Then the number</span></span><span class="ln"><span>is read <em>again.</em></span></span></h2>
+        <p class="sub">Green is not the finish. If the measure did not move, that is a finding, and it is on the record.</p>
+      </section>
+
+      <section class="cap" data-a="25.0" data-b="30.9" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The ratchet</p>
+        <h2><span class="ln"><span>A gain</span></span><span class="ln"><span>is <em>held.</em></span></span></h2>
+        <p class="sub">Every target is a ratchet. When one slips, the system files the work itself.</p>
+      </section>
+
+      <section class="cap" data-a="31.4" data-b="37.3" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The evals</p>
+        <h2><span class="ln"><span>Even what it learns</span></span><span class="ln"><span>is <em>tested.</em></span></span></h2>
+        <p class="sub">A lesson enters memory only if its proof replays. A model gets a step only on its record.</p>
+      </section>
+
+      <section class="cap narrow" data-a="37.8" data-b="45.7" style="--dot:var(--jade)">
+        <p class="eye"><i></i>The loop</p>
+        <h2><span class="ln"><span>Then the loop</span></span><span class="ln"><span>proves <em>itself.</em></span></span></h2>
+        <p class="sub">Its judges, its measures and its own workflow change the same way: a number, a judge, red, green, read again.</p>
+      </section>
+
+      <section class="cap end" data-a="46.3" data-b="54" style="--dot:var(--jade)">
+        <h2><span class="ln"><span>It does not say it improved.</span></span><span class="ln"><span>It <em>proves</em> it.<span class="slot" id="slot"></span></span></span></h2>
+        <p class="sub tagline">Named. Judged. Proven. Read again.</p>
+        <ul class="stats">
+          <li><strong>292</strong><span>measures of itself, each with a target</span></li>
+          <li><strong>8,808</strong><span>judges on file, each pinning a behaviour</span></li>
+          <li><strong>2,981</strong><span>proofs run in a single day</span></li>
+          <li><strong>23,443</strong><span>commits to its own system in three months</span></li>
+        </ul>
+        <p class="fine">Figures from our own system, 10 Nov 2026</p>
+      </section>
+    </div>
+  </div>
+
+  <div id="bar" role="group" aria-label="Playback">
+    <button id="play" type="button" aria-label="Pause">
+      <svg id="ic-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="1.5" y="1" width="4" height="12" rx="1"/><rect x="8.5" y="1" width="4" height="12" rx="1"/></svg>
+      <svg id="ic-play" viewBox="0 0 14 14" aria-hidden="true" hidden><path d="M3 1.2v11.6a.6.6 0 0 0 .9.5l9-5.8a.6.6 0 0 0 0-1L3.9.7a.6.6 0 0 0-.9.5z"/></svg>
+    </button>
+    <input id="scrub" type="range" min="0" max="56.6" step="0.01" value="0" aria-label="Position in the film">
+    <output id="clock" for="scrub">0:00 / 0:56</output>
+  </div>
+  <p id="foot">The proof loop in 56 seconds. The measure on the dial is an example; the closing figures are read from our own system.</p>
+
+  <p class="sr">Transcript. Every change names its number: before any code is written, the measure it should move, one of 292, each with a target.
+  Someone else writes the test: one seat pins the behaviour, another builds it, and the test must fail first. Red, then green: same judge, same bytes,
+  and a receipt, without which nothing lands. Then the number is read again: green is not the finish. A gain is held: every target is a ratchet, and
+  when one slips the system files the work itself. Even what it learns is tested: a lesson enters memory only if its proof replays, and a model gets a
+  step only on its record. Then the loop proves itself: its judges, its measures and its own workflow change the same way.
+  It does not say it improved. It proves it.</p>
+</main>
+
+<script>
+(() => {
+'use strict';
+const W = 1920, H = 1080, FILM = 54;
+const INTRO = 2.6, STILL = 52.4, DUR = INTRO + FILM;   // the film opens on a still of its own closing card, then runs
+const $ = (s) => document.querySelector(s);
+const wrap = $('#wrap'), frame = $('#frame'), stage = $('#stage'), cv = $('#cv'), bar = $('#bar'), foot = $('#foot');
+const ctx = cv.getContext('2d');
+const CAPTURE = location.hash === '#capture';
+if (CAPTURE) document.documentElement.classList.add('capture');
+const EMBED = location.hash === '#embed';   // inside the landing page: the film alone, no player
+if (EMBED) document.documentElement.classList.add('embed');
+
+/* ---------- maths ---------- */
+const clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const io = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const out = (t) => 1 - Math.pow(1 - t, 3);
+const back = (t) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + Math.max(0, a).toFixed(3) + ')';
+const val = (v) => (typeof v === 'function' ? v() : v);
+const mono = (px, w = 400) => w + ' ' + px + 'px "Martian Mono"';
+const track = (px) => { try { ctx.letterSpacing = px + 'px'; } catch (e) {} };
+
+/* ---------- colour ---------- */
+const C = { smoke: [190, 205, 228], garnet: [255, 93, 87], jade: [95, 227, 184], gilt: [232, 185, 112], fog: [233, 238, 245] };
+const D = { ind: [40, 50, 122], pet: [26, 78, 106], plum: [74, 40, 100], gar: [146, 30, 44], jad: [18, 112, 92], jad2: [12, 80, 76], gil: [128, 88, 34], gil2: [96, 54, 32] };
+const P_COOL = [D.ind, D.pet, D.plum, D.ind, D.pet], P_GLT = [D.gil, D.plum, D.gil2, D.ind, D.pet], P_RED = [D.gar, D.plum, D.ind, D.gil2, D.pet], P_GRN = [D.jad, D.pet, D.jad2, D.ind, D.pet];
+const P_DEEP = [D.pet, D.ind, D.jad2, D.plum, D.pet], P_END = [D.jad2, D.ind, D.plum, D.pet, D.jad];
+const PALK = [{ t: 0, c: P_COOL }, { t: 5.6, c: P_COOL }, { t: 7.2, c: P_GLT }, { t: 9.4, c: P_GLT }, { t: 10.2, c: P_RED }, { t: 13.6, c: P_RED }, { t: 14.6, c: P_GRN }, { t: 18.4, c: P_GRN },
+  { t: 19.8, c: P_DEEP }, { t: 24.8, c: P_DEEP }, { t: 26, c: P_GRN }, { t: 31, c: P_GRN }, { t: 32.4, c: P_DEEP }, { t: 45.6, c: P_DEEP }, { t: 47.2, c: P_END }, { t: 54, c: P_END }];
+function palAt(t) {
+  let k = 0; while (k < PALK.length - 2 && t >= PALK[k + 1].t) k++;
+  const a = PALK[k], b = PALK[k + 1], u = io(seg(t, a.t, b.t));
+  return a.c.map((c, i) => mix3(c, b.c[i], u));
+}
+
+/* ---------- shapes: every outline is N points, so any one can become any other ---------- */
+const N = 168;
+function resample(poly, n = N) {
+  let area = 0;
+  for (let i = 0; i < poly.length; i++) { const a = poly[i], b = poly[(i + 1) % poly.length]; area += a[0] * b[1] - b[0] * a[1]; }
+  if (area < 0) poly = poly.slice().reverse();
+  const m = poly.length, L = [0];
+  for (let i = 0; i < m; i++) { const a = poly[i], b = poly[(i + 1) % m]; L.push(L[i] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
+  const total = L[m];
+  let s0 = 0, bestY = 1e9;
+  for (let i = 0; i < m; i++) {
+    const a = poly[i], b = poly[(i + 1) % m];
+    if ((a[0] <= 0 && b[0] > 0) || (a[0] >= 0 && b[0] < 0)) { const u = (0 - a[0]) / (b[0] - a[0]), y = a[1] + (b[1] - a[1]) * u; if (y < bestY) { bestY = y; s0 = L[i] + (L[i + 1] - L[i]) * u; } }
+  }
+  const pts = [];
+  for (let k = 0; k < n; k++) {
+    const s = (s0 + (k * total) / n) % total;
+    let i = 0; while (i < m - 1 && L[i + 1] < s) i++;
+    const a = poly[i], b = poly[(i + 1) % m], u = (s - L[i]) / ((L[i + 1] - L[i]) || 1);
+    pts.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]);
+  }
+  return pts;
+}
+const arc = (cx, cy, r, a0, a1, k = 14) => Array.from({ length: k + 1 }, (_, i) => { const a = a0 + ((a1 - a0) * i) / k; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; });
+const rrect = (w, h, r) => [...arc(w - r, -h + r, r, -Math.PI / 2, 0), ...arc(w - r, h - r, r, 0, Math.PI / 2), ...arc(-w + r, h - r, r, Math.PI / 2, Math.PI), ...arc(-w + r, -h + r, r, Math.PI, 1.5 * Math.PI)];
+
+/* ---------- THE LOOP: one ring, four stations, and the thing at its centre that every stage changes ---------- */
+const CX = 1400, CY = 548, RO = 318, R2 = 404;
+const rad = (d) => (d * Math.PI) / 180;
+const onRing = (deg, r = RO) => [CX + r * Math.cos(rad(deg)), CY + r * Math.sin(rad(deg))];
+const STN = [['NUMBER', -135], ['JUDGE', -45], ['PROOF', 45], ['READING', 135]];
+const hexP = Array.from({ length: 6 }, (_, i) => [1.1 * Math.cos(rad(-90 + i * 60)), 1.1 * Math.sin(rad(-90 + i * 60))]);
+const saw = (() => { const p = []; for (let k = 0; k < 12; k++) { const a0 = rad(-90 + k * 30), a1 = rad(-90 + (k + 1) * 30); p.push([1.16 * Math.cos(a0), 1.16 * Math.sin(a0)], [.93 * Math.cos(a0 + .02), .93 * Math.sin(a0 + .02)]);
+  for (let j = 1; j < 4; j++) { const a = lerp(a0, a1, j / 4), r = lerp(.93, 1.16, j / 4); p.push([r * Math.cos(a), r * Math.sin(a)]); } } return p; })();
+const SH = {
+  disc: resample(arc(0, 0, 1, 0, 6.2832, 72).slice(0, 72)), hex: resample(hexP), card: resample(rrect(.72, 1, .07)), ratchet: resample(saw),
+  panel: resample(rrect(1, .58, .05)), pack: resample(rrect(.62, .46, .16)), chip: resample(rrect(1, .52, .2)),
+};
+const TOMB = { x: 1500, y: 560, r: 90 };   // where the end mark sits, measured from the type
+/* the measure on the dial (an example): 72 against a target of 80, read again after the change lands, then held */
+function dialV(t) { let v = 72; v = lerp(v, 83, io(seg(t, 20.2, 22.4))); v = lerp(v, 84, out(seg(t, 26.0, 26.35))); v = lerp(v, 86, out(seg(t, 27.2, 27.55))); return v; }
+const spinAt = (t) => (t >= 32.3 ? 0 : rad(30 * back(seg(t, 26.0, 26.45)) + 30 * back(seg(t, 27.2, 27.65)) - 9 * Math.sin(Math.PI * seg(t, 28.4, 28.9))));   // two clicks forward, one slip caught
+/* the change travels the loop: number, judge, proof, reading, and back to the number */
+const ANG = [[0, -135], [5.6, -135], [6.6, -45], [11.8, -45], [12.8, 45], [17.8, 45], [18.8, 135], [24.3, 135], [25.3, 225], [54, 225]];
+function angAt(t) { let k = 0; while (k < ANG.length - 2 && t >= ANG[k + 1][0]) k++; const a = ANG[k], b = ANG[k + 1]; return lerp(a[1], b[1], io(seg(t, a[0], b[0]))); }
+function runner(t) {
+  const first = t < 26.2, ang = first ? angAt(t) : -135, rr2 = first ? RO : RO * out(seg(t, 28.75, 29.6));
+  const a = first ? seg(t, .9, 1.5) * (1 - seg(t, 25.5, 26.1)) : seg(t, 28.7, 29.0) * (1 - seg(t, 31.0, 31.6));
+  let col = C.smoke;
+  if (first) { col = mix3(col, C.gilt, seg(t, 6.2, 6.8)); col = mix3(col, C.garnet, seg(t, 9.6, 10.0)); col = mix3(col, C.jade, seg(t, 13.8, 14.2)); } else col = mix3(C.garnet, C.gilt, seg(t, 29.2, 30.2));
+  const [x, y] = onRing(ang, rr2);
+  return { x, y, a, col, label: first ? 'CHANGE' : 'NEW WORK' };
+}
+const JS = mix3(C.jade, C.smoke, .4);
+const K_MAIN = [   // the centre: a dial, the judge, a receipt, the dial again, a ratchet, what the team knows, the grid, the end mark
+  { t: 0, s: 'disc', x: CX, y: CY, r: 185, c: C.smoke, g: .35 }, { t: 5.5, s: 'disc', x: CX, y: CY, r: 185, c: C.smoke, g: .35 },
+  { t: 6.9, s: 'hex', x: CX, y: CY, r: 215, c: C.gilt, g: .6 }, { t: 9.6, s: 'hex', x: CX, y: CY, r: 215, c: C.gilt, g: .6 },
+  { t: 10.0, s: 'hex', x: CX, y: CY, r: 215, c: C.garnet, g: .95 }, { t: 13.8, s: 'hex', x: CX, y: CY, r: 215, c: C.garnet, g: .95 },
+  { t: 14.2, s: 'hex', x: CX, y: CY, r: 215, c: C.jade, g: 1 }, { t: 15.2, s: 'hex', x: CX, y: CY, r: 215, c: C.jade, g: 1 },
+  { t: 16.3, s: 'card', x: CX, y: CY, r: 200, rot: -4, c: JS, g: .6, w: .1 }, { t: 18.3, s: 'card', x: CX, y: CY, r: 200, rot: -4, c: JS, g: .6, w: .1 },
+  { t: 19.7, s: 'disc', x: CX, y: CY, r: 185, c: C.gilt, g: .5 }, { t: 21.3, s: 'disc', x: CX, y: CY, r: 185, c: C.gilt, g: .5 },
+  { t: 21.9, s: 'disc', x: CX, y: CY, r: 185, c: C.jade, g: .9 }, { t: 24.7, s: 'disc', x: CX, y: CY, r: 185, c: C.jade, g: .9 },
+  { t: 25.9, s: 'ratchet', x: CX, y: CY, r: 212, c: C.jade, g: .7 }, { t: 28.35, s: 'ratchet', x: CX, y: CY, r: 212, c: C.jade, g: .7 },
+  { t: 28.55, s: 'ratchet', x: CX, y: CY, r: 212, c: C.garnet, g: 1 }, { t: 29.5, s: 'ratchet', x: CX, y: CY, r: 212, c: C.garnet, g: 1 },
+  { t: 30.1, s: 'ratchet', x: CX, y: CY, r: 212, c: C.jade, g: .7 }, { t: 31.0, s: 'ratchet', x: CX, y: CY, r: 212, c: C.jade, g: .7 },
+  { t: 32.3, s: 'disc', x: CX, y: CY, r: 180, c: C.smoke, g: .5, w: .03 }, { t: 37.5, s: 'disc', x: CX, y: CY, r: 180, c: mix3(C.smoke, C.jade, .6), g: .7, w: .03 },
+  { t: 38.6, s: 'disc', x: CX, y: CY, r: 150, c: C.jade, g: .9 }, { t: 40.3, s: 'disc', x: CX, y: CY, r: 150, c: C.jade, g: .9 },
+  { t: 41.5, s: 'panel', x: 1300, y: 520, r: 500, c: C.smoke, g: .2, w: .015 }, { t: 45.7, s: 'panel', x: 1300, y: 520, r: 500, c: C.smoke, g: .2, w: .015 },
+  { t: 47.4, s: 'pack', x: () => TOMB.x, y: () => TOMB.y, r: () => TOMB.r, c: C.jade, g: .95 }, { t: 54, s: 'pack', x: () => TOMB.x, y: () => TOMB.y, r: () => TOMB.r, c: C.jade, g: .95 },
+];
+K_MAIN.spin = spinAt;
+
+function objAt(K, t) {   // a glass object on a keyframe track: shape, place, size, colour
+  let k = 0; while (k < K.length - 2 && t >= K[k + 1].t) k++;
+  const a = K[k], b = K[k + 1], raw = seg(t, a.t, b.t), u = io(raw), A = SH[a.s], B = SH[b.s], morph = a.s !== b.s;
+  const x = lerp(val(a.x), val(b.x), u), y = lerp(val(a.y), val(b.y), u), r = lerp(val(a.r), val(b.r), u), rot = (lerp(a.rot || 0, b.rot || 0, u) * Math.PI) / 180 + (K.spin ? K.spin(t) : 0);
+  const col = mix3(a.c, b.c, u), g = lerp(a.g, b.g, u), white = lerp(a.w || 0, b.w || 0, u), wob = morph ? Math.sin(Math.PI * u) * .06 : 0;
+  const cs = Math.cos(rot), sn = Math.sin(rot), pts = new Array(N);
+  for (let i = 0; i < N; i++) {
+    let ui = u; if (morph) { const ph = .5 + .5 * Math.sin((i / N) * Math.PI * 4 + 1.3); ui = io(clamp(raw * 1.4 - .4 * ph)); }
+    let px = lerp(A[i][0], B[i][0], ui), py = lerp(A[i][1], B[i][1], ui);
+    const th = (i / N) * 6.2832, kk = 1 + wob * (Math.sin(2 * th + t * 2.2) + .5 * Math.sin(5 * th - t * 2.9)) * .6;
+    px *= kk; py *= kk;
+    pts[i] = [x + (px * cs - py * sn) * r, y + (px * sn + py * cs) * r];
+  }
+  return { pts, x, y, r, rot, col, g: g * (1 + .08 * Math.sin(t * 1.7)), white };
+}
+
+function pathOf(pts) {
+  const p = new Path2D(), n = pts.length;
+  p.moveTo((pts[n - 1][0] + pts[0][0]) / 2, (pts[n - 1][1] + pts[0][1]) / 2);
+  for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; p.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); }
+  p.closePath(); return p;
+}
+function boundsOf(pts) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const p of pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+}
+function rr(p, x, y, w, h, r) { p.moveTo(x + r, y); p.arcTo(x + w, y, x + w, y + h, r); p.arcTo(x + w, y + h, x, y + h, r); p.arcTo(x, y + h, x, y, r); p.arcTo(x, y, x + w, y, r); p.closePath(); return p; }
+
+/* ---------- buffers: the room behind the glass ---------- */
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const BW = 960, BH = 540, GW = 240, GH = 135, SW = 192, SHH = 108;
+const BG = mk(BW, BH), bg = BG.getContext('2d'), GL = mk(GW, GH), gl = GL.getContext('2d'), SOFT = mk(SW, SHH), sf = SOFT.getContext('2d');
+const LAT = mk(BW + 32, BH + 32);
+(() => { const l = LAT.getContext('2d'); l.fillStyle = 'rgba(233,238,245,.2)'; for (let y = 0; y < LAT.height; y += 32) for (let x = 0; x < LAT.width; x += 32) { l.beginPath(); l.arc(x + 16, y + 16, 1, 0, 6.2832); l.fill(); } })();
+const NOISE = mk(220, 220);
+(() => { const n = NOISE.getContext('2d'), im = n.createImageData(220, 220); let s = 1234567;
+  for (let i = 0; i < im.data.length; i += 4) { s = (s * 1664525 + 1013904223) >>> 0; const v = s >>> 24; im.data[i] = im.data[i + 1] = im.data[i + 2] = 255; im.data[i + 3] = v > 150 ? (v - 150) * .34 : 0; }
+  n.putImageData(im, 0, 0); })();
+const GHOST = [{ w: 'number', a: 0, b: 6 }, { w: 'judge', a: 6.4, b: 12.2 }, { w: 'proof', a: 12.6, b: 18.2 }, { w: 'again', a: 18.6, b: 24.6 }, { w: 'held', a: 25, b: 31 },
+  { w: 'tested', a: 31.4, b: 37.4 }, { w: 'itself', a: 37.8, b: 40.6 }];
+let fontsIn = false;
+function drawBG(t) {
+  gl.setTransform(1, 0, 0, 1, 0, 0); gl.globalCompositeOperation = 'source-over'; gl.filter = 'none';
+  gl.fillStyle = '#04060b'; gl.fillRect(0, 0, GW, GH);
+  gl.filter = 'blur(7px)'; gl.globalCompositeOperation = 'lighter';
+  const pal = palAt(t);
+  for (let i = 0; i < 5; i++) {
+    const ph = i * 1.7, cx = GW * (.5 + .46 * Math.sin(t * .11 * (1 + i * .13) + ph * 2.1)), cy = GH * (.5 + .42 * Math.cos(t * .09 * (1 + i * .17) + ph)), R = GH * (.4 + .12 * Math.sin(t * .21 + ph));
+    gl.beginPath();
+    for (let k = 0; k <= 48; k++) { const a = (k / 48) * 6.2832, q = R * (1 + .24 * Math.sin(a * 3 + t * .5 + ph) + .13 * Math.sin(a * 5 - t * .37 + ph * 2)), x = cx + Math.cos(a) * q, y = cy + Math.sin(a) * q; if (k) gl.lineTo(x, y); else gl.moveTo(x, y); }
+    gl.closePath(); gl.fillStyle = rgba(pal[i], .4); gl.fill();
+  }
+  gl.filter = 'none'; gl.globalCompositeOperation = 'source-over';
+  bg.setTransform(1, 0, 0, 1, 0, 0); bg.globalAlpha = 1; bg.imageSmoothingEnabled = true; bg.imageSmoothingQuality = 'high';
+  bg.drawImage(GL, 0, 0, BW, BH); bg.drawImage(LAT, -((t * 5) % 32), -((t * 2.5) % 32));
+  bg.save(); bg.scale(.5, .5);
+  for (let i = 0; i < 9; i++) {
+    const x = ((hash(i + 1) * W + t * (5 + hash(i + 5) * 9)) % (W + 300)) - 150, y = H * (.1 + .8 * hash(i + 2)) + Math.sin(t * .25 + i) * 30;
+    const r = 22 + hash(i + 3) * 58, c = pal[i % 5], gr = bg.createRadialGradient(x, y, r * .62, x, y, r);
+    gr.addColorStop(0, rgba(mix3(c, C.fog, .3), .05)); gr.addColorStop(.86, rgba(mix3(c, C.fog, .4), .07)); gr.addColorStop(1, rgba(c, 0));
+    bg.fillStyle = gr; bg.beginPath(); bg.arc(x, y, r, 0, 6.2832); bg.fill();
+  }
+  if (fontsIn) {
+    bg.textAlign = 'center'; bg.textBaseline = 'middle';
+    for (const gh of GHOST) {
+      const a = seg(t, gh.a, gh.a + .9) * (1 - seg(t, gh.b - .7, gh.b)); if (a <= 0) continue;
+      let size = 600; bg.font = 'italic 400 ' + size + 'px "Instrument Serif"';
+      const cap = gh.mw || 1020, mw = bg.measureText(gh.w).width; if (mw > cap) { size = (size * cap) / mw; bg.font = 'italic 400 ' + size + 'px "Instrument Serif"'; }
+      bg.fillStyle = 'rgba(233,238,245,' + (.085 * a).toFixed(3) + ')';
+      bg.fillText(gh.w, (gh.x || 1350) + Math.sin(t * .3) * 20, 560 + (1 - out(seg(t, gh.a, gh.a + 1.4))) * 40);
+    }
+  }
+  bg.restore();
+  sf.imageSmoothingEnabled = true; sf.imageSmoothingQuality = 'high'; sf.drawImage(BG, 0, 0, SW, SHH);
+}
+
+/* ---------- glass ---------- */
+function blit(src, bx, m, a) {
+  const sx = src.width / W, sy = src.height / H, sw = bx.w / m, sh = bx.h / m;
+  ctx.save(); ctx.globalAlpha *= a; ctx.drawImage(src, (bx.cx - sw / 2) * sx, (bx.cy - sh / 2) * sy, sw * sx, sh * sy, bx.x, bx.y, bx.w, bx.h); ctx.restore();
+}
+function glass(path, bx, col, glow, alpha, t, white = 0) {
+  const lo = Math.min(bx.w, bx.h), hi = Math.max(bx.w, bx.h), depth = clamp(lo * .05, 3, 20), bev = clamp(lo * .075, 5, 30);
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.62)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 42; ctx.fillStyle = 'rgba(3,5,9,.55)'; ctx.fill(path); ctx.restore();
+  if (glow > .01) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.shadowColor = rgba(col, .5 * glow); ctx.shadowBlur = 120; ctx.fillStyle = rgba(col, .05 * glow); ctx.fill(path); ctx.restore(); }
+  ctx.save(); ctx.translate(depth * .55, depth);
+  const sg = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  sg.addColorStop(0, rgba(mix3([8, 12, 20], col, .16), .9)); sg.addColorStop(1, rgba(mix3([8, 12, 20], col, .5), .92));
+  ctx.fillStyle = sg; ctx.fill(path); ctx.lineWidth = 1.4; ctx.strokeStyle = rgba(col, .35 + .35 * glow); ctx.stroke(path); ctx.restore();
+  ctx.save(); ctx.clip(path);
+  const rb = { x: bx.x, y: bx.y, w: bx.w, h: bx.h, cx: bx.cx - hi * .05, cy: bx.cy - hi * .035 };
+  blit(BG, rb, 1.36, 1); blit(SOFT, rb, 1.36, .42);
+  ctx.fillStyle = 'rgba(6,10,18,.2)'; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  if (white > 0) { ctx.fillStyle = 'rgba(226,236,246,' + white.toFixed(3) + ')'; ctx.fillRect(bx.x, bx.y, bx.w, bx.h); }
+  const g = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(.42, 'rgba(255,255,255,.035)'); g.addColorStop(1, rgba(col, .1 + .2 * glow));
+  ctx.fillStyle = g; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  const qx = bx.cx + bx.w * .18, qy = bx.cy + bx.h * .3, rg = ctx.createRadialGradient(qx, qy, 0, qx, qy, hi * .62);
+  rg.addColorStop(0, rgba(col, .44 * glow)); rg.addColorStop(1, rgba(col, 0)); ctx.fillStyle = rg; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  const hx = bx.x + bx.w * .3, hy = bx.y + bx.h * .22, hs = ctx.createRadialGradient(hx, hy, 0, hx, hy, hi * .44);
+  hs.addColorStop(0, 'rgba(255,255,255,.1)'); hs.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = hs; ctx.fillRect(bx.x, bx.y, bx.w, bx.h);
+  const bv = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  bv.addColorStop(0, 'rgba(255,255,255,.36)'); bv.addColorStop(.5, 'rgba(255,255,255,.03)'); bv.addColorStop(1, 'rgba(0,0,0,.4)');
+  ctx.lineJoin = 'round'; ctx.lineWidth = bev * 2; ctx.strokeStyle = bv; ctx.stroke(path);
+  ctx.save(); ctx.shadowColor = rgba(col, .85 * glow); ctx.shadowBlur = 46; ctx.lineWidth = 10; ctx.strokeStyle = rgba(col, .36 * glow); ctx.stroke(path); ctx.restore();
+  ctx.save(); ctx.shadowColor = 'rgba(255,255,255,.5)'; ctx.shadowBlur = 20; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.stroke(path); ctx.restore();
+  const span = hi * 1.25, gp = ((t * .14) % 1.5) / 1.5, off = lerp(-span, span, gp);
+  ctx.save(); ctx.translate(bx.cx, bx.cy); ctx.rotate(-.52);
+  const lg = ctx.createLinearGradient(off - 110, 0, off + 110, 0);
+  lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(.5, 'rgba(255,255,255,.13)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = lg; ctx.fillRect(-span, -span, span * 2, span * 2); ctx.restore();
+  ctx.restore();
+  const rs = ctx.createLinearGradient(bx.x, bx.y, bx.x + bx.w, bx.y + bx.h);
+  rs.addColorStop(0, 'rgba(255,255,255,.92)'); rs.addColorStop(.35, 'rgba(255,255,255,.16)'); rs.addColorStop(.7, rgba(col, .25)); rs.addColorStop(1, rgba(col, .9));
+  ctx.lineJoin = 'round'; ctx.lineWidth = 2.4; ctx.strokeStyle = rs; ctx.stroke(path);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineWidth = 1.4;
+  ctx.translate(2.2, 0); ctx.strokeStyle = 'rgba(255,60,96,.2)'; ctx.stroke(path); ctx.translate(-4.4, 0); ctx.strokeStyle = 'rgba(60,160,255,.2)'; ctx.stroke(path); ctx.restore();
+  ctx.restore();
+}
+
+/* ---------- what is drawn on and around the centre ---------- */
+const serif = (px, it) => (it ? 'italic ' : '') + '400 ' + px + 'px "Instrument Serif"';
+function txt(s, x, y, font, color, align = 'center', tr = 0) { ctx.font = font; track(tr); ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillStyle = color; ctx.fillText(s, x, y); }
+const FOG = 'rgba(233,238,245,.96)', MIST = 'rgba(163,175,193,.95)';
+
+function loopRing(t) {   // the ring, how far round the change has come, and the four stations
+  const a = seg(t, .6, 1.6) * (1 - seg(t, 40.3, 41.1)); if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(233,238,245,.16)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(CX, CY, RO, 0, 6.2832); ctx.stroke();
+  const ang = t < 26.2 ? angAt(t) : 225;
+  if (ang > -135) { ctx.save(); ctx.shadowColor = rgba(C.jade, .8); ctx.shadowBlur = 14; ctx.strokeStyle = rgba(C.jade, .62 * (1 - .5 * seg(t, 31.2, 32.2))); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(CX, CY, RO, rad(-135), rad(ang)); ctx.stroke(); ctx.restore(); }
+  const la = 1 - seg(t, 31.2, 32);
+  for (const [name, deg] of STN) {
+    const [x, y] = onRing(deg), here = t < 26.2 && Math.abs(ang - deg) < 4, done = ang > deg + 4;
+    ctx.globalAlpha = a; ctx.fillStyle = done ? rgba(C.jade, .95) : here ? FOG : 'rgba(233,238,245,.35)';
+    ctx.beginPath(); ctx.arc(x, y, here ? 8 : 6, 0, 6.2832); ctx.fill();
+    if (fontsIn && la > 0) { const [lx, ly] = onRing(deg, RO + 78); ctx.globalAlpha = a * la; txt(name, lx, ly, mono(13, here ? 500 : 400), here || done ? FOG : 'rgba(163,175,193,.8)', 'center', 3); }
+  }
+  ctx.restore();
+}
+const dialAlpha = (t) => Math.max(seg(t, .7, 1.4) * (1 - seg(t, 5.3, 5.9)), seg(t, 19.8, 20.4) * (1 - seg(t, 24.8, 25.4)));
+function tether(t, o) {   // the change points at its measure; later the measure answers
+  const a = dialAlpha(t); if (a <= 0 || t > 26) return;
+  const r = runner(t), dx = CX - r.x, dy = CY - r.y, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+  const x0 = r.x + ux * 60, y0 = r.y + uy * 60, x1 = CX - ux * (o.r + 12), y1 = CY - uy * (o.r + 12), u = (t * .9) % 1, bk = t > 18;
+  ctx.save(); ctx.globalAlpha = a * r.a; ctx.setLineDash([3, 9]); ctx.strokeStyle = 'rgba(233,238,245,.5)'; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.setLineDash([]);
+  ctx.shadowColor = FOG; ctx.shadowBlur = 10; ctx.fillStyle = FOG; ctx.beginPath(); ctx.arc(bk ? lerp(x1, x0, u) : lerp(x0, x1, u), bk ? lerp(y1, y0, u) : lerp(y0, y1, u), 4, 0, 6.2832); ctx.fill(); ctx.restore();
+}
+function dial(t, o) {
+  const a = dialAlpha(t); if (a <= 0 || !fontsIn) return;
+  const v = dialV(t), Rr = o.r * .76, A0 = rad(135), A = (x) => A0 + (rad(270) * x) / 100, on = v >= 80, col = on ? C.jade : C.gilt, ta = A(80);
+  ctx.save(); ctx.globalAlpha = a; ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(233,238,245,.14)'; ctx.lineWidth = 9; ctx.beginPath(); ctx.arc(o.x, o.y, Rr, A0, A(100)); ctx.stroke();
+  ctx.save(); ctx.shadowColor = rgba(col, .9); ctx.shadowBlur = 18; ctx.strokeStyle = rgba(col, 1); ctx.beginPath(); ctx.arc(o.x, o.y, Rr, A0, A(v)); ctx.stroke(); ctx.restore();
+  ctx.strokeStyle = FOG; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(o.x + (Rr - 15) * Math.cos(ta), o.y + (Rr - 15) * Math.sin(ta)); ctx.lineTo(o.x + (Rr + 15) * Math.cos(ta), o.y + (Rr + 15) * Math.sin(ta)); ctx.stroke();
+  txt('MEASURE', o.x + 2, o.y - 60, mono(12), MIST, 'center', 4);
+  txt(String(Math.round(v)), o.x, o.y + 4, serif(108), FOG);
+  txt(on ? 'ON TARGET' : 'TARGET 80', o.x + 1.5, o.y + 70, mono(12, 500), on ? rgba(C.jade, 1) : 'rgba(233,238,245,.82)', 'center', 3);
+  ctx.restore();
+}
+function judgeIn(t, o) {
+  const a = seg(t, 7.2, 7.8) * (1 - seg(t, 15.3, 15.9)); if (a <= 0 || !fontsIn) return;
+  const st = t < 9.8 ? 0 : t < 14 ? 1 : 2, flip = st === 0 ? 1 : st === 1 ? seg(t, 9.8, 10.2) : seg(t, 14, 14.4);
+  ctx.save(); ctx.globalAlpha = a; txt('THE JUDGE', o.x + 2, o.y - 88, mono(12), 'rgba(233,238,245,.82)', 'center', 4);
+  ctx.globalAlpha = a * flip; txt(['pinned', 'red', 'green'][st], o.x, o.y - 10 + (1 - flip) * 14, serif(98, true), FOG);
+  txt(['WRITTEN BY ONE SEAT', 'IT FAILS FIRST', 'SAME JUDGE'][st], o.x + 1.5, o.y + 64, mono(12, 500), 'rgba(233,238,245,.92)', 'center', 3);
+  txt(['BUILT BY ANOTHER', 'AS IT SHOULD', 'SAME BYTES'][st], o.x + 1.5, o.y + 88, mono(12), 'rgba(233,238,245,.84)', 'center', 3);
+  ctx.restore();
+}
+function receiptIn(t, o) {
+  const a = seg(t, 16.4, 17.0) * (1 - seg(t, 18.3, 18.9)); if (a <= 0 || !fontsIn) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.translate(o.x, o.y); ctx.rotate(o.rot);
+  txt('RECEIPT', -104, -138, mono(14, 500), rgba(C.jade, 1), 'left', 5);
+  ctx.strokeStyle = 'rgba(233,238,245,.22)'; ctx.setLineDash([4, 6]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-104, -112); ctx.lineTo(104, -112); ctx.moveTo(-104, 86); ctx.lineTo(104, 86); ctx.stroke(); ctx.setLineDash([]);
+  [['before', 'red'], ['after', 'green'], ['bytes', 'as proved'], ['head', 'current']].forEach(([k, v], i) => { const y = -76 + i * 42; ctx.globalAlpha = a * seg(t, 16.6 + i * .16, 17.0 + i * .16); txt(k, -104, y, mono(14), MIST, 'left', 1); txt(v, 104, y, mono(14), FOG, 'right', 1); });
+  ctx.globalAlpha = a * seg(t, 17.3, 17.8); txt('READY TO LAND', 2, 122, mono(13, 500), rgba(C.jade, 1), 'center', 4);
+  ctx.restore();
+}
+function ratchetIn(t, o) {
+  const a = seg(t, 26.0, 26.6) * (1 - seg(t, 30.9, 31.5)); if (a <= 0 || !fontsIn) return;
+  const slip = seg(t, 28.4, 28.6) * (1 - seg(t, 29.6, 30.2));
+  ctx.save(); ctx.globalAlpha = a;
+  txt('MEASURE', o.x + 2, o.y - 62, mono(12), 'rgba(233,238,245,.82)', 'center', 4);
+  txt(String(Math.round(dialV(t))), o.x, o.y + 2, serif(108), FOG);
+  txt(slip > .5 ? 'SLIP CAUGHT' : 'HELD', o.x + 2, o.y + 68, mono(12, 500), slip > .5 ? 'rgba(255,206,202,1)' : rgba(C.jade, 1), 'center', 4);
+  const px = o.x + o.r * 1.19, py = o.y - o.r * .3;   // the pawl that stops it turning back
+  ctx.fillStyle = 'rgba(233,238,245,.92)'; ctx.beginPath(); ctx.moveTo(px + 40, py - 15); ctx.lineTo(px + 40, py + 15); ctx.lineTo(px - 4 - 7 * slip, py + 5); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+/* the evals: lessons arrive at the ring. One whose proof replays goes in; one whose proof does not is turned away. */
+const LES = Array.from({ length: 22 }, (_, i) => ({ deg: -150 + ((i * 137.5) % 300), t0: 32.4 + i * .17, keep: hash(i * 5.3 + 2) > .32 }));
+const LT = 1.5;   // seconds a lesson is on screen: in to the ring, then through it or away
+const LC = { kept: 0, refused: 0 };
+function lessons(t) {
+  LC.kept = 0; LC.refused = 0;
+  const a = seg(t, 32.2, 32.8) * (1 - seg(t, 37.3, 37.8));
+  for (const l of LES) {
+    const u = t - l.t0; if (u >= LT - .25) { if (l.keep) LC.kept++; else LC.refused++; }
+    if (a <= 0 || u <= 0 || u >= LT) continue;
+    const inn = seg(u, 0, .8), aft = seg(u, .8, LT);
+    const r = aft <= 0 ? lerp(600, RO, io(inn)) : l.keep ? lerp(RO, 150, io(aft)) : lerp(RO, 470, out(aft));
+    const col = aft <= 0 ? C.smoke : l.keep ? C.jade : C.garnet, [x, y] = onRing(l.deg, r), al = a * (aft <= 0 ? seg(u, 0, .2) : l.keep ? 1 - seg(aft, .7, 1) : 1 - aft);
+    ctx.save(); ctx.globalAlpha = al; ctx.shadowColor = rgba(col, .9); ctx.shadowBlur = 16; ctx.fillStyle = rgba(col, 1); ctx.beginPath(); ctx.arc(x, y, 8, 0, 6.2832); ctx.fill();
+    if (aft > 0 && aft < .5) { ctx.globalAlpha = a * (1 - aft * 2); ctx.strokeStyle = rgba(col, 1); ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(CX, CY, RO, rad(l.deg - 7), rad(l.deg + 7)); ctx.stroke(); }
+    ctx.restore();
+  }
+  if (a > 0 && fontsIn) { ctx.save(); ctx.globalAlpha = a; txt('A LESSON GOES IN ONLY IF ITS PROOF REPLAYS', CX, CY + RO + 60, mono(12), 'rgba(233,238,245,.86)', 'center', 3);
+    txt('TURNED AWAY  ' + LC.refused, CX, CY + RO + 86, mono(12, 500), rgba(C.garnet, 1), 'center', 3); ctx.restore(); }
+}
+function orbIn(t, o) {
+  const a = seg(t, 32.4, 33.0) * (1 - seg(t, 40.4, 40.9)); if (a <= 0 || !fontsIn) return;
+  const late = seg(t, 37.5, 38.1);
+  ctx.save();
+  ctx.globalAlpha = a * (1 - late); txt('WHAT THE TEAM KNOWS', o.x + 1.5, o.y - 60, mono(11), 'rgba(233,238,245,.82)', 'center', 3); txt(String(LC.kept), o.x, o.y + 2, serif(104), FOG); txt('LESSONS KEPT', o.x + 2, o.y + 66, mono(12, 500), rgba(C.jade, 1), 'center', 4);
+  ctx.globalAlpha = a * late; txt('THE WORKFLOW', o.x + 1.5, o.y - 48, mono(11), 'rgba(233,238,245,.86)', 'center', 3); txt('itself', o.x, o.y + 10, serif(84, true), FOG);
+  ctx.restore();
+}
+function loopOnLoop(t) {   // the same loop, run on the loop: a second ring around the first
+  const a = seg(t, 37.7, 38.3) * (1 - seg(t, 40.3, 41.0)); if (a <= 0) return;
+  ctx.save(); ctx.lineCap = 'round'; ctx.globalAlpha = a; ctx.shadowColor = rgba(C.jade, .9); ctx.shadowBlur = 16; ctx.fillStyle = rgba(C.jade, 1);
+  for (let i = 0; i < 3; i++) { const [x, y] = onRing(-135 + ((t - 37.6) / 1.25) * 360 + i * 120); ctx.beginPath(); ctx.arc(x, y, 7, 0, 6.2832); ctx.fill(); }
+  const b = a * seg(t, 38.3, 39.0); ctx.shadowBlur = 0;
+  if (b > 0) {
+    ctx.globalAlpha = b; ctx.setLineDash([2, 12]); ctx.strokeStyle = 'rgba(233,238,245,.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(CX, CY, R2, 0, 6.2832); ctx.stroke(); ctx.setLineDash([]);
+    const [x, y] = onRing(45 - ((t - 38.3) / 2.6) * 360, R2); ctx.shadowColor = rgba(C.gilt, .9); ctx.shadowBlur = 18; ctx.fillStyle = rgba(C.gilt, 1); ctx.beginPath(); ctx.arc(x, y, 9, 0, 6.2832); ctx.fill(); ctx.shadowBlur = 0;
+    if (fontsIn) txt('THE SAME LOOP, RUN ON THE LOOP', CX, CY + R2 + 38, mono(12), 'rgba(233,238,245,.86)', 'center', 3);
+  }
+  ctx.restore();
+}
+/* many iterations: every cell is one pass of the loop */
+const GR = { cols: 13, rows: 5, s: 52, g: 16, P: 2.2 };
+function grid(t) {
+  const a = seg(t, 41.4, 42.0) * (1 - seg(t, 45.3, 45.8)); if (a <= 0) return;
+  const w = GR.cols * GR.s + (GR.cols - 1) * GR.g, h = GR.rows * GR.s + (GR.rows - 1) * GR.g, x0 = 1300 - w / 2, y0 = 508 - h / 2; let iters = 0;
+  ctx.save(); ctx.globalAlpha = a; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  for (let r = 0; r < GR.rows; r++) for (let c = 0; c < GR.cols; c++) {
+    const i = r * GR.cols + c, tau = t - 41.5 - c * .07 - r * .05 - hash(i + 3) * 1.1, x = x0 + c * (GR.s + GR.g), y = y0 + r * (GR.s + GR.g);
+    let col = C.smoke, f = .05, s = .25, tick = false;
+    if (tau > 0) { const u = (tau % GR.P) / GR.P; iters += Math.floor(tau / GR.P);
+      if (u < .18) { f = .12; s = .8; } else if (u < .4) { col = C.gilt; f = .3; s = .9; } else if (u < .54) { col = C.garnet; f = .42; s = 1; } else { col = C.jade; f = .26 + .26 * (1 - seg(u, .54, 1)); s = 1; tick = u > .6; } }
+    const p = rr(new Path2D(), x, y, GR.s, GR.s, 12); ctx.fillStyle = rgba(col, f); ctx.fill(p); ctx.lineWidth = 1.4; ctx.strokeStyle = rgba(col, s); ctx.stroke(p);
+    if (tick) { ctx.lineWidth = 2.4; ctx.strokeStyle = 'rgba(240,250,246,.95)'; ctx.beginPath(); ctx.moveTo(x + 17, y + 27); ctx.lineTo(x + 24, y + 34); ctx.lineTo(x + 36, y + 19); ctx.stroke(); }
+  }
+  if (fontsIn) {
+    txt('EACH CELL: A NUMBER, A JUDGE, RED, GREEN, READ AGAIN', x0, y0 - 46, mono(12), MIST, 'left', 2.4);
+    txt('PASSES  ' + String(iters).padStart(3, '0'), x0 + w, y0 - 46, mono(13, 500), rgba(C.jade, 1), 'right', 3);
+    txt('292 MEASURES   ·   8,808 JUDGES   ·   2,981 PROOFS IN A DAY', 1300, y0 + h + 54, mono(15), FOG, 'center', 3);
+    txt('OUR OWN SYSTEM  ·  10 NOV 2026', 1300, y0 + h + 84, mono(11), 'rgba(163,175,193,.8)', 'center', 3);
+  }
+  ctx.restore();
+}
+const END = { x: 1560, y: 610, r: 196 };
+function endLoop(t) {
+  const a = seg(t, 47.8, 49.0); if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha = a; ctx.lineCap = 'round';
+  ctx.save(); ctx.shadowColor = rgba(C.jade, .85); ctx.shadowBlur = 22; ctx.strokeStyle = rgba(C.jade, .8); ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(END.x, END.y, END.r, rad(-135), rad(-135 + 360 * io(seg(t, 47.8, 49.6)))); ctx.stroke(); ctx.restore();
+  ctx.setLineDash([2, 12]); ctx.strokeStyle = 'rgba(233,238,245,.4)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(END.x, END.y, END.r + 58, 0, 6.2832); ctx.stroke(); ctx.setLineDash([]);
+  for (const [, deg] of STN) { const x = END.x + END.r * Math.cos(rad(deg)), y = END.y + END.r * Math.sin(rad(deg)); ctx.fillStyle = rgba(C.jade, .95); ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.2832); ctx.fill(); }
+  const a1 = rad(-135 + t * 40), a2 = rad(45 - t * 17);
+  ctx.shadowColor = FOG; ctx.shadowBlur = 14; ctx.fillStyle = FOG; ctx.beginPath(); ctx.arc(END.x + END.r * Math.cos(a1), END.y + END.r * Math.sin(a1), 6, 0, 6.2832); ctx.fill();
+  ctx.shadowColor = rgba(C.gilt, .9); ctx.fillStyle = rgba(C.gilt, 1); ctx.beginPath(); ctx.arc(END.x + (END.r + 58) * Math.cos(a2), END.y + (END.r + 58) * Math.sin(a2), 7, 0, 6.2832); ctx.fill(); ctx.shadowBlur = 0;
+  if (fontsIn) { txt('THE PROOF LOOP', END.x + 2, END.y - 22, mono(11), 'rgba(163,175,193,.95)', 'center', 4); txt('and round again', END.x, END.y + 18, serif(42, true), FOG); }
+  ctx.restore();
+}
+function runnerChip(t) {
+  const r = runner(t); if (r.a <= .003) return;
+  const pts = SH.chip.map((p) => [r.x + p[0] * 56, r.y + p[1] * 56]); glass(pathOf(pts), boundsOf(pts), r.col, .7, r.a, t, .05);
+  if (fontsIn) { ctx.save(); ctx.globalAlpha = r.a; txt(r.label, r.x + 1.5, r.y + 1, mono(11, 500), FOG, 'center', 3); ctx.restore(); }
+}
+const PULSES = [
+  { t: 10.0, d: 1.2, x: CX, y: CY, r0: 210, r1: 560, c: C.garnet }, { t: 14.2, d: 1.4, x: CX, y: CY, r0: 210, r1: 620, c: C.jade },
+  { t: 21.8, d: 1.3, x: CX, y: CY, r0: 190, r1: 560, c: C.jade }, { t: 26.0, d: .8, x: CX, y: CY, r0: 240, r1: 370, c: C.jade }, { t: 27.2, d: .8, x: CX, y: CY, r0: 240, r1: 370, c: C.jade },
+  { t: 28.45, d: 1.0, x: CX, y: CY, r0: 240, r1: 450, c: C.garnet }, { t: 47.4, d: 1.5, x: () => TOMB.x, y: () => TOMB.y, r0: 50, r1: 380, c: C.jade },
+];
+function pulses(t) {
+  for (const p of PULSES) { const u = seg(t, p.t, p.t + p.d); if (u <= 0 || u >= 1) continue;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = rgba(p.c, .55 * (1 - u) * (1 - u)); ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(val(p.x), val(p.y), lerp(p.r0, p.r1, out(u)), 0, 6.2832); ctx.stroke(); ctx.restore(); }
+}
+const STAGES = [[0, 'NUMBER'], [6.2, 'JUDGE'], [12.4, 'PROOF'], [18.4, 'READING'], [24.8, 'RATCHET'], [31.2, 'EVALS'], [37.6, 'LOOP'], [46.1, 'PROVEN'], [FILM, '']];
+function chrome(t) {
+  if (!fontsIn) return;
+  ctx.save(); ctx.lineCap = 'round';
+  ctx.strokeStyle = rgba(C.jade, .92); ctx.lineWidth = 2.6; ctx.beginPath(); ctx.arc(147, 91.5, 7.5, rad(-50), rad(250)); ctx.stroke();   // an open loop
+  txt('THE PROOF LOOP', 174, 92, mono(14, 500), 'rgba(233,238,245,.86)', 'left', 5);
+  const n = STAGES.length - 1, sw = 58, gap = 10, x1 = W - 140, x0 = x1 - (n * sw + (n - 1) * gap); let cur = 0;
+  for (let i = 0; i < n; i++) { const u = seg(t, STAGES[i][0], STAGES[i + 1][0]), x = x0 + i * (sw + gap); if (u > 0) cur = i;
+    ctx.fillStyle = 'rgba(233,238,245,.16)'; ctx.fillRect(x, 90.5, sw, 3); if (u > 0) { ctx.fillStyle = 'rgba(233,238,245,.9)'; ctx.fillRect(x, 90.5, sw * u, 3); } }
+  txt(STAGES[cur][1], x0 - 26, 92, mono(13), MIST, 'right', 3);
+  ctx.restore();
+}
+
+/* ---------- one frame ---------- */
+let KX = 1, T = 0, PK = null;
+function render(T) {   // player time -> film time: the closing still first, then the film from its start
+  if (T < INTRO) renderFilm(STILL, io(seg(T, INTRO - .5, INTRO)));
+  else { const t = T - INTRO; renderFilm(t, Math.max(1 - seg(t, 0, .7), seg(t, FILM - .7, FILM))); }
+}
+function renderFilm(t, veil) {
+  drawBG(t);
+  ctx.setTransform(KX, 0, 0, KX, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(BG, 0, 0, W, H);
+  const scrim = ctx.createLinearGradient(0, 0, W * .62, 0);
+  scrim.addColorStop(0, 'rgba(4,6,11,.62)'); scrim.addColorStop(1, 'rgba(4,6,11,0)'); ctx.fillStyle = scrim; ctx.fillRect(0, 0, W, H);
+  const o = objAt(K_MAIN, t);
+  loopRing(t); lessons(t); loopOnLoop(t); tether(t, o);
+  glass(pathOf(o.pts), boundsOf(o.pts), o.col, o.g, 1, t, o.white);
+  dial(t, o); judgeIn(t, o); receiptIn(t, o); ratchetIn(t, o); orbIn(t, o); grid(t); endLoop(t);
+  runnerChip(t); pulses(t); chrome(t);
+  const vg = ctx.createRadialGradient(W * .56, H * .5, H * .3, W * .56, H * .5, W * .78);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.6)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.globalAlpha = .5; ctx.globalCompositeOperation = 'lighter';
+  const f = Math.floor(t * 24); ctx.translate(-(hash(f) * 220), -(hash(f + 9.1) * 220));
+  ctx.fillStyle = ctx.createPattern(NOISE, 'repeat'); ctx.fillRect(0, 0, W + 220, H + 220); ctx.restore();
+  if (veil > 0) { ctx.fillStyle = 'rgba(5,7,12,' + veil.toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+  dom(t);
+  stage.style.setProperty('--veil', (1 - veil).toFixed(3));
+}
+
+/* ---------- type ---------- */
+const caps = [...document.querySelectorAll('.cap')].map((el) => ({ el, a: +el.dataset.a, b: +el.dataset.b, vis: false, eye: el.querySelector('.eye'),
+  lines: [...el.querySelectorAll('.ln>span')], rest: [...el.querySelectorAll('.sub,.fine,.stats li')] }));
+const slot = $('#slot');
+function dom(t) {
+  for (const c of caps) {
+    const on = t >= c.a - .02 && t <= c.b + .02;
+    if (!on) { if (c.vis) { c.el.style.visibility = 'hidden'; c.vis = false; } continue; }
+    if (!c.vis) { c.el.style.visibility = 'visible'; c.vis = true; }
+    const o = 1 - io(seg(t, c.b - .5, c.b));
+    c.el.style.opacity = o.toFixed(3); c.el.style.transform = 'translate3d(0,' + (-22 * (1 - o)).toFixed(2) + 'px,0)';
+    if (c.eye) c.eye.style.opacity = seg(t, c.a, c.a + .5).toFixed(3);
+    c.lines.forEach((l, i) => { const u = out(seg(t, c.a + .08 + i * .14, c.a + .88 + i * .14)); l.style.transform = 'translate3d(0,' + ((1 - u) * 116).toFixed(2) + '%,0)'; });
+    c.rest.forEach((el, i) => { const u = out(seg(t, c.a + .6 + i * .16, c.a + 1.3 + i * .16)); el.style.opacity = u.toFixed(3); el.style.transform = 'translate3d(0,' + ((1 - u) * 16).toFixed(2) + 'px,0)'; });
+  }
+}
+function measure() {
+  const c7 = caps[caps.length - 1];
+  c7.el.style.transform = 'none'; c7.lines.forEach((l) => { l.style.transform = 'none'; });
+  const r = slot.getBoundingClientRect(), s = stage.getBoundingClientRect(), k = s.width / W || 1;
+  if (r.width > 0) { TOMB.x = (r.left + r.width / 2 - s.left) / k; TOMB.y = (r.top + r.height / 2 - s.top) / k; TOMB.r = r.height / 2 / .46 / k; }
+}
+
+/* ---------- fit, clock, controls ---------- */
+function fit() {
+  let fw = W;
+  if (!CAPTURE) {
+    const cs = getComputedStyle(wrap), iw = wrap.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const ih = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - bar.offsetHeight - foot.offsetHeight - (EMBED ? 0 : 28);
+    fw = Math.max(240, Math.min(iw, (ih * 16) / 9, 1760));
+  }
+  frame.style.width = fw + 'px'; bar.style.width = fw + 'px'; stage.style.transform = 'scale(' + fw / W + ')';
+  const dpr = CAPTURE ? 1 : Math.min(window.devicePixelRatio || 1, 2), bw = Math.min(1920, Math.max(480, Math.round(fw * dpr)));
+  if (cv.width !== bw) { cv.width = bw; cv.height = Math.round((bw * 9) / 16); }
+  KX = cv.width / W; measure(); render(T);
+}
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let playing = !CAPTURE && !reduce && !EMBED, firstRun = !CAPTURE, last = 0, dragging = false;   // embedded: the page that holds the film says when to play
+T = 0;   // every run opens on the closing still
+const playBtn = $('#play'), scrub = $('#scrub'), clock = $('#clock'), icPause = $('#ic-pause'), icPlay = $('#ic-play');
+const mmss = (s) => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function ui() {
+  if (!dragging) scrub.value = T.toFixed(2);
+  clock.textContent = mmss(T) + ' / ' + mmss(DUR);
+  icPause.hidden = !playing; icPlay.hidden = playing; playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+}
+function tick(now) {
+  if (playing) { const dt = Math.min(.1, (now - last) / 1000 || 0); T += dt; if (T >= DUR) { T -= DUR; firstRun = false; } render(T); ui(); }
+  last = now; requestAnimationFrame(tick);
+}
+function toggle() { playing = !playing; ui(); }
+playBtn.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+frame.addEventListener('click', toggle);
+scrub.addEventListener('pointerdown', () => { dragging = true; });
+scrub.addEventListener('pointerup', () => { dragging = false; });
+scrub.addEventListener('input', () => { T = clamp(+scrub.value, 0, DUR - .001); firstRun = false; render(T); ui(); });
+document.addEventListener('keydown', (e) => { if (e.code === 'Space' && !/INPUT|BUTTON/.test(document.activeElement.tagName)) { e.preventDefault(); toggle(); } });
+window.addEventListener('resize', fit);
+if (window.ResizeObserver) new ResizeObserver(fit).observe(wrap);
+
+const ready = (document.fonts && document.fonts.load
+  ? Promise.all([document.fonts.load('italic 400 200px "Instrument Serif"'), document.fonts.load('400 100px "Instrument Serif"'),
+      document.fonts.load('400 20px "Martian Mono"'), document.fonts.load('500 20px "Martian Mono"'), document.fonts.load('400 20px "Figtree"')]).then(() => document.fonts.ready)
+  : Promise.resolve()).catch(() => {}).then(() => { fontsIn = true; fit(); window.__ready = true; });
+window.__seek = (t) => ready.then(() => { T = t; firstRun = false; render(T); return true; });
+window.__dur = DUR;
+window.addEventListener('message', (e) => { if (EMBED && e.source === window.parent && e.data && e.data.fo === 'film') { playing = !!e.data.play && !reduce; ui(); } });
+fit(); ui(); requestAnimationFrame(tick);
+})();
+</script>
+
+</html>
+<script type="module" src="js/alive.js"></script>
