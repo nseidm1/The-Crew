@@ -1,6 +1,6 @@
 // app.js - the customer's admin: ten views over one core. Every view renders from core.snapshot() and re-renders on change.
 import { md, mdEditor } from './md.js';
-import { $, $$, h, ago, clock, seatFace, buddy, glyph } from './ui.js';
+import { $, $$, h, ago, clock, seatFace, buddy, glyph, TERMINAL } from './ui.js';
 import { connect } from './core-port.js';
 import { connectRunner } from './runner-client.js';
 import { STAGES, seatAs } from './team-core.js';
@@ -313,7 +313,9 @@ async function readJira(fresh, quiet) {
     jira = {
       state: 'failed',
       why: /not found/i.test(String(e.message))
-        ? 'The app on this machine is older than this page. Run the start command again in Terminal to update it.'
+        ? 'The app on this machine is older than this page. Run the start command again in ' +
+          TERMINAL +
+          ' to update it.'
         : String(e.message || e),
     };
   }
@@ -338,7 +340,9 @@ async function readRemote(quiet, usb) {
     rem = {
       failed: true,
       why: /not found/i.test(String(e.message))
-        ? 'The app on this machine is older than this page. Run the start command again in Terminal to update it.'
+        ? 'The app on this machine is older than this page. Run the start command again in ' +
+          TERMINAL +
+          ' to update it.'
         : String(e.message || e),
     };
   }
@@ -697,13 +701,38 @@ const startInFolder = async () => {
   if (cur === 'workspace') paint(true);
   return r;
 };
+// a folder chosen that is not a Git repository yet: { path, name }, waiting for a yes or for another folder
+let wsOffer = null;
+const startChosen = () => {
+  const offer = wsOffer;
+  if (!offer) return null;
+  wsFrom = 'folder';
+  return wsDo(
+    'folder-start',
+    async () => {
+      const r = await runner.workspaceFolderStart(offer.path);
+      wsOffer = null;
+      workspace = r;
+      ghError = '';
+      localItems = null;
+      core.linkWorkspace({ kind: 'local', name: r.repo });
+      return r;
+    },
+    (r) => r.repo + ' is a Git folder now, and your team works in it.',
+  );
+};
 const useFolder = (p) => {
   wsFrom = 'folder';
+  wsOffer = null;
   return wsDo(
     'folder',
     async () => {
       const r = await runner.workspaceFolder(p);
       if (r.cancelled) return r;
+      if (r.needsStart) {
+        wsOffer = r.needsStart; // not a repository yet: asked about on the card, nothing done
+        return r;
+      }
       workspace = r;
       ghError = '';
       localItems = null;
@@ -764,7 +793,7 @@ function cloneCard() {
       url,
       h(
         'button',
-        { class: 'btn', type: 'submit', id: 'ws-clone-go', disabled: !!wsBusy },
+        { class: 'btn primary', type: 'submit', id: 'ws-clone-go', disabled: !!wsBusy },
         wsBusy === 'clone' ? 'Choose where, then it clones…' : 'Clone',
       ),
     ),
@@ -1091,13 +1120,39 @@ function newRepoForm() {
       onsubmit: (e) => {
         e.preventDefault();
         const n = wsNew.name.trim();
-        if (!n) return;
+        if (!n) {
+          // a press with no name is answered where it was pressed, with the cursor put where the name goes
+          ghSaid = 'Give the new repository a name first.';
+          paint(true);
+          const box = $('#ws-new');
+          if (box) box.focus();
+          return;
+        }
+        ghSaid = '';
         wsDo(
           'create',
           async () => {
-            const r = await runner.githubCreate(n, wsNew.private);
+            let r;
+            try {
+              r = await runner.githubCreate(n, wsNew.private);
+            } catch (err) {
+              ghSaid = 'It was not made. ' + String((err && err.message) || err); // said under the button as well as at the top of the page
+              throw err;
+            }
             ghRepos = null;
-            workspace = await runner.workspaceUse(r.name);
+            try {
+              workspace = await runner.workspaceUse(r.name);
+            } catch (err) {
+              // it IS made on GitHub; it is the copy for the team that failed. Say both, so it is not made a second time.
+              ghSaid =
+                r.name +
+                ' was made on GitHub, but it could not be cloned: ' +
+                String((err && err.message) || err) +
+                ' Find it in the list above and press Connect.';
+              wsNew.name = '';
+              readGh();
+              throw new Error(ghSaid);
+            }
             ghError = '';
             localItems = null;
             core.linkWorkspace({ kind: 'github', name: r.name });
@@ -1129,7 +1184,7 @@ function folderCard(snap, isGh, isLocal) {
   return card(
     connected ? 'chosen' : isGh ? 'aside' : '',
     connected ? h('span', { class: 'in-use' }, '✓ Connected') : null,
-    h('h2', null, 'Git folder'),
+    h('h2', null, 'A folder'),
     connected
       ? [
           h('p', { class: 'chosen-name' }, h('span', { class: 'folder', 'aria-hidden': 'true' }), workspace.repo),
@@ -1149,17 +1204,37 @@ function folderCard(snap, isGh, isLocal) {
               : null,
           ),
         ]
-      : h('p', { class: 'muted' }, 'A folder on this machine that is already a Git repository.'),
+      : wsOffer
+        ? [
+            h('p', { class: 'chosen-name' }, h('span', { class: 'folder', 'aria-hidden': 'true' }), wsOffer.name),
+            h(
+              'p',
+              { class: 'muted', id: 'ws-folder-offer' },
+              'This folder is not a Git repository yet. Your team can make it one: a .git folder is added, and what is in it now becomes the first commit. Nothing in it is changed or removed.',
+            ),
+          ]
+        : h(
+            'p',
+            { class: 'muted' },
+            'Any folder on this machine. One that is not a Git repository yet can be made one.',
+          ),
     ...(connected ? placeParts(snap) : []),
     h(
       'div',
       { class: 'row' },
+      !APP && wsOffer && !connected
+        ? h(
+            'button',
+            { class: 'btn primary', type: 'button', id: 'ws-folder-start', disabled: !!wsBusy, onclick: startChosen },
+            wsBusy === 'folder-start' ? 'Making it a Git folder…' : 'Make it a Git folder and connect',
+          )
+        : null,
       APP
         ? null
         : h(
             'button',
             {
-              class: 'btn' + (connected || isGh ? '' : ' primary'),
+              class: 'btn' + (connected || isGh || wsOffer ? '' : ' primary'),
               type: 'button',
               id: 'ws-folder',
               disabled: !!wsBusy,
@@ -1167,9 +1242,9 @@ function folderCard(snap, isGh, isLocal) {
             },
             wsBusy === 'folder'
               ? 'Choose it in the window that opened…'
-              : connected
+              : connected || wsOffer
                 ? 'Choose a different folder'
-                : 'Find a Git folder',
+                : 'Choose a folder',
           ),
       connected ? discBtn(snap) : null,
     ),
@@ -1211,7 +1286,9 @@ function githubCard(snap, isGh, isLocal, manual, linkManual) {
       h(
         'p',
         { class: 'note' },
-        'The app on this machine did not answer about GitHub. Run the start command again in Terminal to update it.',
+        'The app on this machine did not answer about GitHub. Run the start command again in ' +
+          TERMINAL +
+          ' to update it.',
       ),
     );
   if (ghs.signedIn) {
@@ -1286,7 +1363,9 @@ function githubCard(snap, isGh, isLocal, manual, linkManual) {
         : h(
             'p',
             { class: 'note' },
-            'The app on this machine is older than this page. Run the start command again in Terminal to update it.',
+            'The app on this machine is older than this page. Run the start command again in ' +
+              TERMINAL +
+              ' to update it.',
           ),
     );
   }
@@ -1593,12 +1672,15 @@ const VIEWS = {
 
   chat() {
     const log = h('div', { class: 'chat-log', 'aria-live': 'polite' });
-    const input = h('input', {
-      type: 'text',
+    // THE MESSAGE BOX HOLDS SEVERAL LINES, and the handle above it drags it taller or shorter (it is kept on this device; a
+    // double press puts it back). Enter sends; Shift+Enter starts a new line.
+    const input = h('textarea', {
+      rows: '1',
       autocomplete: 'off',
       placeholder: 'Ask for a change',
       'aria-label': 'Your message to the team',
     });
+    const grip = msgGrip(input);
     // a picture or a recording for the team to look at: the paperclip opens the computer's own file chooser
     const pick = h('input', {
       type: 'file',
@@ -1844,6 +1926,7 @@ const VIEWS = {
           acts,
           talk.bar,
           tray,
+          grip,
           form,
         ),
         h('div', { class: 'grid', id: 'chat-side' }),
@@ -1918,7 +2001,7 @@ const VIEWS = {
         waitingCard(snap),
         h(
           'div',
-          { class: 'grid cols-even' },
+          { class: 'grid cols-even ws-ways' },
           githubCard(snap, isGh, isLocal, repoBox, linkGh),
           wsLive() && !APP && !snap.workspace.kind && runner.workspaceClone ? cloneCard() : null,
           wsLive()
@@ -3921,6 +4004,147 @@ function mindRow(seat, title) {
     ].filter(Boolean),
   );
 }
+// WAITING ON YOU FOLDS to its heading and a count, and back. Which it is, is kept on this device.
+const WAIT_KEY = 'familyoffice.waiting.folded';
+const kept = (key) => {
+  try {
+    return localStorage.getItem(key) === '1';
+  } catch {
+    return false;
+  }
+};
+const keep = (key, on) => {
+  try {
+    localStorage.setItem(key, on ? '1' : '0');
+  } catch {
+    /* a private window: it holds for this visit only */
+  }
+};
+let waitFolded = kept(WAIT_KEY);
+function waitingFold(open) {
+  const fold = h(
+    'button',
+    {
+      class: 'fold-btn',
+      type: 'button',
+      id: 'waiting-fold',
+      'aria-expanded': String(!waitFolded),
+      'aria-label': waitFolded ? 'Show what is waiting on you' : 'Hide what is waiting on you',
+      onclick: () => {
+        waitFolded = !waitFolded;
+        keep(WAIT_KEY, waitFolded);
+        chatSide(core.snapshot());
+      },
+    },
+    glyphFold(),
+  );
+  return card(
+    'waiting' + (waitFolded ? ' is-folded' : ''),
+    h(
+      'h2',
+      { class: 'fold-h' },
+      h('span', null, 'Waiting on you'),
+      waitFolded && open.length
+        ? h('span', { class: 'fold-n', 'aria-label': open.length + ' waiting' }, String(open.length))
+        : null,
+      fold,
+    ),
+    waitFolded ? null : offers(open),
+  );
+}
+const glyphFold = () => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('aria-hidden', 'true');
+  const p = document.createElementNS(NS, 'path');
+  p.setAttribute('d', 'M3 10l5-5 5 5');
+  p.setAttribute('fill', 'none');
+  p.setAttribute('stroke', 'currentColor');
+  p.setAttribute('stroke-width', '1.8');
+  p.setAttribute('stroke-linecap', 'round');
+  p.setAttribute('stroke-linejoin', 'round');
+  svg.append(p);
+  return svg;
+};
+// THE HANDLE ABOVE THE MESSAGE BOX: drag it up for a taller box, down for a shorter one; the arrow keys do the same; a double
+// press puts the box back to one line. The height is kept on this device.
+const MSG_KEY = 'familyoffice.msg.height';
+function msgGrip(input) {
+  const MIN = 46;
+  const max = () => Math.max(MIN, Math.round(innerHeight * 0.6));
+  const set = (px, save) => {
+    const v = Math.min(max(), Math.max(MIN, Math.round(px)));
+    if (v <= MIN) input.style.removeProperty('height');
+    else input.style.height = v + 'px';
+    grip.setAttribute('aria-valuenow', String(v));
+    if (save)
+      try {
+        localStorage.setItem(MSG_KEY, String(v));
+      } catch {
+        /* a private window */
+      }
+  };
+  const grip = h('div', {
+    class: 'msg-grip',
+    id: 'msg-grip',
+    role: 'separator',
+    tabindex: '0',
+    'aria-orientation': 'horizontal',
+    'aria-label': 'Drag to make the message box taller or shorter',
+    'aria-valuemin': String(MIN),
+  });
+  let from = null;
+  grip.addEventListener('pointerdown', (e) => {
+    from = { y: e.clientY, h: input.getBoundingClientRect().height };
+    grip.setPointerCapture(e.pointerId);
+    grip.classList.add('is-held');
+    e.preventDefault();
+  });
+  grip.addEventListener('pointermove', (e) => {
+    if (from) set(from.h + (from.y - e.clientY), false);
+  });
+  const drop = () => {
+    if (!from) return;
+    from = null;
+    grip.classList.remove('is-held');
+    set(input.getBoundingClientRect().height, true);
+  };
+  grip.addEventListener('pointerup', drop);
+  grip.addEventListener('pointercancel', drop);
+  grip.addEventListener('dblclick', () => set(MIN, true));
+  grip.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    set(input.getBoundingClientRect().height + (e.key === 'ArrowUp' ? 28 : -28), true);
+  });
+  let saved = 0;
+  try {
+    saved = Number(localStorage.getItem(MSG_KEY)) || 0;
+  } catch {
+    saved = 0;
+  }
+  if (saved > MIN) set(saved, false);
+  return grip;
+}
+// THE LEFT BAR FOLDS to a rail (its mark and its handle) and back, from the handle in its top right corner. Kept on this device.
+const SIDE_KEY = 'familyoffice.side.folded';
+function wireSideFold() {
+  const btn = $('#side-fold');
+  if (!btn) return;
+  const paint = (folded) => {
+    document.body.classList.toggle('side-folded', folded);
+    btn.setAttribute('aria-expanded', String(!folded));
+    btn.setAttribute('aria-label', folded ? 'Show the menu' : 'Fold the menu away');
+  };
+  paint(kept(SIDE_KEY));
+  btn.addEventListener('click', () => {
+    const folded = !document.body.classList.contains('side-folded');
+    keep(SIDE_KEY, folded);
+    paint(folded);
+  });
+}
+wireSideFold();
 function chatSide(s) {
   const side = $('#chat-side');
   if (!side) return;
@@ -3928,7 +4152,7 @@ function chatSide(s) {
   if (at && at.tagName === 'SELECT' && side.contains(at)) return; // a list is open under the pointer: it is not redrawn away
   const pick = !isSimple() && !!minds && minds.on && (minds.models.length > 0 || minds.efforts.length > 0);
   side.replaceChildren(
-    card('', h('h2', null, 'Waiting on you'), offers(s.proposals.filter((p) => p.state === 'open'))),
+    waitingFold(s.proposals.filter((p) => p.state === 'open')),
     card(
       '',
       [

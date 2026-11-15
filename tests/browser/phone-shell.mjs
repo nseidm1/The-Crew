@@ -79,7 +79,7 @@ const ctx = await browser.newContext({
     .first()
     .waitFor({ timeout: 90000 });
   await s.locator('#meet').click();
-  await s.locator('.composer input').waitFor({ timeout: 15000 });
+  await s.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
   await s.close();
 }
 const open = async (w, h, mode) => {
@@ -89,7 +89,7 @@ const open = async (w, h, mode) => {
   await p.goto(B + '/start.html', { waitUntil: 'load' });
   await p.evaluate((m) => localStorage.setItem('familyoffice.mode', m), mode);
   await p.goto(B + '/app.html', { waitUntil: 'load' });
-  await p.locator('.composer input').waitFor({ timeout: 20000 });
+  await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 20000 });
   await sleep(900);
   return p;
 };

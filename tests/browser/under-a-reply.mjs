@@ -291,7 +291,7 @@ for (const mode of ['simple', 'developer']) {
     await p.locator('#meet').waitFor({ timeout: 20000 });
   }
   await p.locator('#meet').click();
-  await p.locator('.composer input').waitFor({ timeout: 30000 });
+  await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 30000 });
   await sleep(600);
   await p.evaluate(
     ({ chat, proofs }) => {

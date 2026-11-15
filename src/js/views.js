@@ -677,7 +677,11 @@ export function chatView(log, core, opts = {}) {
     const says =
       plan.says ||
       (plan.stage === 'plan' ? (plan.n > 1 ? 'Ready for round ' + plan.n : 'Planned. Building comes next.') : '');
-    el.className = 'round-card is-' + plan.stage + (live ? ' is-live' : '');
+    // IN THE CHAT A PLAN IS SMALL: whose it is and which round, where the round is, how much is met, the one line that says where
+    // things stand, and anything that waits on a press. The requirements, the lessons and the diff are in the whole card, which a
+    // press on the small one opens (openPlan). The whole card is this same painting, in a dialog.
+    const whole = el.dataset.whole === '1';
+    el.className = 'round-card is-' + plan.stage + (live ? ' is-live' : '') + (whole ? ' is-whole' : ' is-small');
     el.dataset.round = String(plan.n);
     el.dataset.stage = plan.stage;
     el.replaceChildren(
@@ -899,7 +903,61 @@ export function chatView(log, core, opts = {}) {
     );
     // a part that is not there is passed as nothing, and replaceChildren would write the word for it: bare text is never part of this card
     for (const n of [...el.childNodes]) if (n.nodeType === 3) n.remove();
+    if (!whole) {
+      // what the small card leaves out is still on the page (a reader of the page finds it), but it takes no room and cannot be
+      // tabbed into; the way to it is the card itself
+      for (const n of el.children) if (!/\bplan-(head|bar|says|choices)\b/.test(n.className)) n.inert = true;
+      el.append(
+        h(
+          'button',
+          {
+            class: 'plan-open',
+            type: 'button',
+            'aria-label': 'Open the plan in full: ' + met + ' of ' + all + ' requirements met',
+            onclick: (e) => {
+              e.stopPropagation();
+              openPlan(msg.id);
+            },
+          },
+          all + (all === 1 ? ' requirement' : ' requirements') + ' · Open',
+        ),
+      );
+      if (!el.dataset.wired) {
+        el.dataset.wired = '1';
+        el.addEventListener('click', (e) => {
+          if (e.target.closest('button, a, summary, input, select, textarea')) return; // a press on something in it is that thing's
+          openPlan(msg.id);
+        });
+      }
+    }
     return el;
+  };
+  // THE WHOLE PLAN, in a dialog over the chat. It is the same card, painted whole, and it keeps up with the round while it is open.
+  let wholePlan = null; // { id, el, dialog }
+  const openPlan = (id) => {
+    const msg = core.snapshot().chat.find((x) => x.id === id);
+    if (!msg || !msg.plan) return;
+    if (wholePlan) wholePlan.dialog.close();
+    const el = h('div');
+    el.dataset.whole = '1';
+    paintPlan(el, msg);
+    const dialog = h(
+      'dialog',
+      { class: 'plan-whole', 'aria-label': 'The plan, in full' },
+      h('button', { class: 'btn small plan-shut', type: 'button', onclick: () => dialog.close() }, 'Close'),
+      el,
+    );
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      if (wholePlan && wholePlan.dialog === dialog) wholePlan = null;
+    });
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close(); // a press on the dimmed page around it
+    });
+    document.body.append(dialog);
+    wholePlan = { id, el, dialog };
+    if (dialog.showModal) dialog.showModal();
+    else dialog.setAttribute('open', '');
   };
   // WHAT THE TEAM NEEDS FROM THIS COMPUTER (Developer; team-core: m.setup): under a message, the thing to press and the state it is
   // in now. A folder to choose; the site's address, with whether it is running; a phone, with what to do when none is seen.
@@ -1286,6 +1344,7 @@ export function chatView(log, core, opts = {}) {
       if ((m.plan.rev || 0) !== c.rev) {
         c.rev = m.plan.rev || 0;
         paintPlan(c.el, m);
+        if (wholePlan && wholePlan.id === id) paintPlan(wholePlan.el, m); // the open one keeps up
       }
     }
     for (const [id, c] of setups) {
@@ -1358,19 +1417,44 @@ export function richComposer({ form, input, core, files = null }) {
   let caret = 0;
   const chips = h('div', { class: 'to-chips', role: 'group', 'aria-label': 'Who this message is for' });
   const replyBar = h('div', { class: 'reply-bar', hidden: '' });
-  const list = h('ul', { class: 'at-menu', role: 'listbox', 'aria-label': 'Seats', hidden: '' });
-  const bar = h(
-    'div',
-    { class: 'talk-bar' },
-    list,
-    replyBar,
-    h('div', { class: 'to-row' }, h('span', { class: 'to-k' }, 'To'), chips),
-    h(
-      'p',
-      { class: 'hint' },
-      'Type @ to pick a seat. With none picked, the team decides who answers and what it takes: an answer, a search of the web, a look at a page you name, or the whole team for a change.',
-    ),
+  // THE TO LINE FOLDS. Shown: the chips, and under them the line that says how a message is routed. Hidden: one line, "To: Whole
+  // team" (or the seats picked), which is also the thing to press to bring the chips back. Which it is, is kept on this device.
+  const TO_KEY = 'familyoffice.to.hidden';
+  let toHidden = false;
+  try {
+    toHidden = localStorage.getItem(TO_KEY) === '1';
+  } catch {
+    toHidden = false;
+  }
+  const hint = h(
+    'p',
+    { class: 'hint' },
+    'Type @ to pick a seat. With none picked, the team decides who answers and what it takes: an answer, a search of the web, a look at a page you name, or the whole team for a change.',
   );
+  const toFold = h('button', { class: 'to-k to-fold', type: 'button', id: 'to-fold' });
+  const paintTo = () => {
+    const who = picked.size ? [...picked].map((id) => SEAT[id].title).join(', ') : 'Whole team';
+    toFold.textContent = toHidden ? 'To: ' + who : 'To';
+    toFold.setAttribute('aria-expanded', String(!toHidden));
+    toFold.setAttribute(
+      'aria-label',
+      toHidden ? 'To ' + who + '. Show who a message can be for' : 'Hide who a message can be for',
+    );
+    chips.hidden = toHidden;
+    hint.hidden = toHidden;
+  };
+  toFold.addEventListener('click', () => {
+    toHidden = !toHidden;
+    try {
+      localStorage.setItem(TO_KEY, toHidden ? '1' : '0');
+    } catch {
+      /* a private window: it is kept for this visit */
+    }
+    paintTo();
+    input.focus();
+  });
+  const list = h('ul', { class: 'at-menu', role: 'listbox', 'aria-label': 'Seats', hidden: '' });
+  const bar = h('div', { class: 'talk-bar' }, list, replyBar, h('div', { class: 'to-row' }, toFold, chips), hint);
   const paintChips = () => {
     chips.replaceChildren(
       h(
@@ -1408,6 +1492,7 @@ export function richComposer({ form, input, core, files = null }) {
     input.placeholder = picked.size
       ? 'Message ' + [...picked].map((id) => SEAT[id].title).join(', ')
       : 'Say hello, ask, send them to find out, or ask for a change';
+    paintTo();
   };
   const setReply = (m) => {
     replyTo = m || null;
@@ -1492,6 +1577,13 @@ export function richComposer({ form, input, core, files = null }) {
   });
   input.addEventListener('keydown', (e) => {
     if (list.hidden) {
+      // a box of several lines: Enter sends, Shift+Enter starts a new line (while a language's own input method is composing, neither)
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && input.tagName === 'TEXTAREA') {
+        e.preventDefault();
+        if (form.requestSubmit) form.requestSubmit();
+        else form.dispatchEvent(new Event('submit', { cancelable: true }));
+        return;
+      }
       if (e.key === 'Escape' && replyTo) setReply(null);
       if (e.key === 'Backspace' && !input.value && picked.size) {
         picked.delete([...picked].pop());

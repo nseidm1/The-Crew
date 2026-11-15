@@ -124,7 +124,7 @@ const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, d
     .first()
     .waitFor({ timeout: 90000 });
   await s.locator('#meet').click();
-  await s.locator('.composer input').waitFor({ timeout: 15000 });
+  await s.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
   // the card, kept with the chat the way the team's core keeps one that is the whole of a reply
   await s.evaluate((card) => {
     const kept = JSON.parse(localStorage.getItem('familyoffice.core.v1'));

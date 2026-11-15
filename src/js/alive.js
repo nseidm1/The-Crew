@@ -6,6 +6,7 @@
 //   fo:runner-gone   the runner stopped. A page that handles it (preventDefault) shows that itself; otherwise a bar says so here.
 //   fo:runner-back   it is up again. A page that handles it carries on; otherwise the page reloads.
 // It works the same whether the runner serves this page or this page is the site the runner was fetched from (where.js).
+import { TERMINAL } from './ui.js';
 import { runnerBase } from './where.js';
 import { stream } from './stream.js';
 let events = null;
@@ -47,8 +48,12 @@ function showBar(start) {
   const text = document.createElement('p');
   text.append(
     shut
-      ? 'Shut down. Nothing is running on this machine. To start your team again, run this in Terminal and this page carries on by itself:'
-      : 'The runner on this machine has stopped, so your team is not running. Start it again in Terminal, and this page carries on by itself:',
+      ? 'Shut down. Nothing is running on this machine. To start your team again, run this in ' +
+          TERMINAL +
+          ' and this page carries on by itself:'
+      : 'The runner on this machine has stopped, so your team is not running. Start it again in ' +
+          TERMINAL +
+          ', and this page carries on by itself:',
   );
   bar = document.createElement('div');
   bar.className = 'gone-bar';

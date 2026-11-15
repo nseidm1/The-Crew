@@ -171,6 +171,16 @@ export function createGithub(stateDir) {
         description: String(description || '').slice(0, 200),
         auto_init: true,
       });
+      // its first commit is made a moment after the repository is: until it is there, a clone finds nothing to check out
+      for (let i = 0; i < 8; i++) {
+        try {
+          await api('/repos/' + j.full_name + '/commits?per_page=1');
+          break;
+        } catch (e) {
+          if (!/\b(409|404)\b/.test(String(e && e.message)) || i === 7) break; // empty still: wait; anything else is not ours to wait out
+          await new Promise((r) => setTimeout(r, Number(process.env.FO_GH_WAIT_MS) || 1000));
+        }
+      }
       return { name: j.full_name, private: !!j.private, branch: j.default_branch || 'main' };
     },
     async openPull({ repo, head, base, title, body }) {

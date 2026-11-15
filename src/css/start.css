@@ -2571,3 +2571,85 @@ details.more[open] > summary {
 .signin-step p {
   font-size: 15px;
 }
+
+/* A MODEL'S TAG STAYS INSIDE ITS CARD. A tag is one line everywhere else; on a model's card, which is narrow (four to a row, and
+   there are now eight models), a longer one wraps onto a second line and keeps its rounded shape instead of running out the side. */
+.av {
+  min-width: 0;
+}
+.av .tags {
+  max-width: 100%;
+}
+.av .tags .tag {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+  border-radius: 14px;
+  letter-spacing: 0.08em;
+}
+
+/* ROOM, as the machine is right now: in use, this model, still free, with the line a model may go up to */
+.cap-row:has(.membar) {
+  grid-template-columns: 128px minmax(0, 1fr);
+  align-items: start;
+  row-gap: 8px;
+}
+.cap-row:has(.membar) > .membar {
+  grid-column: 2;
+  width: 100%;
+  height: 12px;
+  margin-top: 5px;
+  border-radius: 6px;
+  overflow: visible;
+}
+.cap-row:has(.membar) > span:last-child {
+  grid-column: 2;
+}
+.membar u {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--used) * 1%);
+  border-radius: 6px 0 0 6px;
+  background: rgba(233, 238, 245, 0.4);
+  text-decoration: none;
+}
+.membar i {
+  left: calc(var(--used) * 1%);
+  border-radius: 0 3px 3px 0;
+}
+.membar.is-short i {
+  background: #e8b970;
+}
+.mem-says {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.mem-k {
+  white-space: nowrap;
+  color: var(--fog);
+}
+.mem-k::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  border-radius: 2px;
+  background: var(--line-2);
+}
+.mem-k.used::before {
+  background: rgba(233, 238, 245, 0.4);
+}
+.mem-k.need::before {
+  background: var(--jade);
+}
+.membar.is-short ~ .mem-says .mem-k.need::before {
+  background: #e8b970;
+}
+.mem-note {
+  flex-basis: 100%;
+}

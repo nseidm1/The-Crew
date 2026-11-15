@@ -620,7 +620,7 @@ export const LLAMA_MODELS = [
     bytes: 2556640128,
     sha256: '1f884aa56aacd2bbbb2e4b7abaead2b1102b74a9c75a23fc33dab916813a384d',
     plain:
-      'A 9B model in a 2.4 GB file: it fits a machine with 8 GB of memory, where a model its size usually does not. We have not run it ourselves yet.',
+      'A 9B model in a 2.4 GB file: it fits a machine with 8 GB of memory, where a model its size usually does not.',
   },
   {
     ...ON_CPU,
@@ -677,8 +677,7 @@ export const LLAMA_MODELS = [
     file: 'Ternary-Bonsai-2-4B-Q2_0.gguf',
     bytes: 1212103520,
     sha256: '64a5183b44921bdb5ac4a6f5f92007821d6ebe5c66997d3c147fd214ab9433d4',
-    plain:
-      'A 4B model in a 1.1 GB file. Quick and light on the machine; it reasons less well than the larger ones. We have not run it ourselves yet.',
+    plain: 'A 4B model in a 1.1 GB file. Quick and light on the machine; it reasons less well than the larger ones.',
   },
   {
     ...ON_CPU,
@@ -716,7 +715,7 @@ export const LLAMA_MODELS = [
     bytes: 546689504,
     sha256: 'c2893fa6f951daee8b7263d5f49b455e57989ef56417a22125b03566dc560650',
     plain:
-      'A 2B model in a half-gigabyte file: the lightest here. Good for talking a thing through, not for changing code. We have not run it ourselves yet.',
+      'A 2B model in a half-gigabyte file: the lightest here. Good for talking a thing through, not for changing code.',
   },
 ];
 // AN APPLE SILICON MAC CAN RUN BOTH KINDS: TensorFold's models and, through llama.cpp, Bonsai 2. The model chosen for a Mac is the

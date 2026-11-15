@@ -347,7 +347,7 @@ check(
 // ---- 3. The app in Simple: the conversation
 await p.screenshot({ path: path.join(OUT, '2c-ready.png') });
 await p.locator('#meet').click();
-await p.locator('.composer input').waitFor({ timeout: 15000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
 await sleep(500);
 const sNav = await nav(p);
 const sPills = await pills(p);
@@ -357,7 +357,7 @@ const sChat = await p.evaluate(() => ({
   to:
     !!document.querySelector('.talk-bar .to-row') && document.querySelector('.talk-bar .to-row').offsetParent !== null,
   acts: [...document.querySelectorAll('.simple-acts button')].map((b) => b.textContent),
-  ph: document.querySelector('.composer input').placeholder,
+  ph: document.querySelector('.composer :is(input, textarea)').placeholder,
   empty: (document.querySelector('.chat-empty') || {}).innerText || '',
 }));
 check(
@@ -385,7 +385,7 @@ check(
   sPills,
 );
 await p.locator('.simple-acts button', { hasText: 'Find out' }).click();
-const started = await p.locator('.composer input').inputValue();
+const started = await p.locator('.composer :is(input, textarea)').inputValue();
 check('app, simple: pressing what you want starts the message for you', started === 'Find out ', started);
 // the same page for a team whose picture maker is in use (the runner's state, as the page receives it, with that helper on)
 {
@@ -400,10 +400,10 @@ check('app, simple: pressing what you want starts the message for you', started 
     await r.fulfill({ response: res, json: j });
   });
   await q.goto(B + '/app.html', { waitUntil: 'load' });
-  await q.locator('.composer input').waitFor({ timeout: 15000 });
+  await q.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
   await sleep(500);
   const acts = await q.locator('.simple-acts button').allInnerTexts();
-  const ph = await q.locator('.composer input').getAttribute('placeholder');
+  const ph = await q.locator('.composer :is(input, textarea)').getAttribute('placeholder');
   const starts = await q.locator('.starters button').allInnerTexts();
   check(
     'app, simple: what can be asked for follows the helpers in use: with the picture maker on, Make a picture is offered and Make a video is not',
@@ -422,8 +422,8 @@ await p.evaluate(() => {
 });
 await sleep(400);
 {
-  await p.locator('.composer input').fill('hello');
-  await p.locator('.composer input').press('Enter');
+  await p.locator('.composer :is(input, textarea)').fill('hello');
+  await p.locator('.composer :is(input, textarea)').press('Enter');
   let heads = [];
   for (let i = 0; i < 80; i++) {
     heads = (await p.locator('.chat-log .msg-head').allInnerTexts()).map((t) => t.replace(/\s+/g, ' ').trim());
@@ -440,7 +440,8 @@ await sleep(400);
 }
 check(
   'app, simple: a page Simple does not show leads back to the chat',
-  (await p.locator('#title').innerText()) === 'Team chat' && (await p.locator('.composer input').count()) === 1,
+  (await p.locator('#title').innerText()) === 'Team chat' &&
+    (await p.locator('.composer :is(input, textarea)').count()) === 1,
   await p.locator('#title').innerText(),
 );
 
@@ -480,7 +481,7 @@ check(
     r.fulfill({ status: 200, contentType: 'text/javascript', body: 'export const PRODUCT = { remote: false };\n' }),
   ); // as the bundle would carry it with Remote switched off
   await q.goto(B + '/app.html#remote', { waitUntil: 'load' });
-  await q.locator('.composer input').waitFor({ timeout: 15000 });
+  await q.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
   await sleep(400);
   check(
     'remote switched off for this version: there is no Remote tab, and its address leads to the chat',
@@ -511,7 +512,7 @@ const offer = await flat(p.locator('#view'));
 check(
   'workspace: two ways to connect, a Git folder and GitHub, in few words, and nothing to set',
   /Git folder/.test(offer) &&
-    /Find a Git folder/.test(offer) &&
+    /Choose a folder/.test(offer) &&
     /GitHub/.test(offer) &&
     /Connect a Git folder or a GitHub repository\./.test(offer) &&
     !/never sent to us|type its path|comes back to you|reaches GitHub/i.test(offer) &&
@@ -655,7 +656,7 @@ check(
   [v2.session, v2.setup.error],
 );
 await p.goto(B + '/app.html', { waitUntil: 'load' });
-await p.locator('.composer input').waitFor({ timeout: 15000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
 await sleep(400);
 const cPills = await pills(p);
 check(
@@ -682,11 +683,11 @@ if (await p.locator('dialog.step-done').count()) {
 await p.evaluate(() => {
   location.hash = '#chat';
 });
-await p.locator('.composer input').waitFor({ timeout: 10000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 10000 });
 await sleep(400);
 const tell = async (t) => {
-  await p.locator('.composer input').fill(t);
-  await p.locator('.composer input').press('Enter');
+  await p.locator('.composer :is(input, textarea)').fill(t);
+  await p.locator('.composer :is(input, textarea)').press('Enter');
 };
 const log = async () => (await p.locator('.chat-log').innerText()).replace(/\s+/g, ' ');
 const wsOf = async () => (await fetch(B + '/api/workspace')).json();
@@ -760,7 +761,7 @@ check(
 await p.evaluate(() => {
   location.hash = '#chat';
 });
-await p.locator('.composer input').waitFor({ timeout: 10000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 10000 });
 await sleep(400);
 await tell('land it');
 const landedSaid = await until(/Landed: the branch feature\/[\w-]+ is in your folder\./, 60000);
@@ -1097,9 +1098,9 @@ await sleep(700);
   await z.locator('#go-claude').click();
   await running(z);
   await z.goto(B + '/app.html', { waitUntil: 'load' });
-  await z.locator('.composer input').waitFor({ timeout: 15000 });
-  await z.locator('.composer input').fill('Hello team');
-  await z.locator('.composer input').press('Enter');
+  await z.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
+  await z.locator('.composer :is(input, textarea)').fill('Hello team');
+  await z.locator('.composer :is(input, textarea)').press('Enter');
   await sleep(2500);
   const foot = await z.evaluate(() => {
     const a = document.querySelector('#out').getBoundingClientRect();

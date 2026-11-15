@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(HERE, '..', '..');
 export const WORK = path.join(REPO_ROOT, '.work', 'train');
+export const MODELS = path.join(REPO_ROOT, '.work', 'models'); // never committed
 const ROOT = path.join(REPO_ROOT, 'src');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const J = { 'content-type': 'application/json' };
@@ -45,6 +46,8 @@ export async function startTeam({ mode = 'simple', setup = {}, claudeModel = '',
     FO_NO_OPEN: '1',
     FO_BILLING: '{"enforce":false}',
     FO_LINK_PORT: String(port + 40000),
+    // the models llama.cpp runs are fetched once (training/fetch-models.mjs) and kept in one place, not in each run's own folder
+    ...(fs.existsSync(MODELS) && !process.env.FO_LLAMA_MODELS_DIR ? { FO_LLAMA_MODELS_DIR: MODELS } : {}),
     ...(claude
       ? { FO_CLAUDE_ROOT: path.join(base, 'claude'), ...(claudeModel ? { FO_CLAUDE_MODEL: claudeModel } : {}) }
       : {}),
@@ -106,7 +109,7 @@ export async function startTeam({ mode = 'simple', setup = {}, claudeModel = '',
       await page.locator('#meet').waitFor({ timeout: 20000 });
     }
     await page.locator('#meet').click();
-    await page.locator('.composer input').waitFor({ timeout: 30000 });
+    await page.locator('.composer :is(input, textarea)').waitFor({ timeout: 30000 });
     await sleep(900);
     if (await page.locator('dialog.step-done[open]').count()) {
       await page.keyboard.press('Escape');
@@ -139,8 +142,8 @@ export async function startTeam({ mode = 'simple', setup = {}, claudeModel = '',
       const from = await page.locator('.chat-log .msg:not(.you)').count();
       const before = ((await stored()).chat || []).length;
       const began = Date.now();
-      await page.locator('.composer input').fill(text);
-      await page.locator('.composer input').press('Enter');
+      await page.locator('.composer :is(input, textarea)').fill(text);
+      await page.locator('.composer :is(input, textarea)').press('Enter');
       await settle(from);
       const all = await page.evaluate(
         (at) =>

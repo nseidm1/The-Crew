@@ -205,7 +205,7 @@ for (const mode of modes) {
       await p.locator('#meet').waitFor({ timeout: 20000 });
     }
     await p.locator('#meet').click();
-    await p.locator('.composer input').waitFor({ timeout: 30000 });
+    await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 30000 });
     await sleep(900);
     await dismiss();
     if (mode === 'developer') {
@@ -220,11 +220,11 @@ for (const mode of modes) {
       await p.evaluate(() => {
         location.hash = '#chat';
       });
-      await p.locator('.composer input').waitFor({ timeout: 20000 });
+      await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 20000 });
       await sleep(800);
       await dismiss();
     }
-    const box = () => p.locator('.composer input');
+    const box = () => p.locator('.composer :is(input, textarea)');
     const settle = async (max = 2400) => {
       let quiet = 0;
       let last = -1;

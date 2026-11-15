@@ -455,3 +455,13 @@ export function store(key) {
     },
   };
 }
+
+// WHERE A COMMAND IS TYPED, by the name this system gives it. The page and the app are on the same machine, so the browser's own
+// word for the system is the machine's.
+export const ON_WINDOWS = typeof navigator !== 'undefined' && /Windows/i.test(navigator.userAgent);
+export const TERMINAL = ON_WINDOWS ? 'PowerShell' : 'Terminal';
+export const SYSTEM = ON_WINDOWS
+  ? 'Windows'
+  : typeof navigator !== 'undefined' && /Mac/i.test(navigator.userAgent)
+    ? 'macOS'
+    : 'The system';

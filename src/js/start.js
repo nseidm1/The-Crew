@@ -1,12 +1,13 @@
 // start.js - the Start flow. One card, five stages: intro, the machine (measured when Start is pressed), the model, set up, ready.
 // It talks only to the runner (runner-client.js): the one on the customer's own machine. Where there is none yet (the site, before the command has been run) the page only offers the command.
-import { $, $$, h } from './ui.js';
+import { $, $$, h, TERMINAL, SYSTEM } from './ui.js';
 import { connect } from './core-port.js';
 import { connectRunner, noRunner } from './runner-client.js';
 import { hideBar, watchRunner } from './alive.js';
 import { follow } from './glide.js';
 import { APP, ask, look, markRan, ran } from './where.js';
-import { ENGINE, AGENT, MODELS, RECORD, localStrain } from './catalog.js'; // (the add-on's own entry arrives from the runner, with its state)
+import { ENGINE, AGENT, MODELS, RECORD, localStrain } from './catalog.js';
+import { TRAINED } from './trained.js'; // (the add-on's own entry arrives from the runner, with its state)
 import { BILLING } from './billing.js';
 import { applyMode, chosenMode, setMode } from './mode.js';
 applyMode();
@@ -889,7 +890,9 @@ function launchCard() {
           info.version +
           ' and this site now has ' +
           siteVersion +
-          '. Run the command again in Terminal: it stops the old one, fetches the new one, and this page carries on.',
+          '. Run the command again in ' +
+          TERMINAL +
+          ': it stops the old one, fetches the new one, and this page carries on.',
         copyCmd(),
         h('button', { class: 'btn small', type: 'button', onclick: shut }, 'Shut down'),
       );
@@ -1931,6 +1934,123 @@ function paintModels() {
   const detail = h('div', { id: 'detail', class: 'pick-detail' });
   const acts = h('div', { class: 'pick-acts' });
   const row = (k, graphic, text) => h('div', { class: 'cap-row' }, h('b', null, k), graphic, h('span', null, text));
+  // ROOM, AS THE MACHINE IS RIGHT NOW. Three things a choice needs, in one bar and one sentence: how much memory is in use this
+  // minute, how much this model would take, and how much would still be free. The line across the bar is how far a model may go
+  // on this machine. Where the model does not fit beside what is in use now, that is said, with what to do.
+  const gb1 = (n) => Math.round(n * 10) / 10;
+  const roomRow = (model, total) => {
+    const used = Math.max(
+      0,
+      Math.min(
+        total,
+        gb1((host.memoryGb || total) - (host.availableGb != null ? host.availableGb : host.memoryGb || total)),
+      ),
+    );
+    const need = model.needGb;
+    const after = gb1(total - used - need);
+    const pct = (n) => Math.max(0, Math.min(100, (n / total) * 100)).toFixed(1);
+    const short = after < 0;
+    return row(
+      'Room',
+      h(
+        'span',
+        {
+          class: 'roombar membar' + (short ? ' is-short' : ''),
+          role: 'img',
+          'aria-label': used + ' GB in use now, this model about ' + need + ' GB, of ' + total + ' GB',
+          style:
+            '--used:' +
+            pct(used) +
+            ';--w:' +
+            pct(Math.min(need, total - used)) +
+            ';--room:' +
+            ((model.roomGb / total) * 100).toFixed(1),
+        },
+        h('u'),
+        h('i'),
+        h('b'),
+      ),
+      h(
+        'span',
+        { class: 'mem-says' },
+        h('span', { class: 'mem-k used' }, used + ' GB in use now'),
+        h('span', { class: 'mem-k need' }, 'this model about ' + need + ' GB'),
+        h('span', { class: 'mem-k free' }, short ? gb1(-after) + ' GB short' : after + ' GB still free'),
+        h(
+          'span',
+          { class: 'mem-note' },
+          'of ' +
+            total +
+            ' GB' +
+            (host.vramGb ? ' (RAM and graphics memory together)' : '') +
+            '. ' +
+            (model.running
+              ? 'It is running now, so its memory is already part of what is in use.'
+              : short
+                ? 'It does not fit beside what is open right now: close some apps first, or ' +
+                  HERE() +
+                  ' will slow down.'
+                : after < 4
+                  ? 'It fits, with little to spare: ' + HERE() + ' may feel slower while it runs.'
+                  : 'It fits comfortably beside what is open right now.'),
+        ),
+      ),
+    );
+  };
+  // HOW IT HAS TRAINED: what the trainers measured of this model (js/trained.js), each kind as so many right of so many. A model
+  // that has not been trained says so. The numbers come with the app, so they move when a newer one is published.
+  const TRAIN_KINDS = [
+    ['answers', 'Answers', 'questions with a known answer'],
+    ['manners', 'Manners', 'conventions of a team chat kept'],
+    ['voices', 'Voices', 'checks that the five keep their own way of speaking'],
+    ['memory', 'Memory', 'checks of what it keeps and recalls'],
+    ['requests', 'Requests', 'everyday requests handled as they should be'],
+    ['tickets', 'Tickets', 'changes made and proven right'],
+  ];
+  const trainedBlock = (model) => {
+    const t = TRAINED[model.id];
+    if (!t)
+      return h(
+        'p',
+        { class: 'muted small', id: 'trained-none' },
+        'Not trained yet. Nothing of ours says how well it does: choosing it is trying it.',
+      );
+    const when = new Date(t.at + 'T12:00:00').toLocaleDateString(undefined, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+    return h(
+      'div',
+      { class: 'caps', id: 'trained' },
+      TRAIN_KINDS.filter(([k]) => t[k]).map(([k, name, what]) => {
+        const r = t[k].good / t[k].of;
+        return row(
+          name,
+          dots3(r >= 0.9 ? 3 : r >= 0.6 ? 2 : 1),
+          t[k].good +
+            ' of ' +
+            t[k].of +
+            ' ' +
+            what +
+            (k === 'tickets' && t[k].falseGreen
+              ? ', and ' + t[k].falseGreen + ' passed as proven that were wrong'
+              : ''),
+        );
+      }),
+      h(
+        'p',
+        { class: 'muted small' },
+        t.kinds +
+          ' of ' +
+          TRAIN_KINDS.length +
+          ' kinds of measurement run, last on ' +
+          when +
+          (t.machine ? ', on ' + t.machine : '') +
+          '. These come with the app and are brought up to date as training goes on.',
+      ),
+    );
+  };
   // THE HELPERS: a tick each on the model, not things of their own. Ticked, a helper is installed if it is not here yet, then started
   // and tested, as the last steps of the same setup. A TICK STAYS A TICK once the helper is downloaded: unticked, the team is set up
   // without it and its files are left where they are; ticked again, it is started and tested again with nothing to download.
@@ -2071,33 +2191,7 @@ function paintModels() {
                         ? 'Should be quick'
                         : 'Should be unhurried') + '. Not measured here yet',
                 ),
-                row(
-                  'Room',
-                  h(
-                    'span',
-                    {
-                      class: 'roombar',
-                      role: 'img',
-                      'aria-label': model.needGb + ' of ' + room + ' GB',
-                      style:
-                        '--w:' +
-                        Math.min(100, (model.needGb / room) * 100).toFixed(1) +
-                        ';--room:' +
-                        ((model.roomGb / room) * 100).toFixed(1),
-                    },
-                    h('i'),
-                    h('b'),
-                  ),
-                  'Takes about ' +
-                    model.needGb +
-                    ' of your ' +
-                    room +
-                    ' GB of memory' +
-                    (host.vramGb ? ' (RAM and graphics memory together)' : '') +
-                    ', leaving ' +
-                    model.leftGb +
-                    ' GB for everything else',
-                ),
+                roomRow(model, room),
               ),
               h('h5', null, 'What to expect'),
               h(
@@ -2128,6 +2222,8 @@ function paintModels() {
                     )
                   : null,
               ),
+              h('h5', null, 'How it has trained'),
+              trainedBlock(model),
               helperOpts(),
               h(
                 'details',
@@ -2806,7 +2902,7 @@ function working() {
                         const r = await runner.fix(a.id);
                         said.textContent = r.ok
                           ? 'Opened. Finish it there, then press ' + (keeps ? 'Continue from here' : 'Try again') + '.'
-                          : 'macOS said: ' + (r.said || 'it could not open');
+                          : SYSTEM + ' said: ' + (r.said || 'it could not open');
                       } catch (err) {
                         said.textContent = err.message;
                       }

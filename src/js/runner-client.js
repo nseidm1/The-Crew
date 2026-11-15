@@ -87,6 +87,7 @@ async function live(base = '') {
     siteStop: (id) => post('api/sites/stop', { id }), // the workspace's website, served on this computer
     devices: () => get('api/devices'),
     deviceInstall: (serial) => post('api/devices/install', { serial }), // the phone plugged into this computer, and the built app put on it
+    workspaceFolderStart: (path) => post('api/workspace/folder', { path, start: true }), // the folder just chosen, made a Git folder first
     workspaceFolder: (path) => post('api/workspace/folder', path ? { path } : {}), // a Git folder already on this machine; with no path, the machine's own folder chooser opens
     resetWould: () => get('api/reset'), // what Clear all would delete here: { phones, gb, strata }
     reset: (models) => post('api/reset', { sure: true, models: models === true }), // Clear all: the app as it was when first started (the plan is kept; the downloaded models are kept unless models is true; every phone is unpaired)

@@ -100,14 +100,14 @@ const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, d
     .first()
     .waitFor({ timeout: 90000 });
   await s.locator('#meet').click();
-  await s.locator('.composer input').waitFor({ timeout: 15000 });
+  await s.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
   await s.evaluate(() => localStorage.setItem('familyoffice.mode', 'developer'));
   await s.close();
 }
 const p = await ctx.newPage();
 p.on('pageerror', (e) => errors.push(e.message));
 await p.goto(B + '/app.html', { waitUntil: 'load' });
-await p.locator('.composer input').waitFor({ timeout: 20000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 20000 });
 await sleep(600);
 // the folder is connected the way a person does it: the Workspace page, "Find a Git folder" (the folder window is stood in for)
 await p.goto(B + '/app.html#workspace', { waitUntil: 'load' });
@@ -120,7 +120,7 @@ if (await p.locator('dialog.step-done[open]').count()) {
   await sleep(300);
 } // "that step is done": closed, as a person would
 await p.locator('#nav a[href="#chat"]').click();
-await p.locator('.composer input').waitFor({ timeout: 20000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 20000 });
 await sleep(900);
 const linked = await p.evaluate(() => (document.querySelector('#chips') || {}).innerText || '');
 check('the team has a Git folder to work in, and the page says so', /menu-site/.test(linked), linked);
@@ -141,7 +141,7 @@ await p.evaluate(() => {
   });
 });
 const say = async (t) => {
-  await p.locator('.composer input').fill(t);
+  await p.locator('.composer :is(input, textarea)').fill(t);
   await p.keyboard.press('Enter');
 };
 await say('Add the opening hours to the README and keep its title');
@@ -335,6 +335,117 @@ await p.locator('.round-card[data-round="2"]').scrollIntoViewIfNeeded();
 await sleep(200);
 await p.locator('.round-card[data-round="2"]').screenshot({ path: path.join(OUT, 'round-2-card.png') });
 await p.screenshot({ path: path.join(OUT, 'desktop.png') });
+// ---- room given back: the left bar, Waiting on you, the To line and the message box fold or stretch, and a plan opens whole
+{
+  // a plan card is small in the chat, and a press opens the whole of it over the chat
+  const small = await p.evaluate(() => {
+    const c = document.querySelector('.round-card[data-round="1"]');
+    const shown = [...c.children]
+      .filter((n) => !n.inert && n.getBoundingClientRect().height > 0)
+      .map((n) => n.className);
+    return { small: c.classList.contains('is-small'), shown, h: Math.round(c.getBoundingClientRect().height) };
+  });
+  await p.locator('.round-card[data-round="1"] .plan-open').click();
+  await sleep(300);
+  const whole = await p.evaluate(() => {
+    const d = document.querySelector('dialog.plan-whole');
+    const c = d && d.querySelector('.round-card');
+    return {
+      open: !!(d && d.open),
+      whole: !!(c && c.classList.contains('is-whole')),
+      reqs: c ? c.querySelectorAll('.plan-reqs li').length : 0,
+      reqsSeen: c ? c.querySelector('.plan-reqs').getBoundingClientRect().height > 0 : false,
+      h: c ? Math.round(c.getBoundingClientRect().height) : 0,
+    };
+  });
+  await p.locator('dialog.plan-whole .plan-shut').click();
+  await sleep(200);
+  check(
+    'a plan card is small in the chat (its heading, how much is met, what it says, and the way to open it), and a press opens the whole plan over the chat',
+    small.small &&
+      small.shown.every((c) => /plan-(head|bar|says|choices|open)/.test(c)) &&
+      small.shown.some((c) => /plan-open/.test(c)) &&
+      whole.open &&
+      whole.whole &&
+      whole.reqs >= 2 &&
+      whole.reqsSeen &&
+      whole.h > small.h &&
+      (await p.locator('dialog.plan-whole').count()) === 0,
+    { small, whole },
+  );
+  // the left bar folds to a rail from the handle in its corner, and back
+  const sideW = () => p.evaluate(() => Math.round(document.querySelector('#side').getBoundingClientRect().width));
+  const w0 = await sideW();
+  await p.locator('#side-fold').click();
+  await sleep(400);
+  const w1 = await sideW();
+  const navGone = await p.evaluate(() => document.querySelector('#nav').getBoundingClientRect().width === 0);
+  await p.locator('#side-fold').click();
+  await sleep(400);
+  const w2 = await sideW();
+  check(
+    'the left bar folds to a rail from the handle in its corner, and comes back',
+    w0 > 180 && w1 < 80 && navGone && w2 === w0,
+    { w0, w1, navGone, w2 },
+  );
+  // Waiting on you folds to its heading
+  const waitH = () =>
+    p.evaluate(() => Math.round(document.querySelector('.card.waiting').getBoundingClientRect().height));
+  const h0 = await waitH();
+  await p.locator('#waiting-fold').click();
+  await sleep(200);
+  const h1 = await waitH();
+  const folded = await p.evaluate(() => document.querySelector('.card.waiting').classList.contains('is-folded'));
+  await p.locator('#waiting-fold').click();
+  await sleep(200);
+  check('Waiting on you folds to its heading, and comes back', folded && h1 < h0 && (await waitH()) === h0, {
+    h0,
+    h1,
+    folded,
+  });
+  // the To line hides and shows
+  await p.locator('#to-fold').click();
+  await sleep(150);
+  const hid = await p.evaluate(() => ({
+    chips: document.querySelector('.to-chips').hidden,
+    hint: document.querySelector('.talk-bar .hint').hidden,
+    says: document.querySelector('#to-fold').textContent,
+  }));
+  await p.locator('#to-fold').click();
+  await sleep(150);
+  const back = await p.evaluate(() => !document.querySelector('.to-chips').hidden);
+  check(
+    'the To line hides to one line that says who the message is for, and shows again',
+    hid.chips && hid.hint && hid.says === 'To: Whole team' && back,
+    { hid, back },
+  );
+  // the message box holds several lines, and its handle makes it taller
+  const boxH = () =>
+    p.evaluate(() => Math.round(document.querySelector('.composer textarea').getBoundingClientRect().height));
+  const b0 = await boxH();
+  await p.locator('#msg-grip').focus();
+  await p.keyboard.press('ArrowUp');
+  await p.keyboard.press('ArrowUp');
+  await p.keyboard.press('ArrowUp');
+  const b1 = await boxH();
+  const g = await p.locator('#msg-grip').boundingBox();
+  await p.mouse.move(g.x + g.width / 2, g.y + g.height / 2);
+  await p.mouse.down();
+  await p.mouse.move(g.x + g.width / 2, g.y + g.height / 2 - 60, { steps: 4 });
+  await p.mouse.up();
+  const b2 = await boxH();
+  await p.locator('.composer textarea').fill('one\ntwo');
+  const lines = await p.evaluate(() => document.querySelector('.composer textarea').value.split('\n').length);
+  await p.locator('.composer textarea').fill('');
+  await p.locator('#msg-grip').dblclick();
+  await sleep(150);
+  const b3 = await boxH();
+  check(
+    'the message box holds more than one line; its handle makes it taller by the keys and by a drag, and a double press puts it back',
+    b1 > b0 + 50 && b2 > b1 + 30 && lines === 2 && b3 === b0,
+    { b0, b1, b2, b3, lines },
+  );
+}
 // on a phone: the same chat, read again from where it is kept
 const ph = await browser.newContext({
   viewport: { width: 390, height: 844 },
@@ -346,7 +457,7 @@ const ph = await browser.newContext({
 const q = await ph.newPage();
 q.on('pageerror', (e) => errors.push(e.message));
 await q.goto(B + '/app.html', { waitUntil: 'load' });
-await q.locator('.composer input').waitFor({ timeout: 20000 });
+await q.locator('.composer :is(input, textarea)').waitFor({ timeout: 20000 });
 await sleep(900);
 const m = await q.evaluate(() => {
   const log = document.querySelector('.chat-log').getBoundingClientRect();

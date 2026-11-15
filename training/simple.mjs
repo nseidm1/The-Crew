@@ -243,7 +243,7 @@ try {
           await p.locator('#meet').waitFor({ timeout: 20000 });
         }
         await p.locator('#meet').click();
-        const box = p.locator('.composer input');
+        const box = p.locator('.composer :is(input, textarea)');
         await box.waitFor({ timeout: 30000 });
         await sleep(900);
         if (await p.locator('dialog.step-done[open]').count()) {

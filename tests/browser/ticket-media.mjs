@@ -98,7 +98,7 @@ try {
     await p.locator('#meet').waitFor({ timeout: 20000 });
   }
   await p.locator('#meet').click();
-  await p.locator('.composer input').waitFor({ timeout: 30000 });
+  await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 30000 });
   await sleep(800);
   if (await p.locator('dialog.step-done[open]').count()) {
     await p.keyboard.press('Escape');
@@ -135,7 +135,7 @@ try {
     [files, small.slice(0, 200)],
   );
   await p.locator('#jira-discuss').click();
-  await p.locator('.composer input').waitFor({ timeout: 20000 });
+  await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 20000 });
   let said = '';
   for (let i = 0; i < 60; i++) {
     said = (await p.locator('.chat-log .msg').allInnerTexts()).join('\n');
@@ -222,12 +222,12 @@ try {
     await chips(),
   );
   await choose({ name: 'my-screen.png', mimeType: 'image/png', buffer: PNG });
-  await p.locator('.composer input').fill('What is wrong with this screen?');
+  await p.locator('.composer :is(input, textarea)').fill('What is wrong with this screen?');
   await p
     .locator('.chat-card')
     .screenshot({ path: path.join(WORK, 'out', 'tray.png') })
     .catch(() => {});
-  await p.locator('.composer input').press('Enter');
+  await p.locator('.composer :is(input, textarea)').press('Enter');
   let said2 = '';
   for (let i = 0; i < 100; i++) {
     said2 = (await p.locator('.chat-log .msg').allInnerTexts()).slice(before).join('\n');

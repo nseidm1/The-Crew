@@ -201,7 +201,7 @@ for (const s of list) {
       await p.locator('#meet').waitFor({ timeout: 20000 });
     }
     await p.locator('#meet').click();
-    await p.locator('.composer input').waitFor({ timeout: 30000 });
+    await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 30000 });
     await sleep(900);
     if (await p.locator('dialog.step-done[open]').count()) {
       await p.keyboard.press('Escape');
@@ -218,7 +218,7 @@ for (const s of list) {
       await sleep(300);
     } // "that step is done": closed, as a person would
     await p.locator('#nav a[href="#chat"]').click();
-    const box = p.locator('.composer input');
+    const box = p.locator('.composer :is(input, textarea)');
     await box.waitFor({ timeout: 20000 });
     await sleep(900);
     // the ticket's words, WITHOUT its key: a key in the message has the team look the ticket up in the customer's own Jira (found on

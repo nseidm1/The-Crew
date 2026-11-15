@@ -9,6 +9,7 @@
 import { spawn } from 'node:child_process';
 import { access, mkdir, readdir, readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import os from 'node:os';
 import path from 'node:path';
 
 const HOST = () => (process.env.FO_GITHUB_GIT || 'https://github.com').replace(/\/$/, ''); // a test names a stand-in
@@ -338,11 +339,18 @@ export async function cloneFolder({ stateDir, folder }) {
 // folder window). It is made a repository where it stands, with a first commit of whatever is in it, made in the team's name so
 // that nothing has to be set up first. Nothing in the folder is changed or removed: a ".git" folder is added to it. Not the home
 // folder, not the top of a disk, and not a folder that already holds thousands of files (that is not one app).
+// is this folder a Git repository with at least one commit? (one that is not is offered to be made one: startFolder)
+export async function folderIsRepo(folder) {
+  const p = String(folder || '').trim();
+  if (!path.isAbsolute(p)) return false;
+  if ((await git(['-C', p, 'rev-parse', '--show-toplevel'])).code !== 0) return false;
+  return (await git(['-C', p, 'rev-parse', '--verify', 'HEAD'])).code === 0;
+}
 export async function startFolder(folder) {
   const given = String(folder || '').trim();
   if (!path.isAbsolute(given)) throw new Error("Give the folder's whole path, starting from the top of the disk.");
   const p = path.resolve(given);
-  const home = process.env.HOME ? path.resolve(process.env.HOME) : '';
+  const home = path.resolve(os.homedir());
   if (p === home || path.dirname(p) === p)
     throw new Error(
       'Choose a folder for this one app, not your home folder or a whole disk. You can make a new folder in the window that opens.',

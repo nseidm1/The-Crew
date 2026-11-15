@@ -664,10 +664,10 @@ async function admin(s) {
   const st = p.locator('.starters button').first();
   if (await st.count()) {
     await st.click();
-    const v = await p.locator('.composer input').inputValue();
+    const v = await p.locator('.composer :is(input, textarea)').inputValue();
     if (!v) issue(s.label + ' chat', 'a starter did not fill the box');
   } else issue(s.label + ' chat', 'no starters on an empty chat');
-  const box = p.locator('.composer input');
+  const box = p.locator('.composer :is(input, textarea)');
   await box.fill('Add a dark mode switch to the header');
   await box.press('Enter');
   let quiet = 0;

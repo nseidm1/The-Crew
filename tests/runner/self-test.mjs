@@ -3751,6 +3751,8 @@ await withServer(
       pulls.push({ repo: m[1], ...JSON.parse(body) });
       return out({ html_url: 'https://github.com/' + m[1] + '/pull/' + pulls.length, number: pulls.length }, 201);
     }
+    // a repository's first commit, which the app waits for before it clones one it has just made
+    if (/^\/repos\/octo\/[\w.-]+\/commits/.test(req.url)) return out([{ sha: 'abc' }]);
     out({}, 404);
   });
   await new Promise((r) => api.listen(5243, '127.0.0.1', r));
@@ -6897,6 +6899,33 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
       remoteOf('/Users/pat/bare.git') === null,
     [remoteOf('git@github.com:acme/app.git'), remoteOf('ssh://git@gitlab.acme.dev:2222/team/app')],
   );
+  // a folder chosen in the machine's own window that is not a Git repository yet: nothing is done to it, the page is told, and a
+  // yes makes it one and connects it
+  {
+    const fresh = path.join((await import('node:os')).tmpdir(), 'fo-selftest-fresh-' + process.pid);
+    mkdirSync(fresh, { recursive: true });
+    writeFileSync(path.join(fresh, 'notes.txt'), 'the start of an app\n');
+    await withServer({ FO_STATE_DIR: path.join(fdir, 'state-fresh'), FO_PICK_FOLDER: fresh }, async () => {
+      const asked = await (await wpost('/api/workspace/folder', {})).json();
+      const untouched = !existsSync(path.join(fresh, '.git'));
+      const made = await (
+        await wpost('/api/workspace/folder', { path: asked.needsStart ? asked.needsStart.path : '', start: true })
+      ).json();
+      check(
+        'a folder chosen that is not a Git repository yet is left as it is and offered to be made one; on a yes it is made one, with what was in it, and connected',
+        !!asked.needsStart &&
+          asked.needsStart.name === path.basename(fresh) &&
+          !asked.kind &&
+          untouched &&
+          made.kind === 'folder' &&
+          made.repo === path.basename(fresh) &&
+          existsSync(path.join(fresh, '.git')) &&
+          readFileSync(path.join(fresh, 'notes.txt'), 'utf8') === 'the start of an app\n',
+        [asked.needsStart, untouched, made.kind, made.repo, made.error],
+      );
+    });
+    rmSync(fresh, { recursive: true, force: true });
+  }
   await withServer({ FO_STATE_DIR: sdir, FO_PICK_FOLDER: path.join(mine, 'src') }, async () => {
     const no = await wpost('/api/workspace/folder', { path: plain });
     const noWhy = (await no.json()).error;

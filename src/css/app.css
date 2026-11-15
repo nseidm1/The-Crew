@@ -6061,3 +6061,291 @@ body[data-typing] .crew .bd .bd-eye-open {
     padding: 8px 13px;
   }
 }
+
+/* ---------- ROOM GIVEN BACK: the left bar, Waiting on you, the message box, the To line and the plan card fold or stretch ---------- */
+/* the left bar's handle, in its top right corner; folded, the bar is a rail with its mark and the handle */
+.side-fold {
+  position: absolute;
+  top: 22px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--mist);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+.side-fold:hover,
+.side-fold:focus-visible {
+  border-color: var(--jade);
+  color: var(--fog);
+}
+.side-fold svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s;
+}
+.shell {
+  transition: grid-template-columns 0.22s ease;
+}
+@media (min-width: 721px) {
+  .side-folded .shell {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+  .side-folded .side {
+    padding: 64px 0 22px;
+    align-items: center;
+  }
+  .side-folded .side nav,
+  .side-folded .side .side-foot,
+  .side-folded .side .wm-text {
+    display: none;
+  }
+  .side-folded .side-fold {
+    top: 22px;
+    right: 13px;
+  }
+  .side-folded .side-fold svg {
+    transform: rotate(180deg);
+  }
+}
+@media (max-width: 720px) {
+  .side-fold {
+    display: none; /* on a phone the bar is a drawer, opened and closed from the top bar */
+  }
+}
+/* a heading with a fold button at its right */
+.fold-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fold-h > span:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.fold-n {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(232, 185, 112, 0.18);
+  color: var(--fog);
+  font: 700 12px/1.4 var(--mono);
+  text-align: center;
+}
+.fold-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mist);
+  cursor: pointer;
+}
+.fold-btn:hover,
+.fold-btn:focus-visible {
+  border-color: var(--jade);
+  color: var(--fog);
+}
+.fold-btn svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s;
+}
+.fold-btn[aria-expanded='false'] svg {
+  transform: rotate(180deg);
+}
+.card.waiting.is-folded > h2 {
+  margin-bottom: 0;
+}
+/* the message box: several lines, and the handle above it */
+.composer textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  max-height: 60vh;
+  padding: 12px 18px;
+  border: 1px solid var(--line-2);
+  border-radius: 23px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--fog);
+  font: 400 15px/1.4 var(--body);
+  resize: none;
+  overflow-y: auto;
+}
+.composer textarea::placeholder {
+  color: var(--dim);
+}
+.composer:has(textarea) {
+  align-items: flex-end;
+  border-top: 0;
+  padding-top: 6px;
+}
+.msg-grip {
+  display: grid;
+  place-items: center;
+  height: 14px;
+  border-top: 1px solid var(--line);
+  cursor: ns-resize;
+  touch-action: none;
+}
+.msg-grip::before {
+  content: '';
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-2);
+  transition: background 0.2s;
+}
+.msg-grip:hover::before,
+.msg-grip:focus-visible::before,
+.msg-grip.is-held::before {
+  background: var(--jade);
+}
+.msg-grip:focus-visible {
+  outline: none;
+}
+/* the To line: "To" is a button; pressed, the chips fold into it */
+.to-fold {
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.to-fold::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 8px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: translateY(-3px) rotate(-135deg);
+  transition: transform 0.2s;
+}
+.to-fold[aria-expanded='false']::after {
+  transform: translateY(-3px) rotate(45deg);
+}
+.to-fold:hover,
+.to-fold:focus-visible {
+  color: var(--fog);
+}
+/* the plan card, small in the chat: where the round is, how much is met, what it says, and what waits on a press */
+.round-card.is-small {
+  position: relative;
+  gap: 0.5rem;
+  max-width: 30rem;
+  padding: 0.7rem 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.round-card.is-small:hover {
+  border-color: var(--jade);
+}
+.round-card.is-small > [inert] {
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+}
+.plan-open {
+  justify-self: start;
+  padding: 5px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--mist);
+  font: 600 12.5px/1.2 var(--body);
+  cursor: pointer;
+}
+.plan-open:hover,
+.plan-open:focus-visible {
+  border-color: var(--jade);
+  color: var(--fog);
+}
+/* the whole plan, over the chat */
+dialog.plan-whole {
+  width: min(46rem, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 18px;
+  border: 1px solid var(--line-2);
+  border-radius: 18px;
+  background: #0b1018;
+  color: var(--fog);
+  overflow: auto;
+}
+dialog.plan-whole::backdrop {
+  background: rgba(2, 4, 8, 0.72);
+}
+dialog.plan-whole .round-card {
+  max-width: none;
+  margin-top: 10px;
+}
+.plan-shut {
+  display: block;
+  margin-left: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shell,
+  .side-fold svg,
+  .fold-btn svg,
+  .to-fold::after {
+    transition: none;
+  }
+}
+/* (the To button keeps its arrow beside it on a narrow screen, and a long hint in the message box stays on one line) */
+.to-fold {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  flex: none;
+}
+.to-fold::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+.to-fold[aria-expanded='false']::after {
+  transform: translateY(-2px) rotate(45deg);
+}
+.composer textarea::placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* the ways into a workspace: cards of one height in a row, whatever each holds */
+.ws-ways {
+  align-items: stretch;
+}
+
+/* a new repository: its name has a row of its own (beside the switches and the button it was squeezed to a few letters) */
+.ws-create input[type='text'] {
+  flex: 1 1 100%;
+}
+/* on a phone, the small buttons of the folds are big enough for a finger */
+@media (max-width: 720px) {
+  .to-fold,
+  .plan-open {
+    min-height: 36px;
+  }
+  .to-fold {
+    padding: 0 6px 0 0;
+  }
+  .fold-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .msg-grip {
+    height: 22px;
+  }
+}

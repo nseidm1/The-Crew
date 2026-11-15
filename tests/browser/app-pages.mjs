@@ -240,6 +240,19 @@ const requests = () => {
     [more, name2],
   );
   check('model: the page does not scroll sideways', (await wide(p)) <= 0, await wide(p));
+  // a model's tag stays inside its card, however long its words and however many models share the row
+  const spill = await p.evaluate(() =>
+    [...document.querySelectorAll('.av')].flatMap((c) => {
+      const r = c.getBoundingClientRect();
+      return [...c.querySelectorAll('.tag, h3, .cap')]
+        .filter((t) => {
+          const q = t.getBoundingClientRect();
+          return q.left < r.left - 0.5 || q.right > r.right + 0.5;
+        })
+        .map((t) => t.textContent);
+    }),
+  );
+  check('model: nothing on a model card runs out of its side', spill.length === 0, spill);
   await p.screenshot({ path: path.join(OUT, 'model.png'), fullPage: true });
   await p.locator('#setup').click();
   await p.locator('.todo li').first().waitFor({ timeout: 8000 });
@@ -315,7 +328,7 @@ await ctx.route('https://avatars.example.com/**', (route) =>
   route.fulfill({ status: 200, contentType: 'image/png', body: PNG }),
 ); // the stand-in people's pictures
 await p.goto(B + '/app.html', { waitUntil: 'load' });
-await p.locator('.composer input').waitFor({ timeout: 15000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
 check(
   'app: it opens on the team chat, and the navigation has no Overview, Proofs or Autonomy entry',
   (await p.locator('#title').innerText()) === 'Team chat' &&
@@ -378,7 +391,7 @@ check(
   faces,
 );
 await p.goto(B + '/app.html#autonomy', { waitUntil: 'load' });
-await p.locator('.composer input').waitFor({ timeout: 5000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 5000 });
 check(
   'autonomy: there is no such page or setting any more, and its old address leads to the chat',
   (await p.locator('#title').innerText()) === 'Team chat' &&
@@ -393,7 +406,7 @@ check(
     /No proofs yet|runs/.test(await p.locator('#soul-proofs').locator('..').innerText()),
 );
 await p.goto(B + '/app.html#chat', { waitUntil: 'load' });
-await p.locator('.composer input').waitFor({ timeout: 8000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 8000 });
 await p.screenshot({ path: path.join(OUT, 'chat.png') });
 await ov.click();
 await p.locator('#overview-back').waitFor({ timeout: 5000 });
@@ -402,10 +415,10 @@ check(
   (await p.locator('#title').innerText()) === 'Overview' && (await p.locator('.setup-list li').count()) >= 4,
 );
 await p.locator('#overview-back').click();
-await p.locator('.composer input').waitFor({ timeout: 5000 });
+await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 5000 });
 
 // ---- 3. What every team starts with: on the Soul page, and recalled by Vision on a firm match
-const box = p.locator('.composer input');
+const box = p.locator('.composer :is(input, textarea)');
 const settle = async () => {
   let quiet = 0;
   let last = -1;
@@ -1154,8 +1167,8 @@ check(
     (await p.locator('#attach-tray #ticket-clear').innerText()) === '\u00d7',
   chip,
 );
-await p.locator('.composer input').fill('What would you check first on this one?');
-await p.locator('.composer input').press('Enter');
+await p.locator('.composer :is(input, textarea)').fill('What would you check first on this one?');
+await p.locator('.composer :is(input, textarea)').press('Enter');
 await settle();
 const about = requests()
   .filter((x) => /THE JIRA TICKET THE CUSTOMER HAS ATTACHED TO THIS CHAT/.test(x.tail || ''))
@@ -1176,8 +1189,10 @@ check(
   (await p.locator('.chat-ticket').count()) === 0,
 );
 // a ticket asked for in words: found on the board, read for what it must do, and it becomes what the team is working on
-await p.locator('.composer input').fill('Please address the ticket about the checkout button being cut off');
-await p.locator('.composer input').press('Enter');
+await p
+  .locator('.composer :is(input, textarea)')
+  .fill('Please address the ticket about the checkout button being cut off');
+await p.locator('.composer :is(input, textarea)').press('Enter');
 let found12 = '';
 for (let i = 0; i < 150; i++) {
   found12 = (await p.locator('.chat-log').innerText()).replace(/\s+/g, ' ');
@@ -1197,8 +1212,8 @@ check(
   found12.slice(-500),
 );
 await settle();
-await p.locator('.composer input').fill('Please address the ticket about dinosaurs and volcanoes');
-await p.locator('.composer input').press('Enter');
+await p.locator('.composer :is(input, textarea)').fill('Please address the ticket about dinosaurs and volcanoes');
+await p.locator('.composer :is(input, textarea)').press('Enter');
 await sleep(1500);
 check(
   'chat: when no ticket on the board fits, the team says it cannot tell which one is meant, and builds nothing',
@@ -1217,7 +1232,7 @@ await ctx.close();
   const q = await c2.newPage();
   watch(q);
   for (const [hash, wait] of [
-    ['', '.composer input'],
+    ['', '.composer :is(input, textarea)'],
     ['#jira', '#jira-show'],
     ['#learning', 'details.base-topic'],
   ]) {

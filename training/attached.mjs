@@ -140,7 +140,7 @@ try {
       await p.locator('#meet').waitFor({ timeout: 20000 });
     }
     await p.locator('#meet').click();
-    await p.locator('.composer input').waitFor({ timeout: 30000 });
+    await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 30000 });
     await sleep(900);
     if (await p.locator('dialog.step-done[open]').count()) {
       await p.keyboard.press('Escape');
@@ -188,8 +188,8 @@ try {
   for (const a of ASKS) {
     const from = await p.locator('.chat-log .msg:not(.you)').count();
     const t0 = Date.now();
-    await p.locator('.composer input').fill(a.say);
-    await p.locator('.composer input').press('Enter');
+    await p.locator('.composer :is(input, textarea)').fill(a.say);
+    await p.locator('.composer :is(input, textarea)').press('Enter');
     await settle(from);
     const got = await p.evaluate(
       (at) =>

@@ -70,7 +70,7 @@ const open = async (w, hgt, mode, opts = {}) => {
     localStorage.setItem('familyoffice.mode', m);
   }, mode);
   await p.goto(B + '/app.html', { waitUntil: 'load' });
-  await p.locator('.composer input').waitFor({ timeout: 20000 });
+  await p.locator('.composer :is(input, textarea)').waitFor({ timeout: 20000 });
   await sleep(900);
   return p;
 };
@@ -107,7 +107,7 @@ const crewOf = (p) =>
     .first()
     .waitFor({ timeout: 90000 });
   await s.locator('#meet').click();
-  await s.locator('.composer input').waitFor({ timeout: 15000 });
+  await s.locator('.composer :is(input, textarea)').waitFor({ timeout: 15000 });
   await s.close();
 }
 // 1. the empty chat in Simple, at a computer's width
@@ -152,8 +152,8 @@ check(
 );
 await r.close();
 // 4. a reply: the one who answers is its character, and hops while it writes
-await p.locator('.composer input').fill('hello');
-await p.locator('.composer input').press('Enter');
+await p.locator('.composer :is(input, textarea)').fill('hello');
+await p.locator('.composer :is(input, textarea)').press('Enter');
 let hop = false;
 let seen = 0;
 for (let i = 0; i < 120; i++) {
@@ -333,8 +333,8 @@ check(
 );
 await p.locator('#gallery').screenshot({ path: path.join(OUT, 'cards.png') });
 const d = await open(1366, 900, 'developer');
-await d.locator('.composer input').fill('hello');
-await d.locator('.composer input').press('Enter');
+await d.locator('.composer :is(input, textarea)').fill('hello');
+await d.locator('.composer :is(input, textarea)').press('Enter');
 for (let i = 0; i < 80; i++) {
   if ((await d.locator('.chat-log .msg .seat-mark').count()) >= 2) break;
   await sleep(250);

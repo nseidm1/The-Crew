@@ -52,7 +52,10 @@ const fileOf = (m) => {
   }
   return { url: HF() + '/' + m.repo + '/resolve/' + m.rev + '/' + m.file, bytes: m.bytes, sha256: m.sha256 };
 };
-export const llamaModelPath = (stateDir, m) => path.join(stateDir, 'models', m.id, m.file);
+// where a model's file is kept: in this app's own folder, or in one place named for all of them (FO_LLAMA_MODELS_DIR), which is how
+// a measurement that starts a new team for every run uses the files it already fetched instead of fetching them again
+export const llamaModelPath = (stateDir, m) =>
+  path.join(process.env.FO_LLAMA_MODELS_DIR || path.join(stateDir, 'models'), m.id, m.file);
 export async function haveLlamaModel(stateDir, m) {
   const s = await stat(llamaModelPath(stateDir, m)).catch(() => null);
   return !!s && s.size === fileOf(m).bytes;

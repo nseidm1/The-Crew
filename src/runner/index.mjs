@@ -45,6 +45,7 @@ import {
   land,
   landFolder,
   startFolder,
+  folderIsRepo,
   statusOf,
   validBranch,
   validCloneUrl,
@@ -313,14 +314,14 @@ export function createRunner({ root, port }) {
       .filter((m) => m.family === 'Bonsai')
       .map((m) => ({
         ...m,
-        badge: m.params >= 27 ? 'Large, in little memory' : m.params >= 9 ? 'Small and light' : m.badge,
+        badge: m.params >= 27 ? 'Packed small' : m.params >= 9 ? 'Small and light' : m.badge,
         runs: "Run by llama.cpp on this Mac's own graphics. It is a large model packed small, so it leaves most of the Mac's memory free. It does not read pictures in this setup.",
         plain:
           'A ' +
           m.params +
           'B model in a ' +
           m.sizeGb +
-          ' GB file: far less memory than a model its size usually takes. We have not run it ourselves yet, so nothing here says how well it works.',
+          ' GB file: far less memory than a model its size usually takes.',
         plan: llamaPlan(m, runner.host),
         running: !!(runner.disk.engine && runner.disk.engine.id === m.id),
       }));
@@ -1232,6 +1233,10 @@ export function createRunner({ root, port }) {
               if (got.cancelled) return json(res, 200, { ...(await state()), cancelled: true });
               if (got.error) throw new Error(got.error);
               where = got.path;
+              // A FOLDER THAT IS NOT A GIT REPOSITORY YET, chosen in the folder window: nothing is done to it. The page is told, and
+              // asks; a yes comes back as the same folder with start: true.
+              if (body.start !== true && !(await folderIsRepo(where)))
+                return json(res, 200, { ...(await state()), needsStart: { path: where, name: path.basename(where) } });
             }
             workBusy = true;
             try {
