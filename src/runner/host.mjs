@@ -8,8 +8,12 @@ import { ENGINE, AGENT, STRATA, STRATA_MODELS, LLAMA } from '../js/catalog.js';
 
 export function sh(cmd, args, { timeout = 8000, env } = {}) {
   return new Promise((ok) => {
-    execFile(cmd, args, { timeout, env: env || process.env, maxBuffer: 4 * 1024 * 1024 }, (err, stdout, stderr) =>
-      ok({ ok: !err, out: String(stdout || '').trim(), err: String(stderr || (err && err.message) || '').trim() }),
+    execFile(
+      cmd,
+      args,
+      { timeout, env: env || process.env, maxBuffer: 4 * 1024 * 1024, windowsHide: true },
+      (err, stdout, stderr) =>
+        ok({ ok: !err, out: String(stdout || '').trim(), err: String(stderr || (err && err.message) || '').trim() }),
     );
   });
 }

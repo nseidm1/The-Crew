@@ -1871,7 +1871,7 @@ const VIEWS = {
       h('div', { class: 'chat-top', id: 'chat-top' }),
       h(
         'div',
-        { class: 'grid cols-2' },
+        { class: 'grid cols-2 chat-split', id: 'chat-split' },
         h(
           'section',
           { class: 'chat-card glass flat', 'aria-label': 'Group chat' },
@@ -1929,6 +1929,7 @@ const VIEWS = {
           grip,
           form,
         ),
+        sideGrip(),
         h('div', { class: 'grid', id: 'chat-side' }),
       ),
     );
@@ -4125,6 +4126,86 @@ function msgGrip(input) {
     saved = 0;
   }
   if (saved > MIN) set(saved, false);
+  return grip;
+}
+// THE HANDLE BETWEEN THE CHAT AND WHAT SITS BESIDE IT: drag it right and the chat takes more of the page; all the way, and the
+// chat has the whole of it (the handle stays at the edge, to drag back). The arrow keys do the same, and a double press goes
+// between the whole page and the two columns as they come. Kept on this device.
+const SPLIT_KEY = 'familyoffice.chat.side';
+function sideGrip() {
+  const LEAST = 220; // narrower than this the cards beside the chat cannot be read, so they are put away
+  const grid = () => grip.parentElement;
+  const paint = (v, save) => {
+    const b = document.body;
+    b.classList.toggle('chat-wide', v === 'shut');
+    b.classList.toggle('chat-sized', typeof v === 'number');
+    if (typeof v === 'number') b.style.setProperty('--chat-side', v + 'px');
+    else b.style.removeProperty('--chat-side');
+    grip.setAttribute('aria-valuenow', v === 'shut' ? '0' : String(v || ''));
+    grip.setAttribute(
+      'aria-label',
+      v === 'shut'
+        ? 'The chat has the whole page. Drag left to bring back what sits beside it'
+        : 'Drag to give the chat more or less of the page',
+    );
+    if (save)
+      try {
+        if (v) localStorage.setItem(SPLIT_KEY, String(v));
+        else localStorage.removeItem(SPLIT_KEY);
+      } catch {
+        /* a private window */
+      }
+  };
+  const fit = (px) => {
+    const all = grid() ? grid().getBoundingClientRect().width : innerWidth;
+    if (px < LEAST / 2) return 'shut';
+    return Math.round(Math.min(all * 0.6, Math.max(LEAST, px)));
+  };
+  const now = () => {
+    const side = document.getElementById('chat-side');
+    return document.body.classList.contains('chat-wide') || !side ? 0 : side.getBoundingClientRect().width;
+  };
+  const grip = h('div', {
+    class: 'side-grip',
+    id: 'side-grip',
+    role: 'separator',
+    tabindex: '0',
+    'aria-orientation': 'vertical',
+    'aria-valuemin': '0',
+  });
+  let from = null;
+  grip.addEventListener('pointerdown', (e) => {
+    from = { x: e.clientX, w: now() };
+    grip.setPointerCapture(e.pointerId);
+    grip.classList.add('is-held');
+    e.preventDefault();
+  });
+  grip.addEventListener('pointermove', (e) => {
+    if (from) paint(fit(from.w + (from.x - e.clientX)), false);
+  });
+  const drop = (e) => {
+    if (!from) return;
+    const v = fit(from.w + (from.x - e.clientX));
+    from = null;
+    grip.classList.remove('is-held');
+    paint(v, true);
+  };
+  grip.addEventListener('pointerup', drop);
+  grip.addEventListener('pointercancel', drop);
+  grip.addEventListener('dblclick', () => paint(document.body.classList.contains('chat-wide') ? '' : 'shut', true));
+  grip.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const w = now();
+    paint(e.key === 'ArrowLeft' ? fit(Math.max(LEAST, w + 40)) : w <= LEAST ? 'shut' : fit(w - 40), true);
+  });
+  let saved = '';
+  try {
+    saved = localStorage.getItem(SPLIT_KEY) || '';
+  } catch {
+    saved = '';
+  }
+  paint(saved === 'shut' ? 'shut' : Number(saved) >= LEAST ? Number(saved) : '', false);
   return grip;
 }
 // THE LEFT BAR FOLDS to a rail (its mark and its handle) and back, from the handle in its top right corner. Kept on this device.

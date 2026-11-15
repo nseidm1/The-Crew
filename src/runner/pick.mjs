@@ -8,6 +8,7 @@
 // WHAT IS SAID WHEN IT CANNOT is about the system the person is on: what that system uses, and what to do there.
 // A test names the answer (FO_PICK_FOLDER: a path, or empty for "the customer closed it") and a run that must open nothing on the
 // screen (FO_NO_OPEN=1) is told there is no chooser, so a window is never opened on a machine nobody is sitting at.
+import { fileURLToPath } from 'node:url';
 import { PLATFORM, inWsl, sh, which } from './host.mjs';
 
 // what cannot be done here, in the words of the system it is
@@ -28,17 +29,18 @@ const lastLine = (r) =>
       .pop() || 'no reason given'
   ).slice(0, 140);
 
-// Windows' own folder window, on top of the other windows. Prints the folder chosen, or nothing when it is closed.
-const windowsScript = (words) =>
-  'Add-Type -AssemblyName System.Windows.Forms; ' +
-  '$d = New-Object System.Windows.Forms.FolderBrowserDialog; ' +
-  "$d.Description = '" +
-  words +
-  "'; $d.ShowNewFolderButton = $true; " +
-  '$top = New-Object System.Windows.Forms.Form -Property @{ TopMost = $true; ShowInTaskbar = $false; Opacity = 0 }; ' +
-  'if ($d.ShowDialog($top) -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Out.Write($d.SelectedPath) }';
+// WINDOWS' FOLDER WINDOW is Explorer's own "Select Folder", opened over the browser: see choose-folder.ps1, which sits beside this
+// file and is run as it stands (a long script passed as one argument is cut and re-quoted by Windows on the way).
+const SCRIPT = fileURLToPath(new URL('./choose-folder.ps1', import.meta.url));
 async function pickOnWindows(exe, words, wait) {
-  const r = await sh(exe, ['-NoProfile', '-STA', '-Command', windowsScript(words)], wait);
+  let named = SCRIPT;
+  if (exe === 'powershell.exe') {
+    // inside Windows' Linux layer the script is named to Windows as Windows sees it
+    const w = await sh('wslpath', ['-w', SCRIPT]);
+    if (!w.ok || !w.out) return { error: 'no way to name the script to Windows' };
+    named = w.out.trim();
+  }
+  const r = await sh(exe, ['-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-File', named, '-Title', words], wait);
   if (!r.ok) return { error: 'The folder window did not open: ' + lastLine(r) };
   return r.out ? { path: r.out.trim() } : { cancelled: true };
 }

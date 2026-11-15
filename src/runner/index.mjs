@@ -53,6 +53,7 @@ import {
 import { createSites } from './sites.mjs';
 import { phones as adbPhones, install as adbInstall, builtApp } from './adb.mjs';
 import { pickFolder } from './pick.mjs';
+import { setGitHome } from './git-own.mjs';
 import {
   addKotlinImports,
   importsBelowPackage,
@@ -113,6 +114,7 @@ export function createRunner({ root, port }) {
   const runner = {};
   const stateDir = process.env.FO_STATE_DIR || path.join(root, '.runner');
   setBrewHome(path.join(stateDir, 'homebrew'));
+  setGitHome(stateDir);
   const file = path.join(stateDir, 'state.json');
   runner.disk = { sizes: {}, measured: {}, fit: {}, jira: {}, work: {}, session: null, engine: null, connectors: [] };
   runner.host = null;

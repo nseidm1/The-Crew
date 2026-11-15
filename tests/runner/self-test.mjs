@@ -6855,6 +6855,110 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
   rmSync(kdir, { recursive: true, force: true });
 }
 
+// ---------- no Git on the machine: fetched on Windows, asked of macOS on a Mac; and Windows' folder window is the modern one ----------
+{
+  const { execFileSync, execFile } = await import('node:child_process');
+  const http = await import('node:http');
+  const { createHash } = await import('node:crypto');
+  const { mkdirSync, writeFileSync, chmodSync, readFileSync, existsSync } = await import('node:fs');
+  const gdir = path.join(state, 'no-git');
+  mkdirSync(path.join(gdir, 'pack', 'cmd'), { recursive: true });
+  // a stand-in for Git's own minimal Windows build: an archive with cmd/git.exe in it
+  writeFileSync(path.join(gdir, 'pack', 'cmd', 'git.exe'), '#!/bin/sh\necho "git version 2.56.1.windows.1"\n');
+  chmodSync(path.join(gdir, 'pack', 'cmd', 'git.exe'), 0o755);
+  execFileSync('tar', ['-czf', path.join(gdir, 'mingit.tar.gz'), '-C', path.join(gdir, 'pack'), 'cmd']);
+  const pack = readFileSync(path.join(gdir, 'mingit.tar.gz'));
+  const srv = http.createServer((req, res) => {
+    res.writeHead(200, { 'content-length': pack.length });
+    res.end(pack);
+  });
+  await new Promise((ok) => srv.listen(0, '127.0.0.1', ok));
+  // asked in a process of its own, and waited for without stopping this one: the stand-in server above lives here
+  const ask = (env) =>
+    new Promise((done) =>
+      execFile(
+        process.execPath,
+        [
+          '--input-type=module',
+          '-e',
+          'const m = await import(' +
+            JSON.stringify(path.join(ROOT, 'runner/git-own.mjs')) +
+            '); m.setGitHome(process.env.FO_T_STATE); console.log(JSON.stringify(await m.ensureGit()));',
+        ],
+        { encoding: 'utf8', timeout: 60000, env: { ...process.env, FO_BIN_GIT: path.join(gdir, 'none-here'), ...env } },
+        (err, stdout, stderr) => {
+          try {
+            done(JSON.parse(String(stdout).trim().split('\n').pop()));
+          } catch {
+            done({ ok: false, why: 'no answer: ' + String(stderr).slice(-200) });
+          }
+        },
+      ),
+    );
+  const winState = path.join(gdir, 'win-state');
+  const fetched = await ask({
+    FO_PLATFORM: 'win32',
+    FO_T_STATE: winState,
+    FO_GIT_RELEASE: JSON.stringify({
+      url: 'http://127.0.0.1:' + srv.address().port + '/mingit.zip',
+      bytes: pack.length,
+      sha256: createHash('sha256').update(pack).digest('hex'),
+    }),
+  });
+  const wrong = await ask({
+    FO_PLATFORM: 'win32',
+    FO_T_STATE: path.join(gdir, 'win-wrong'),
+    FO_GIT_RELEASE: JSON.stringify({
+      url: 'http://127.0.0.1:' + srv.address().port + '/x.zip',
+      bytes: pack.length,
+      sha256: 'f'.repeat(64),
+    }),
+  });
+  srv.close();
+  check(
+    "on a Windows PC with no Git, Git's own build is fetched into this app's folder and is there to use; one that does not match its checksum is not kept",
+    fetched.ok === true &&
+      fetched.fetched === true &&
+      existsSync(path.join(winState, 'tools', 'mingit-2.56.1', 'cmd', 'git.exe')) &&
+      !existsSync(path.join(winState, 'tools', 'mingit-2.56.1', 'git.zip')) &&
+      wrong.ok === false &&
+      !existsSync(path.join(gdir, 'win-wrong', 'tools', 'mingit-2.56.1')),
+    [fetched, wrong],
+  );
+  const offline = await ask({
+    FO_PLATFORM: 'win32',
+    FO_T_STATE: path.join(gdir, 'win-off'),
+    FO_NO_NET: '1',
+    FO_GIT_RELEASE: '',
+  });
+  const mac = await ask({ FO_PLATFORM: 'darwin', FO_T_STATE: path.join(gdir, 'mac'), FO_NO_OPEN: '1' });
+  const linux = await ask({ FO_PLATFORM: 'linux', FO_T_STATE: path.join(gdir, 'linux') });
+  check(
+    "where Git cannot be fetched it is said in the words of that system: Apple's tools on a Mac, the system's installer on Linux, and no network on a PC that has none",
+    offline.ok === false &&
+      /not using the network/.test(offline.why) &&
+      mac.ok === false &&
+      /Command Line Tools/.test(mac.why) &&
+      linux.ok === false &&
+      /software installer/.test(linux.why),
+    [offline, mac, linux],
+  );
+  const { GIT_WIN } = await import(path.join(ROOT, 'runner/git-own.mjs'));
+  const ps1 = readFileSync(path.join(ROOT, 'runner/choose-folder.ps1'), 'utf8');
+  check(
+    "Git's Windows build is pinned (a version, a size and a SHA-256 for each chip), and Windows' folder window is the system's own file dialog asked for folders, owned by the window in front, with the old tree only as what is shown if that fails",
+    Object.values(GIT_WIN.builds).every(
+      (b) => b.asset.includes(GIT_WIN.version) && b.bytes > 1e7 && /^[0-9a-f]{64}$/.test(b.sha256),
+    ) &&
+      /42f85136-db7e-439c-85f1-e4075d135fc8/i.test(ps1) &&
+      /GetForegroundWindow/.test(ps1) &&
+      /d\.Show\(owner\)/.test(ps1) &&
+      /0x20 \| 0x40/.test(ps1) &&
+      ps1.indexOf('FolderBrowserDialog') > ps1.indexOf('catch'),
+    Object.keys(GIT_WIN.builds),
+  );
+}
+
 // ---------- a Git folder that is already on this machine: the team gets its own copy, and its work comes back as a branch ----------
 {
   const { mkdirSync, writeFileSync, existsSync, realpathSync } = await import('node:fs');

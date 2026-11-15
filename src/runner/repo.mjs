@@ -11,6 +11,7 @@ import { access, mkdir, readdir, readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
+import { ensureGit } from './git-own.mjs';
 
 const HOST = () => (process.env.FO_GITHUB_GIT || 'https://github.com').replace(/\/$/, ''); // a test names a stand-in
 export const validRepo = (r) =>
@@ -28,7 +29,7 @@ const tail = (r) =>
 
 // own: the command runs with the machine's OWN Git sign-in (its credential helper, its SSH keys), as when the customer runs git themself.
 // It still never stops to ask a question: a sign-in that would need one fails, and the reason is said.
-function git(args, { cwd, token, timeout = 120000, own = false } = {}) {
+function git(args, { cwd, token, timeout = 120000, own = false, again = false } = {}) {
   return new Promise((done) => {
     const env = { ...process.env, GIT_TERMINAL_PROMPT: '0', LC_ALL: 'C' };
     if (own && !env.GIT_SSH_COMMAND) env.GIT_SSH_COMMAND = 'ssh -o BatchMode=yes';
@@ -42,6 +43,7 @@ function git(args, { cwd, token, timeout = 120000, own = false } = {}) {
       cwd,
       env,
       stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
     });
     let out = '';
     let err = '';
@@ -57,7 +59,15 @@ function git(args, { cwd, token, timeout = 120000, own = false } = {}) {
     });
     child.on('error', (e) => {
       clearTimeout(timer);
-      done({ code: 1, out, err: e.code === 'ENOENT' ? 'git is not installed on this machine' : e.message });
+      if (e.code !== 'ENOENT') return done({ code: 1, out, err: e.message });
+      // NO GIT ON THIS MACHINE: it is fetched where it can be (git-own.mjs), and the command is run once more. Where it cannot,
+      // what to do is said in the words of the system it is.
+      if (again) return done({ code: 1, out, err: 'Git is not installed on this machine.' });
+      ensureGit().then(
+        (g) =>
+          g.ok ? git(args, { cwd, token, timeout, own, again: true }).then(done) : done({ code: 1, out, err: g.why }),
+        (x) => done({ code: 1, out, err: String((x && x.message) || x) }),
+      );
     });
     child.on('close', (code) => {
       clearTimeout(timer);

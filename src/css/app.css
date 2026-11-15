@@ -6215,6 +6215,62 @@ body[data-typing] .crew .bd .bd-eye-open {
 .msg-grip:focus-visible {
   outline: none;
 }
+/* a window between a phone and a desk: the chat sits over what is beside it, and both rows are given a share of the height
+   (one row rule alone left the chat with none). In Simple there is nothing beside it, so the chat has all of it. */
+@media (min-width: 721px) and (max-width: 1080px) {
+  .main:has(.chat-card) #view > .grid {
+    grid-template-rows: minmax(0, 2fr) minmax(0, 1fr);
+  }
+  [data-mode='simple'] .main:has(.chat-card) #view > .grid {
+    grid-template-rows: minmax(0, 1fr);
+  }
+}
+/* the handle between the chat and what sits beside it: only where the two are side by side */
+.side-grip {
+  display: none;
+}
+@media (min-width: 1081px) {
+  .grid.chat-split {
+    grid-template-columns: minmax(0, 3fr) 14px minmax(0, 2fr);
+    column-gap: 1px;
+  }
+  body.chat-sized .grid.chat-split {
+    grid-template-columns: minmax(0, 1fr) 14px var(--chat-side);
+  }
+  body.chat-wide .grid.chat-split {
+    grid-template-columns: minmax(0, 1fr) 14px;
+  }
+  body.chat-wide .chat-split > #chat-side {
+    display: none;
+  }
+  .side-grip {
+    display: grid;
+    place-items: center;
+    align-self: stretch;
+    min-height: 120px;
+    cursor: ew-resize;
+    touch-action: none;
+  }
+  .side-grip::before {
+    content: '';
+    width: 4px;
+    height: 44px;
+    border-radius: 2px;
+    background: var(--line-2);
+    transition: background 0.2s;
+  }
+  .side-grip:hover::before,
+  .side-grip:focus-visible::before,
+  .side-grip.is-held::before {
+    background: var(--jade);
+  }
+  .side-grip:focus-visible {
+    outline: none;
+  }
+  [data-mode='simple'] .side-grip {
+    display: none;
+  }
+}
 /* the To line: "To" is a button; pressed, the chips fold into it */
 .to-fold {
   padding: 6px 0;

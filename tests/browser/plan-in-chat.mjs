@@ -445,6 +445,84 @@ await p.screenshot({ path: path.join(OUT, 'desktop.png') });
     b1 > b0 + 50 && b2 > b1 + 30 && lines === 2 && b3 === b0,
     { b0, b1, b2, b3, lines },
   );
+  // the handle between the chat and what sits beside it
+  const cols = () =>
+    p.evaluate(() => {
+      const side = document.querySelector('#chat-side');
+      return {
+        chat: Math.round(document.querySelector('.chat-card').getBoundingClientRect().width),
+        side: side.offsetParent ? Math.round(side.getBoundingClientRect().width) : 0,
+        all: Math.round(document.querySelector('#chat-split').getBoundingClientRect().width),
+      };
+    });
+  const c0 = await cols();
+  const drag = async (dx) => {
+    const k = await p.locator('#side-grip').boundingBox();
+    await p.mouse.move(k.x + k.width / 2, k.y + 60);
+    await p.mouse.down();
+    await p.mouse.move(k.x + k.width / 2 + dx, k.y + 60, { steps: 5 });
+    await p.mouse.up();
+    await sleep(120);
+  };
+  await drag(100);
+  const c1 = await cols();
+  await drag(1200);
+  const c2 = await cols();
+  await p.reload({ waitUntil: 'load' });
+  await p.waitForSelector('#side-grip');
+  const c3 = await cols();
+  await drag(-320);
+  const c4 = await cols();
+  await p.locator('#side-grip').dblclick();
+  await sleep(120);
+  const c5 = await cols();
+  await p.locator('#side-grip').dblclick();
+  await sleep(120);
+  const c6 = await cols();
+  check(
+    'a handle between the chat and what sits beside it gives the chat more of the page by a drag, and all of it by a drag to the edge; that is kept over a reload, a drag back brings the side back, and a double press goes between the whole page and the two columns as they come',
+    c0.side > 250 &&
+      c1.chat > c0.chat + 60 &&
+      c1.side < c0.side - 60 &&
+      c2.side === 0 &&
+      c2.chat > c2.all - 24 &&
+      c3.side === 0 &&
+      c4.side > 250 &&
+      c5.side === 0 &&
+      Math.abs(c6.side - c0.side) < 4,
+    { c0, c1, c2, c3, c4, c5, c6 },
+  );
+  // a window between a phone and a desk: the chat is still there
+  const was = p.viewportSize();
+  const mid = [];
+  for (const [w, hh] of [
+    [721, 900],
+    [870, 700],
+    [870, 1000],
+    [1080, 900],
+    [1081, 900],
+  ]) {
+    await p.setViewportSize({ width: w, height: hh });
+    await sleep(150);
+    mid.push(
+      await p.evaluate(() => {
+        const r = (q) => document.querySelector(q).getBoundingClientRect();
+        const box = r('.composer textarea');
+        return {
+          w: innerWidth,
+          chat: Math.round(r('.chat-card').height),
+          box: box.height > 20 && box.bottom <= innerHeight + 1,
+          side: Math.round(r('#chat-side').height),
+        };
+      }),
+    );
+  }
+  await p.setViewportSize(was);
+  check(
+    'in a window between a phone and a desk (721 to 1080 wide) the chat and its message box are on the screen, with what sits beside it under them',
+    mid.every((m) => m.chat > 300 && m.box && m.side > 60),
+    mid,
+  );
 }
 // on a phone: the same chat, read again from where it is kept
 const ph = await browser.newContext({
