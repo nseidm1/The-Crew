@@ -2596,6 +2596,39 @@ await withServer({ ...CL, FO_FAKE_CLAUDE_OUT: '1' }, async () => {
     r,
   );
 });
+// ---------- which Claude account: said before it is used, and it can be another one ----------
+await withServer({ ...CL, FO_CLAUDE_ROOT: path.join(state, 'claude-switch') }, async () => {
+  const acct = async () => (await fetch(base + '/api/claude/account')).json();
+  const before = await acct();
+  const out = await (
+    await fetch(base + '/api/fix', { method: 'POST', headers: J, body: '{"action":"claude-logout"}' })
+  ).json();
+  const after = await acct();
+  check(
+    'the page is told who Claude Code is signed in as, and "Use another account" signs it out with its own command, ready to sign in afresh',
+    before.installed === true &&
+      before.signedIn === true &&
+      /test@example\.com/.test(before.detail) &&
+      out.ok === true &&
+      after.signedIn === false,
+    [before, out, after],
+  );
+  // the sign-in that follows a deliberate sign-out is opened on Claude's sign-in SCREEN, which asks who you are, with the
+  // authorization to return to; an ordinary sign-in is opened on the authorization itself
+  const { freshSignInUrl } = await import('../../src/runner/claude.mjs');
+  const auth =
+    'https://claude.com/cai/oauth/authorize?code=true&client_id=abc&redirect_uri=http%3A%2F%2Flocalhost%3A49985%2Fcallback&state=xyz';
+  const fresh = freshSignInUrl(auth);
+  check(
+    "after a deliberate sign-out the page opened is Claude's sign-in screen, asked to sign in again, returning to the same authorization",
+    /^https:\/\/claude\.ai\/login\?reauth=1&from=logout&returnTo=/.test(fresh) &&
+      decodeURIComponent(fresh.split('returnTo=')[1]) ===
+        '/oauth/authorize?code=true&client_id=abc&redirect_uri=http%3A%2F%2Flocalhost%3A49985%2Fcallback&state=xyz' &&
+      freshSignInUrl('https://example.com/oauth/authorize?x=1') === null &&
+      freshSignInUrl('') === null,
+    fresh,
+  );
+});
 await withServer({ FO_BIN_CLAUDE: path.join(FAKES, 'missing') }, async () => {
   const v = await setup({ engine: 'claude' });
   const s = v.setup || {};

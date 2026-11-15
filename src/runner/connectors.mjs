@@ -71,7 +71,7 @@ const lastWords = (buf) =>
     )
     .slice(-1)[0] || '';
 // open a page in the customer's own browser. Only ever an https address, only when they pressed the button, and never in a test run.
-function openPage(url) {
+export function openPage(url) {
   const stub = process.env.FO_BIN_OPEN;
   if (!/^https:\/\//.test(url) || (!stub && (process.env.FO_NO_OPEN === '1' || process.env.FO_NO_NET === '1')))
     return false;
@@ -80,7 +80,7 @@ function openPage(url) {
     : process.platform === 'darwin'
       ? ['open', [url]]
       : process.platform === 'win32'
-        ? ['cmd', ['/c', 'start', '', url]]
+        ? ['rundll32', ['url.dll,FileProtocolHandler', url]] // not "cmd /c start": cmd cuts an address at its first "&", and a sign-in address is full of them
         : process.platform === 'linux' && (process.env.WSL_DISTRO_NAME || /microsoft/i.test(os.release()))
           ? ['explorer.exe', [url]] // inside WSL: the person's Windows browser
           : ['xdg-open', [url]];

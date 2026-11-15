@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // fake-claude.mjs - a TEST DOUBLE for the Claude Code command: --version, auth status, auth login, and -p runs in stream-json.
 // It does the three agent-check jobs the way a competent agent would. Used only when FO_BIN_CLAUDE points at it.
-import { readFileSync, writeFileSync, mkdirSync, appendFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, appendFileSync, existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 const MCP = path.join(process.env.FO_CLAUDE_ROOT || '.', 'fake-mcp.json');
 const mcp = () => {
@@ -32,17 +32,28 @@ if (a[0] === '--version') {
   process.exit(0);
 }
 const SIGNED = path.join(process.env.FO_CLAUDE_ROOT || '.', 'fake-signed-in'); // FO_FAKE_CLAUDE_OUT=until-login: signed out until "auth login" has finished once
+const GONE = path.join(process.env.FO_CLAUDE_ROOT || '.', 'fake-signed-out'); // written by "auth logout", removed by "auth login"
+if (a[0] === 'auth' && a[1] === 'logout') {
+  mkdirSync(path.dirname(GONE), { recursive: true });
+  writeFileSync(GONE, '1');
+  console.log('Successfully logged out from your Anthropic account.');
+  process.exit(0);
+}
 if (a[0] === 'auth' && a[1] === 'status') {
   const out =
-    process.env.FO_FAKE_CLAUDE_OUT === '1' || (process.env.FO_FAKE_CLAUDE_OUT === 'until-login' && !existsSync(SIGNED));
+    existsSync(GONE) ||
+    process.env.FO_FAKE_CLAUDE_OUT === '1' ||
+    (process.env.FO_FAKE_CLAUDE_OUT === 'until-login' && !existsSync(SIGNED));
   console.log(
     JSON.stringify(out ? { loggedIn: false } : { loggedIn: true, email: 'test@example.com', subscriptionType: 'max' }),
   );
   process.exit(out ? 1 : 0);
 }
 if (a[0] === 'auth' && a[1] === 'login') {
-  console.log('Opening browser to sign in: https://claude.ai/oauth/authorize?test=1');
+  const hint = a.indexOf('--email') > 0 ? '&login_hint=' + encodeURIComponent(a[a.indexOf('--email') + 1]) : '';
+  console.log('Opening browser to sign in: https://claude.ai/oauth/authorize?test=1' + hint);
   const fin = () => {
+    rmSync(GONE, { force: true }); // signed in again
     if (process.env.FO_FAKE_CLAUDE_OUT === 'until-login') {
       mkdirSync(path.dirname(SIGNED), { recursive: true });
       writeFileSync(SIGNED, '1');

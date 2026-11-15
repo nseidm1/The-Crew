@@ -550,6 +550,7 @@ async function simple() {
                   '.',
           ),
         ),
+        simpleMind === 'claude' ? claudeWho() : null,
       ].filter(Boolean),
     );
   };
@@ -581,6 +582,7 @@ function intro() {
         points.map((p) => h('li', null, p)),
       ),
       h('button', { class: 'btn primary', type: 'button', id: 'go-' + id, onclick: go }, label),
+      id === 'claude' ? claudeWho() : null,
     );
   const half = (title, sub, ...kids) =>
     h(
@@ -727,6 +729,44 @@ function resumeStrip() {
       stopped ? 'See where it stopped' : 'Carry on with this team',
     ),
   );
+}
+
+// WHO CLAUDE CODE IS SIGNED IN AS, beside the choice to use it, with the way to another account. It fills itself in once the
+// machine has answered. Where Claude Code is missing or signed out it says that instead (the setup's own steps deal with both).
+function claudeWho() {
+  const el = h('p', { class: 'muted small claude-who', role: 'status' });
+  if (!runner.live || !runner.claudeAccount) return el;
+  runner
+    .claudeAccount()
+    .then((who) => {
+      if (!who) return;
+      // said in every state, so the line is never simply missing: not installed, signed out, or who it is signed in as
+      if (!who.installed)
+        return void el.replaceChildren('Claude Code is not on this machine yet. Starting installs it for you.');
+      if (who.signedIn !== true)
+        return void el.replaceChildren(
+          who.signedIn === false
+            ? 'Claude Code on this machine is signed out. Starting opens its sign-in for you.'
+            : 'Claude Code is on this machine. It did not say whether it is signed in; starting finds out.',
+        );
+      const other = h('button', { class: 'linkish', type: 'button', id: 'claude-other' }, 'Use another account');
+      other.onclick = async (e) => {
+        e.stopPropagation();
+        other.disabled = true;
+        other.textContent = 'Signing out…';
+        const r = await runner.fix('claude-logout').catch((x) => ({ ok: false, said: x.message }));
+        if (!r.ok) {
+          other.disabled = false;
+          other.textContent = 'Use another account';
+          el.append(' That could not be done' + (r.said ? ': ' + r.said : '.'));
+          return;
+        }
+        begin('claude'); // signed out now: the setup opens Claude's sign-in page as its sign-in step
+      };
+      el.replaceChildren((who.detail || 'Signed in') + ' to Claude on this machine. ', other);
+    })
+    .catch(() => {});
+  return el;
 }
 
 // On the hosted site: the one command that fetches this app's runner from this same address and starts it on the customer's machine.
@@ -2752,6 +2792,15 @@ function working() {
                     'data-fix': a.id,
                     onclick: async () => {
                       if (a.id === 'node-fetch') return begin({ resume: true, fetchNode: true }); // the fix IS the next step: do it and carry on
+                      if (a.id === 'claude-other') {
+                        // signed out with Claude Code's own command; the setup then starts at its sign-in step
+                        said.textContent = 'Signing Claude Code out…';
+                        const out = await runner.fix('claude-logout').catch((x) => ({ ok: false, said: x.message }));
+                        if (!out.ok)
+                          return void (said.textContent =
+                            'That could not be done' + (out.said ? ': ' + out.said : '.'));
+                        return begin('claude');
+                      }
                       said.textContent = 'Opening…';
                       try {
                         const r = await runner.fix(a.id);

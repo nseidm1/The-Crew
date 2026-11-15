@@ -553,7 +553,9 @@ async function start(base, size, kind, way) {
       await sleep(250);
     }
     if (an) {
-      await avs.nth(an - 1).click();
+      // the small model the stand-in engine serves (the last on the list is no longer it: Bonsai 2 follows, run by another engine)
+      const small = s.page.locator('.av[data-id="qwen35-2b"]');
+      await ((await small.count()) ? small.first() : avs.nth(an - 1)).click();
       await sleep(300);
       await audit(s, 'start-models-picked');
     }

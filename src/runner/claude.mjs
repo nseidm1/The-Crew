@@ -6,9 +6,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { access, mkdir, writeFile } from 'node:fs/promises';
-import { mkdirSync } from 'node:fs';
+import { chmodSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { bin, sh } from './host.mjs';
 import { run, track } from './engine.mjs';
+import { openPage } from './connectors.mjs';
 
 // Anthropic's own installer, run only when Claude Code is not on the machine. It puts Claude Code in the customer's home folder.
 // On Windows it is their PowerShell installer: it needs no administrator rights and puts claude.exe in the person's own folder.
@@ -101,7 +102,7 @@ export async function claudeOffers(b) {
   };
   return offers;
 }
-export const claudeFix = (kind, said) =>
+export const claudeFix = (kind, said, who) =>
   kind === 'missing'
     ? {
         kind: 'claude',
@@ -135,12 +136,18 @@ export const claudeFix = (kind, said) =>
           text:
             'It is installed, but one test question got no reply' +
             (said ? ' ("' + said + '")' : '') +
-            '. The usual cause is that its sign-in has lapsed.',
+            '. ' +
+            (who ? 'Claude Code is ' + who.replace(/^S/, 's') + '. ' : '') +
+            'The usual causes are that its sign-in has lapsed, or that this account has no plan that includes Claude Code.',
           steps: [
-            'Press "Sign in to Claude" and sign in again in your browser.',
-            'When it finishes, setup carries on by itself.',
+            'Press "Sign in to Claude" to sign in again as the same account.',
+            'Or press "Use another account": Claude Code is signed out, and setup starts again at its sign-in step.',
+            'When the sign-in finishes, setup carries on by itself.',
           ],
-          actions: [{ id: 'claude-login', label: 'Sign in to Claude' }],
+          actions: [
+            { id: 'claude-login', label: 'Sign in to Claude' },
+            { id: 'claude-other', label: 'Use another account' },
+          ],
           link: null,
           code: true,
         };
@@ -296,26 +303,123 @@ export async function claudeSignedIn(b) {
       : 'Not signed in',
   };
 }
+// sign Claude Code out, with its own command, so the next sign-in can be as someone else. Nothing of the account is read or kept here.
+export async function claudeSignOut(b) {
+  const r = await sh(b, ['auth', 'logout'], { timeout: 20000 });
+  afresh = true; // the sign-in that follows is for a different account (see freshSignInUrl)
+  const now = await claudeSignedIn(b);
+  // only "still signed in" is a failure: where Claude Code does not say either way, its sign-out is taken at its word
+  return now.signedIn !== true
+    ? { ok: true }
+    : { ok: false, why: (r.err || r.out || 'Claude Code is still signed in').split('\n')[0].slice(0, 160) };
+}
 let flow = null; // one sign-in at a time
+let afresh = false; // Claude Code was signed out on purpose: the sign-in that follows is for a different account
+
+// SIGNING CLAUDE CODE OUT DOES NOT SIGN THE BROWSER OUT. Claude Code's own sign-out clears what Claude Code keeps on this machine,
+// and nothing else: the browser is still signed in to claude.ai, so the sign-in page that follows goes straight through on the
+// same account and the person is never asked who they are. Claude's own sign-in screen has a form for this, the one its page
+// uses after a sign-out there: the login screen, asked to sign in again, which then returns to the authorization it was given.
+// That address is what a sign-in for a different account is opened on. The plain address Claude Code prints is kept beside it
+// (`plain`): it is the contract, and it still works if Claude ever changes its login screen.
+export function freshSignInUrl(authorizeUrl) {
+  if (!authorizeUrl) return null;
+  try {
+    const u = new URL(authorizeUrl);
+    if (!/(^|\.)claude\.(ai|com)$/.test(u.hostname)) return null;
+    const back = u.pathname.replace(/^\/cai/, '') + u.search; // claude.com serves it under /cai; the login screen is on claude.ai, which has no such prefix
+    return 'https://claude.ai/login?reauth=1&from=logout&returnTo=' + encodeURIComponent(back);
+  } catch {
+    return null;
+  }
+}
+// THE ONE PAGE OF A SIGN-IN, AND WHO OPENS IT. Claude Code has two addresses for one sign-in: the one it opens in the browser by
+// itself, which comes back to Claude Code on this machine and finishes with nothing more to do; and the one it prints, for when no
+// browser opened, which ends on a code to paste back. Left to itself it opens the first in a tab of its own, and a sign-in that
+// is then started again leaves that tab behind, still open, finishing against a sign-in that is no longer waiting ("Sign-in did
+// not complete": found on a real machine). So Claude Code is told to hand the address to this app instead of opening it (its own
+// BROWSER setting, measured: it is given the address that finishes by itself), and this app opens ONE page: that address, or
+// Claude's sign-in screen in front of it when the sign-in is for a different account. Where Claude Code does not hand it over
+// (a system where its BROWSER setting is not honoured), the printed address is used, and the page says a code will be shown.
+const pageOf = (f) => {
+  const to = f.auto || f.url || null;
+  return (f.fresh && freshSignInUrl(to)) || to;
+};
 export const signInState = () =>
-  flow ? { state: flow.state, url: flow.url || null, why: flow.why || '' } : { state: 'idle', url: null, why: '' };
+  flow
+    ? {
+        state: flow.state,
+        url: pageOf(flow),
+        plain: flow.url || null,
+        fresh: !!flow.fresh,
+        code: !flow.auto, // no address that finishes by itself: Claude's page will show a code to paste
+        why: flow.why || '',
+      }
+    : { state: 'idle', url: null, plain: null, fresh: false, code: false, why: '' };
+// what Claude Code is given as its browser: a small program that writes down the address it was asked to open
+function pageCatcher() {
+  const dir = claudeRoot();
+  mkdirSync(dir, { recursive: true });
+  const note = path.join(dir, 'sign-in-page.txt');
+  rmSync(note, { force: true });
+  if (process.platform === 'win32') {
+    const js = path.join(dir, 'catch-page.cjs');
+    writeFileSync(js, "require('fs').writeFileSync(" + JSON.stringify(note) + ", process.argv.slice(2).join(' '));\n");
+    const cmd = path.join(dir, 'catch-page.cmd');
+    writeFileSync(cmd, '@echo off\r\n"' + process.execPath + '" "' + js + '" %*\r\n');
+    return { browser: cmd, note };
+  }
+  const sh0 = path.join(dir, 'catch-page.sh');
+  writeFileSync(sh0, "#!/bin/sh\nprintf '%s' \"$1\" > '" + note.replace(/'/g, "'\\''") + "'\n");
+  chmodSync(sh0, 0o755);
+  return { browser: sh0, note };
+}
 export function claudeLogin(b, { dry = false, onChange = () => {} } = {}) {
   if (flow && (flow.state === 'starting' || flow.state === 'awaiting'))
     return { started: true, note: 'already under way', url: flow.url };
+  const fresh = afresh; // this sign-in follows a deliberate sign-out: it is opened on Claude's sign-in screen
+  afresh = false;
   if (dry) {
-    flow = { state: 'awaiting', url: 'https://claude.ai/login' };
+    flow = { state: 'awaiting', url: 'https://claude.ai/login', fresh };
     onChange();
     return { started: true, note: 'dry run' };
   }
-  mkdirSync(claudeRoot(), { recursive: true });
-  const child = spawn(b, ['auth', 'login'], { cwd: claudeRoot(), env: process.env, stdio: ['pipe', 'pipe', 'pipe'] });
-  const mine = (flow = { state: 'starting', child, url: null, why: '' });
+  const caught = pageCatcher();
+  const child = spawn(b, ['auth', 'login'], {
+    cwd: claudeRoot(),
+    env: { ...process.env, BROWSER: caught.browser },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  const mine = (flow = { state: 'starting', child, url: null, auto: null, why: '', fresh, opened: false });
+  // the one page is opened once: as soon as Claude Code has handed its address over, or a moment after it printed one without doing so
+  const open = () => {
+    if (mine.opened || flow !== mine || mine.state !== 'awaiting') return;
+    mine.opened = true;
+    openPage(pageOf(mine));
+    onChange();
+  };
+  const look = setInterval(() => {
+    if (flow !== mine || mine.opened || !mine.child) return clearInterval(look);
+    let got = '';
+    try {
+      got = readFileSync(caught.note, 'utf8').trim();
+    } catch {
+      got = '';
+    }
+    if (/^https:\/\//.test(got)) {
+      mine.auto = got;
+      if (mine.state === 'starting') mine.state = 'awaiting';
+      clearInterval(look);
+      open();
+    }
+  }, 150);
   const read = (d) => {
     const m = /https:\/\/[^\s"'<>]+/.exec(String(d));
     if (m && !mine.url) {
       mine.url = m[0];
       mine.state = 'awaiting';
       onChange();
+      setTimeout(open, 2500); // it has printed where to go: if it has not handed the other address over by now, this is the one
     }
   };
   child.stdout.on('data', read);

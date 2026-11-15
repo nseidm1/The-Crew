@@ -116,7 +116,7 @@ export function installClaudeSetup(runner) {
       system: 'You are a helpful engineer. Answer in one sentence.',
     });
     if (!one.ok) {
-      const fx = claudeFix('silent', one.why);
+      const fx = claudeFix('silent', one.why, who.signedIn ? who.detail : '');
       return fail('speed', fx.title, fx);
     }
     progress.result.speed = { replySeconds: one.seconds, firstTokenMs: one.firstTokenMs };

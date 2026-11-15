@@ -2122,7 +2122,12 @@ export function mountUniverse(canvas, { scene = 'tour', onScene = null, onBeat =
       }
     }
     before = now;
-    paint(offset + (performance.now() - t0) / 1000, dt);
+    const at = offset + (performance.now() - t0) / 1000;
+    // where the film is, in whole seconds, on the canvas itself (written once a second): how a check can tell its very beginning
+    // from some later moment of the same scene
+    const sec = String(Math.floor(at));
+    if (canvas.dataset.at !== sec) canvas.dataset.at = sec;
+    paint(at, dt);
     raf = requestAnimationFrame(tick);
   };
   const start = () => {
@@ -2138,10 +2143,15 @@ export function mountUniverse(canvas, { scene = 'tour', onScene = null, onBeat =
     on = false;
     cancelAnimationFrame(raf);
   };
-  still();
+  // WHAT IS DRAWN BEFORE THE FILM STARTS. A film that is about to play shows its own first frame, the Family Office at time 0, so
+  // nothing else is ever seen ahead of it. (It used to show the held picture, which is a moment from the third scene: arriving on
+  // the page, that scene flashed for an instant and then the film began.) The held picture is for a film that will not play: one
+  // held at a moment, a single scene, or a person who asked for less motion.
+  const first = () => (calm || hold != null || fixed != null ? still() : paint(0));
+  first();
   if (document.fonts && document.fonts.ready)
     document.fonts.ready.then(() => {
-      if (!on) still();
+      if (!on) first();
     }); // the words are drawn again once the page's own face has arrived
   if (calm || hold != null) {
     window.addEventListener('resize', still);
@@ -2176,12 +2186,32 @@ export function mountUniverse(canvas, { scene = 'tour', onScene = null, onBeat =
       { threshold: 0.15 },
     ).observe(canvas);
   else start();
+  // COMING BACK TO THE PAGE STARTS THE FILM FROM ITS BEGINNING. It used to carry on from wherever it had been left: someone who went
+  // to another tab, or on to Start and back (the browser keeps the page as it was), met it part-way through a scene. Leaving the
+  // page and returning is a new visit to it, so the tour is wound back to its first frame. Scrolling it out of view and back is
+  // not: that pauses it and carries on. (A single scene held on another part of the page has no beginning to return to.)
+  const rewind = () => {
+    if (fixed != null) return;
+    offset = 0;
+    last = -1;
+    beat = -1;
+    t0 = performance.now();
+  };
+  const inView = () => {
+    const r = canvas.getBoundingClientRect();
+    return r.bottom > 0 && r.top < innerHeight;
+  };
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) stop();
-    else {
-      const r = canvas.getBoundingClientRect();
-      if (r.bottom > 0 && r.top < innerHeight) start();
-    }
+    if (document.hidden) return stop();
+    rewind();
+    if (inView()) start(); // out of view, it starts from the beginning when it is scrolled back to
+  });
+  // back or forward to a page the browser kept whole: its scripts do not run again, so this is the only word that it was returned to
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    stop();
+    rewind();
+    if (inView() && !document.hidden) start();
   });
   return {
     seek(i) {

@@ -89,7 +89,15 @@ import { allowed, picture, read as readPage, search } from './web.mjs';
 import { shotApp, shotPage } from './shot.mjs';
 import { langsOf, skillFor, seatSkills } from './skills.mjs';
 import { TEMPER } from '../js/team-soul.js';
-import { claudeLogin, claudeSubmitCode, signInState, claudeRun, findClaude } from './claude.mjs';
+import {
+  claudeLogin,
+  claudeSignOut,
+  claudeSignedIn,
+  claudeSubmitCode,
+  signInState,
+  claudeRun,
+  findClaude,
+} from './claude.mjs';
 import { installTensorfoldSetup } from './setup/tensorfold.mjs';
 import { installExistingSetup } from './setup/existing-server.mjs';
 import { installStrataSetup } from './setup/strata.mjs';
@@ -972,6 +980,14 @@ export function createRunner({ root, port }) {
           const r = claudeLogin(cb, { dry: process.env.FO_NO_NET === '1', onChange: push });
           return json(res, 200, { ok: r.started, said: r.why || r.note || '', url: r.url || null });
         }
+        if (b.action === 'claude-logout') {
+          // "Use another account": Claude Code is signed out, and the setup that follows starts its sign-in afresh
+          if (busy) return json(res, 409, { error: 'a setup is running' });
+          const cb = await findClaude();
+          if (!cb) return json(res, 200, { ok: false, said: 'Claude Code is not installed' });
+          const r = await claudeSignOut(cb);
+          return json(res, 200, { ok: r.ok, said: r.why || '' });
+        }
         if (b.action === 'wsl-setup') {
           // WSL, set up because the person asked (the model page offers it on a PC with an NVIDIA card). The start script does it, in a
           // window of its own so Windows' request for administrator approval and what follows can be seen. Nothing here is elevated.
@@ -1011,6 +1027,13 @@ export function createRunner({ root, port }) {
         const b = await bodyOf(req);
         return json(res, 200, { ok: claudeSubmitCode(String(b.code || '').slice(0, 400)) });
       } // the code Anthropic's page may show; passed straight to Claude Code, never kept or logged
+      // who Claude Code on this machine is signed in as, for the page to say before it is used (its own answer; nothing is kept)
+      if (req.method === 'GET' && route === '/api/claude/account') {
+        const cb = await findClaude();
+        if (!cb) return json(res, 200, { installed: false, signedIn: null, detail: '' });
+        const who = await claudeSignedIn(cb);
+        return json(res, 200, { installed: true, signedIn: who.signedIn, detail: who.detail });
+      }
       if (req.method === 'GET' && route === '/api/connectors')
         return json(res, 200, { list: await connectorList(await findClaude()) });
       if (req.method === 'POST' && route === '/api/connect') {

@@ -120,6 +120,11 @@ for (const [name, w, hgt, mode] of [
       ),
     };
   });
+  // signed out, there is no account to change from: "Use another account" belongs where Claude Code is signed in, not here
+  check(
+    name + ': the sign-in step offers no "Use another account": Claude Code is signed out, so there is none to leave',
+    !/Use another account/.test(await p.locator('#signin-step').innerText()),
+  );
   check(
     name +
       ': signed out, the page shows "Sign in to Claude" as the step under way: Claude\'s page to open, a box for a code, and it has not stopped',

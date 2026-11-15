@@ -86,7 +86,9 @@ export async function watchRunner({ fresh = false } = {}) {
     bar = null;
   }
   // this page came from the site, the app on this machine came from an earlier copy of it: say so, with the one command that updates it
-  if (base !== '' && first.version && first.version !== 'dev')
+  // (not on the landing page: that page is the product's front door, read by people who may have no team at all, and a line about
+  // updating belongs where the team is started and used)
+  if (base !== '' && first.version && first.version !== 'dev' && !document.body.classList.contains('land'))
     site().then((v) => {
       if (mine !== gen) return;
       if (v && v !== first.version)
