@@ -38,6 +38,7 @@ import {
   SCENES,
   SEATS,
   STATED,
+  MAKES,
   STOP,
   UI_WORDS,
   VOICE,
@@ -932,7 +933,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         }
         // A MESSAGE THAT STATES WHAT THE WORK MUST DO IS WORK TO DO (Developer). Found on a real team: a ticket's own words, with its
         // "What it must do" list, were read as something to find out; the cause was explained and nothing was changed.
-        if (!isSimple() && route && route.kind !== 'build' && STATED.test(body) && !/\?\s*$/.test(body))
+        if (!isSimple() && route && route.kind !== 'build' && (STATED.test(body) || MAKES.test(body.trim())) && !/\?\s*$/.test(body))
           route = { ...route, kind: 'build' };
         // AN EXACT FACT GETS A SECOND OPINION ON A LOCAL MODEL (Simple): see EXACT and apartOn in team/manners.js. The answer is given
         // from memory as before; the fact-checker is asked for the bare fact; and only if the two do not agree is it looked up.

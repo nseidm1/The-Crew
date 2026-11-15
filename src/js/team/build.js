@@ -653,7 +653,9 @@ export function installBuild(ctx) {
       // to a seat, where it may be passed over. Each becomes a line on the plan that the round has to answer: applied, and how, or
       // does not apply, and why. One left unanswered is recorded as skipped; it never holds the work up.
       checks: ctx.core
-        .ask(title + ' ' + ((sections && sections.files) || []).join(' '))
+        // asked with WHAT THE WORK MUST DO (the request, what was answered about it, the requirements), then the files. It was once
+        // the title and the file names alone: one request then got three lessons or none by what the model happened to call a file
+        .ask([title, o.answers || '', ...reqs, ...((sections && sections.files) || [])].join(' ').slice(0, 2400))
         .filter((v) => (v.kind === 'lesson' || v.kind === 'base') && v.ref)
         .slice(0, 3)
         .map((v) => ({

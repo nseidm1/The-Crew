@@ -119,6 +119,12 @@ export const LOOK = {
 export const STATED =
   /\bwhat it (?:must|should|has to|needs to) do\b|\bacceptance criteria\b|\bdefinition of done\b|\brequirements:/i;
 
+// a message that asks for a thing to be made ("Let's start with a simple calendar app", "Build me a script that..."): it is work to
+// plan, whatever else it reads like. Found on a real team on a local model: the sentence was taken for talk, and one seat described
+// what a calendar is where the Overseer should have written the plan.
+export const MAKES =
+  /^(?:(?:ok(?:ay)?|so|right|now)[,.]?\s+)?(?:(?:let'?s|let us|please|i(?:'d| would) like (?:you )?to|i want (?:you )?to|we (?:should|need to)|time to)\s+)?(?:start(?: with| on)?|build|make|create|write|scaffold|set up|code|implement|develop)\s+(?:me\s+|us\s+)?(?:a|an|the|my|our)\s[^?]*\b(?:app|application|site|website|web ?page|tool|script|service|api|game|bot|extension|cli|library|package|dashboard|server|plugin|component|widget|program)\b/i;
+
 export const unsaid = (t) =>
   /^\[(?:no reply\]|this reply was interrupted\]|[A-Z][a-z]+ could not reply)/.test(String(t)); // a reply that is only the note saying there was none (an answer may well begin "[1]")
 

@@ -99,3 +99,5 @@
 {"label":"recall","at":"2026-11-15T02:48:15.684Z","note":"kin only after a firm match","total":{"runs":22,"good":21},"recall":0.955,"plain":0.682,"misses":["\"We need a new column on the orders table, and a way back\" needed rollback-plan "]}
 {"label":"recall","at":"2026-11-15T03:01:55.861Z","note":"the soul walked as a graph","total":{"runs":22,"good":22},"recall":1,"plain":0.682,"misses":[]}
 {"label":"recall","at":"2026-11-15T03:02:11.469Z","note":"four more questions that can only be reached by walking","total":{"runs":29,"good":29},"recall":1,"plain":0.69,"misses":[]}
+{"label":"recall","at":"2026-11-15T04:31:31.928Z","note":"","total":{"runs":29,"good":29},"recall":1,"plain":0.69,"misses":[]}
+{"label":"recall","at":"2026-11-15T04:34:51.578Z","note":"","total":{"runs":29,"good":29},"recall":1,"plain":0.69,"misses":[]}

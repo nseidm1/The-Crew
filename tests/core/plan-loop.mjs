@@ -538,6 +538,42 @@ const states = (m) => m.plan.reqs.map((r) => r.state).join(' ');
     q.plans().length,
   );
 }
+// 11d. a thing asked for is work to plan, though the model took it for talk
+{
+  const t = teamOn({ repo: 'shop', route: 'talk', verdicts: ['1. MET - a\n2. MET - b\n3. MET - c'] });
+  await t.go("Let's start with a simple calendar app");
+  check(
+    'a thing asked for ("Let\'s start with a simple calendar app") is planned, though the model took it for talk',
+    t.plans().length === 1,
+    t.plans().length,
+  );
+  const q = teamOn({ repo: 'shop', route: 'talk', verdicts: [] });
+  q.core.send("Let's start with what you think of the weather");
+  await wait(2500);
+  check('talk that names nothing to make stays talk', q.plans().length === 0, q.plans().length);
+}
+// 11e. the lessons on a plan come from what the work must do, not from what the model happened to call a file
+{
+  const lines =
+    '1. The calendar screen shows a month on a phone, proved in a headless test.\n2. Each variant of the test starts fresh, with its own state.\n';
+  const ids = [];
+  for (const files of ['FILES: test_plan.md, design.md', 'FILES: calendar-grid.html, calendar-grid.js']) {
+    const t = teamOn({ repo: '', reqs: lines + files, verdicts: [] });
+    await t.go("Let's start with a simple calendar app");
+    const p = t.plans();
+    ids.push(
+      ((p[0] && p[0].plan.checks) || [])
+        .map((c) => c.id)
+        .sort()
+        .join(','),
+    );
+  }
+  check(
+    'one request gets the same lessons to answer whatever the plan calls its files, and gets some',
+    ids[0] !== '' && ids[0] === ids[1],
+    ids,
+  );
+}
 // 12. Simple has no plan
 {
   store.set('familyoffice.mode', 'simple');
