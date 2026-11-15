@@ -14,6 +14,7 @@ import { createRequire } from 'module';
 import { mkdirSync } from 'fs';
 import path from 'path';
 import { WORK, PLAYWRIGHT_FROM } from '../support/paths.mjs';
+import { at as film } from '../support/film.mjs'; // a moment on the clock these were chosen against, on the film's clock now
 const require = createRequire(PLAYWRIGHT_FROM);
 const { chromium } = require('playwright');
 const B = 'http://127.0.0.1:' + (process.argv[2] || 5210);
@@ -47,7 +48,7 @@ const open = async (w, h, at) => {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
   const p = await ctx.newPage();
   await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
-  await p.goto(B + '/index.html?uni=' + at, { waitUntil: 'load' });
+  await p.goto(B + '/index.html?uni=' + film(at), { waitUntil: 'load' });
   await p.evaluate(() => document.fonts.ready);
   await p.waitForTimeout(1700);
   return [ctx, p];

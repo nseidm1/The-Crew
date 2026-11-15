@@ -241,3 +241,61 @@ export async function read(url, { own = false, selfPorts = [], max = 6000 } = {}
     chars: text.length,
   };
 }
+
+// A PICTURE OF A NAMED THING (a film's poster, a place, a person, a dish), for a card in the chat. Wikipedia is asked for the page
+// that best matches the name (with a word of what it is, such as "film", when that is known) and for that page's own picture: one
+// request, no key. What comes back is taken only when the page's title carries the name's own words (a search always finds
+// SOMETHING), and only when the picture is on Wikimedia's image host over https. Nothing is downloaded here: the page shows the
+// picture from where it is, with where it came from beside it.
+const PICTURE_HOST = /^https:\/\/(?:upload|thumb)\.wikimedia\.org\//;
+export async function picture(name, hint = '') {
+  name = String(name || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+  if (name.length < 2) return { ok: false, name, why: 'no name' };
+  if (process.env.FO_NO_NET === '1' && !process.env.FO_PICTURES)
+    return { ok: false, name, why: 'this machine is not reaching the web' };
+  const api = process.env.FO_PICTURES || 'https://en.wikipedia.org/w/api.php';
+  const query = (name + ' ' + String(hint || '').slice(0, 20)).trim();
+  try {
+    const res = await fetch(
+      api +
+        '?action=query&format=json&generator=search&gsrlimit=1&gsrsearch=' +
+        encodeURIComponent(query) +
+        '&prop=pageimages%7Cinfo&inprop=url&piprop=thumbnail&pithumbsize=480&pilicense=any',
+      // Wikimedia asks a program to say what it is; one that poses as a browser is slowed down
+      {
+        headers: {
+          'user-agent': 'FamilyOffice-TheCrew/1 (https://github.com/nseidm1/The-Crew)',
+          accept: 'application/json',
+        },
+        signal: AbortSignal.timeout(6000),
+      },
+    );
+    if (!res.ok) return { ok: false, name, why: 'the picture search answered ' + res.status };
+    const page = Object.values((((await res.json()) || {}).query || {}).pages || {})[0];
+    const url = page && page.thumbnail && String(page.thumbnail.source || '');
+    if (!url) return { ok: false, name, why: 'no picture was found' };
+    const words = (t) =>
+      String(t)
+        .toLowerCase()
+        .match(/[a-z0-9à-ÿ]{3,}/g) || [];
+    const title = words(page.title);
+    const mine = words(name);
+    if (!mine.length || mine.filter((w) => title.includes(w)).length / mine.length < 0.6)
+      return { ok: false, name, why: 'what was found is about something else' };
+    if (!(process.env.FO_PICTURES ? /^https?:\/\//.test(url) : PICTURE_HOST.test(url)))
+      return { ok: false, name, why: 'the picture is not on a host this app shows pictures from' };
+    return {
+      ok: true,
+      name,
+      url,
+      page: /^https:\/\//.test(String(page.fullurl || '')) ? page.fullurl : '',
+      from: 'Wikipedia',
+      title: String(page.title || '').slice(0, 120),
+    };
+  } catch (e) {
+    return { ok: false, name, why: 'the picture search could not be reached' };
+  }
+}

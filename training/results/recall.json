@@ -1,0 +1,10 @@
+{
+ "at": "2026-11-15T03:02:11.468Z",
+ "questions": 24,
+ "needed": 29,
+ "hit": 29,
+ "recall": 1,
+ "plain": 0.69,
+ "noise": 0,
+ "misses": []
+}

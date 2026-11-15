@@ -11,8 +11,18 @@ import path from 'node:path';
 import { REPO_ROOT, SRC, WORK } from './support/paths.mjs';
 
 const SUITES = {
-  core: ['core/plan-loop', 'core/developer-setup', 'core/answer-cards', 'core/knows-you'],
-  runner: ['runner/self-test', 'runner/host', 'runner/banner'],
+  core: [
+    'core/plan-loop',
+    'core/developer-setup',
+    'core/answer-cards',
+    'core/knows-you',
+    'core/conversation',
+    'core/moods',
+    'core/extras',
+    'core/threads',
+    'core/hindsight',
+  ],
+  runner: ['runner/self-test', 'runner/host', 'runner/banner', 'runner/run-here'],
   browser: [
     'browser/app-pages',
     'browser/modes',
@@ -22,6 +32,8 @@ const SUITES = {
     'browser/ticket-media',
     'browser/claude-sign-in',
     'browser/runner-restart',
+    'browser/picture-cards',
+    'browser/under-a-reply',
     'browser/crawl',
   ],
   landing: ['landing/landing-page', 'landing/alignment', 'landing/film-smoothness'],

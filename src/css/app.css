@@ -4553,7 +4553,7 @@ select.mind:focus-visible {
    round (a pip for each round there can be); the track, Plan to Land, with the way back drawn under Build to Judge; each requirement
    with a mark for its state (a ring: to do; a turning ring: being worked on; a tick: met; a bar: not met; a dashed ring: not judged)
    and the state said in words beside it; a bar with a piece for each requirement; and one line of where things stand. */
-.plan-card {
+.round-card {
   display: grid;
   gap: 0.75rem;
   max-width: 40rem;
@@ -4563,15 +4563,15 @@ select.mind:focus-visible {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.03);
 }
-.plan-card.is-live {
+.round-card.is-live {
   border-color: rgba(52, 211, 153, 0.5);
 }
-.plan-card.is-landed {
+.round-card.is-landed {
   border-color: rgba(52, 211, 153, 0.65);
   background: rgba(52, 211, 153, 0.07);
 }
-.plan-card.is-waiting,
-.plan-card.is-stopped {
+.round-card.is-waiting,
+.round-card.is-stopped {
   border-color: rgba(232, 185, 112, 0.6);
 }
 .plan-head {
@@ -4680,7 +4680,7 @@ select.mind:focus-visible {
 .plan-track li.is-skip > i {
   border-style: dashed;
 }
-.plan-card .plan-loop {
+.round-card .plan-loop {
   position: relative;
   margin: -0.35rem 30% 0;
   padding-top: 12px;
@@ -4718,20 +4718,20 @@ select.mind:focus-visible {
 .plan-loop.on::after {
   border-bottom-color: var(--jade);
 }
-.plan-card:not(.is-live):not(.is-waiting):not(.is-landed) .plan-track,
-.plan-card.is-moved .plan-loop,
-.plan-card.is-talk .plan-loop,
-.plan-card.is-stopped .plan-loop,
-.plan-card.is-thrown .plan-loop {
+.round-card:not(.is-live):not(.is-waiting):not(.is-landed) .plan-track,
+.round-card.is-moved .plan-loop,
+.round-card.is-talk .plan-loop,
+.round-card.is-stopped .plan-loop,
+.round-card.is-thrown .plan-loop {
   display: none;
 }
-.plan-card.is-again .plan-loop {
+.round-card.is-again .plan-loop {
   margin: 0;
   padding: 0;
   text-align: left;
 }
-.plan-card.is-again .plan-loop::before,
-.plan-card.is-again .plan-loop::after {
+.round-card.is-again .plan-loop::before,
+.round-card.is-again .plan-loop::after {
   display: none;
 }
 .plan-reqs {
@@ -4822,14 +4822,14 @@ select.mind:focus-visible {
 .plan-bar i.is-unmet {
   background: #ffb86b;
 }
-.plan-card .plan-says {
+.round-card .plan-says {
   margin: 0;
   font-size: 0.92rem;
   color: var(--mist);
   overflow-wrap: anywhere;
 }
-.plan-card.is-landed .plan-says,
-.plan-card.is-waiting .plan-says {
+.round-card.is-landed .plan-says,
+.round-card.is-waiting .plan-says {
   color: var(--fog);
 }
 @keyframes plan-spin {
@@ -4843,10 +4843,10 @@ select.mind:focus-visible {
   }
 }
 @media (max-width: 720px) {
-  .plan-card {
+  .round-card {
     padding: 0.8rem 0.8rem;
   }
-  .plan-card .plan-loop {
+  .round-card .plan-loop {
     margin-inline: 26%;
     font-size: 0.72rem;
   }
@@ -4862,5 +4862,1202 @@ select.mind:focus-visible {
   .plan-reqs .is-doing > .plan-mark {
     border-style: dotted;
     border-color: var(--jade);
+  }
+}
+/* A CARD SHOWS WHAT IT IS ABOUT. PICKS: several named things side by side, each with its picture over its name (a film's poster
+   is taller than it is wide, so each is given that shape and the picture fills it). A card about one thing carries its picture
+   on the right. A picture that is not there leaves the number of the pick in its place. Where the pictures came from is said. */
+.answer-card.has-picks {
+  max-width: 46rem;
+}
+.answer-card .ac-picks {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.2rem, 1fr));
+  gap: 0.9rem 0.8rem;
+  margin: 0.8rem 0 0;
+  padding: 0.8rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  list-style: none;
+}
+.answer-card .ac-picks li {
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+  min-width: 0;
+  animation: card-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.answer-card .ac-pick-art {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.answer-card .ac-pick-art.none {
+  display: grid;
+  place-items: center;
+  font: 700 1.6rem/1 var(--display);
+  color: var(--mist);
+  box-shadow: none;
+}
+.answer-card .ac-picks strong {
+  font-size: 0.95rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.answer-card .ac-picks li > span:not(.ac-pick-art) {
+  font-size: 0.82rem;
+  line-height: 1.3;
+  color: var(--mist);
+  overflow-wrap: anywhere;
+}
+.answer-card .ac-picture {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-height: 15rem;
+  margin-top: 0.7rem;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.answer-card .ac-credit {
+  grid-column: 1 / -1;
+  margin: 0.6rem 0 0;
+  font-size: 0.75rem;
+  color: var(--mist);
+}
+.answer-card .ac-credit a {
+  color: inherit;
+}
+/* THE CHAT IS THE PAGE (a computer). Its title is the size of the chips beside it, and the chat takes all the height there is: from
+   under the title to the foot of the window, however tall the window. In Developer the cards beside it scroll on their own. */
+@media (min-width: 721px) {
+  .main:has(.chat-card) {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: 100vh;
+    height: 100dvh;
+    padding-top: 14px;
+    padding-bottom: 18px;
+  }
+  .main:has(.chat-card) .top {
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .main:has(.chat-card) .top.brandline {
+    padding-bottom: 12px;
+  }
+  .main:has(.chat-card) .top h1 {
+    font: 600 15px/1.3 var(--body);
+    letter-spacing: 0.01em;
+  }
+  .main:has(.chat-card) .top .chips {
+    align-self: center;
+  }
+  .main:has(.chat-card) #view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .main:has(.chat-card) #view > .grid {
+    flex: 1;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 0;
+  }
+  .main:has(.chat-card) .chat-card {
+    height: auto;
+    min-height: 0;
+  }
+  .main:has(.chat-card) #chat-side {
+    align-content: start;
+    overflow-y: auto;
+  }
+}
+
+/* A FACE THAT CAN CHANGE (js/ui.js BUD, js/team/mood.js). Every part a face may need is drawn; data-mood on the drawing says which
+   show. Nothing switches: a part comes and goes over a fifth of a second, and a brow or an eye moves to where the feeling puts it.
+   The parts are sized in the drawing's own units (a square of 48), so a face reads the same at any size it is shown. */
+.bd .bd-m,
+.bd .bd-eye-arc,
+.bd .bd-eye-shut,
+.bd .bd-brow,
+.bd .bd-x {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 0.2s ease,
+    transform 0.26s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.bd .bd-eye-open {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 0.16s ease,
+    transform 0.26s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.bd .bd-pose {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.4s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+/* at rest: each has its own mouth, and Jamie winks */
+.bd[data-mood='idle'][data-rest='smile'] .m-smile,
+.bd[data-mood='idle'][data-rest='grin'] .m-grin {
+  opacity: 1;
+}
+.bd-ask[data-mood='idle'] .bd-eye.r .bd-eye-open {
+  opacity: 0;
+}
+.bd-ask[data-mood='idle'] .bd-eye.r .bd-eye-arc {
+  opacity: 1;
+}
+/* listening: eyes a little wider, brows just lifted, the head tipped toward whoever is speaking */
+.bd[data-mood='listening'] .m-smile {
+  opacity: 1;
+  transform: scale(0.82);
+}
+.bd[data-mood='listening'] .bd-eye-open {
+  transform: scale(1.1);
+}
+.bd[data-mood='listening'] .bd-brow {
+  opacity: 0.6;
+  transform: translateY(-0.7px);
+}
+.bd[data-mood='listening'] .bd-pose {
+  transform: rotate(-3deg);
+}
+/* thinking: eyes up and away, one brow raised, the mouth a short line pushed to one side, and three dots rising */
+.bd[data-mood='thinking'] .m-flat {
+  opacity: 1;
+  transform: translateX(1.6px) scaleX(0.8);
+}
+.bd[data-mood='thinking'] .bd-eye-open {
+  transform: translate(-0.8px, -1.1px);
+}
+.bd[data-mood='thinking'] .bd-brow {
+  opacity: 0.85;
+}
+.bd[data-mood='thinking'] .bd-brow.r {
+  transform: translateY(-1.5px) rotate(-9deg);
+}
+.bd[data-mood='thinking'] .x-dots {
+  opacity: 1;
+}
+.bd[data-mood='thinking'] .x-dots circle {
+  animation: bd-dot 1.2s ease-in-out infinite;
+}
+.bd[data-mood='thinking'] .x-dots circle:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.bd[data-mood='thinking'] .x-dots circle:nth-child(3) {
+  animation-delay: 0.36s;
+}
+/* speaking: the mouth moves */
+.bd[data-mood='speaking'] .m-talk {
+  opacity: 1;
+  animation: bd-talk 0.3s ease-in-out infinite alternate;
+}
+.bd[data-mood='speaking'] .bd-brow {
+  opacity: 0.45;
+  transform: translateY(-0.5px);
+}
+/* happy: smiling eyes, a grin, cheeks, a small bounce */
+.bd[data-mood='happy'] .bd-eye-open,
+.bd[data-mood='proud'] .bd-eye-open,
+.bd[data-mood='sleepy'] .bd-eye-open {
+  opacity: 0;
+}
+.bd[data-mood='happy'] .bd-eye-arc,
+.bd[data-mood='proud'] .bd-eye-arc {
+  opacity: 1;
+}
+.bd[data-mood='happy'] .m-grin {
+  opacity: 1;
+}
+.bd[data-mood='happy'] .x-flush {
+  opacity: 0.5;
+}
+.bd[data-mood='happy'] .bd-pose {
+  animation: bd-bounce 0.9s cubic-bezier(0.3, 1.5, 0.5, 1) 2;
+}
+/* proud: eyes closed in a smile, a half-smile, chin up, a sparkle */
+.bd[data-mood='proud'] .m-smirk {
+  opacity: 1;
+}
+.bd[data-mood='proud'] .bd-pose {
+  transform: translateY(-1px) rotate(2deg);
+}
+.bd[data-mood='proud'] .x-spark {
+  opacity: 1;
+  animation: bd-twinkle 1.6s ease-in-out infinite;
+}
+.bd[data-mood='proud'] .x-flush {
+  opacity: 0.3;
+}
+/* curious: one brow up, eyes wide, a small "o", the head tipped */
+.bd[data-mood='curious'] .m-o {
+  opacity: 1;
+  transform: scale(0.8);
+}
+.bd[data-mood='curious'] .bd-eye-open {
+  transform: scale(1.14);
+}
+.bd[data-mood='curious'] .bd-brow {
+  opacity: 0.9;
+}
+.bd[data-mood='curious'] .bd-brow.r {
+  transform: translateY(-1.7px) rotate(-10deg);
+}
+.bd[data-mood='curious'] .bd-pose {
+  transform: rotate(4deg);
+}
+/* unsure: brows uneven, eyes to one side, a mouth that wobbles */
+.bd[data-mood='unsure'] .m-wobble {
+  opacity: 1;
+}
+.bd[data-mood='unsure'] .bd-eye-open {
+  transform: translateX(1px);
+}
+.bd[data-mood='unsure'] .bd-brow {
+  opacity: 0.9;
+}
+.bd[data-mood='unsure'] .bd-brow.l {
+  transform: translateY(0.5px) rotate(-12deg);
+}
+.bd[data-mood='unsure'] .bd-brow.r {
+  transform: translateY(-1.3px) rotate(-6deg);
+}
+.bd[data-mood='unsure'] .bd-pose {
+  transform: rotate(-2deg);
+}
+/* worried: brows drawn up in the middle, wide eyes, a small frown, a bead of sweat */
+.bd[data-mood='worried'] .m-frown {
+  opacity: 1;
+  transform: scale(0.82);
+}
+.bd[data-mood='worried'] .bd-eye-open {
+  transform: scale(1.1);
+}
+.bd[data-mood='worried'] .bd-brow,
+.bd[data-mood='sorry'] .bd-brow,
+.bd[data-mood='kind'] .bd-brow {
+  opacity: 0.95;
+}
+.bd[data-mood='worried'] .bd-brow.l,
+.bd[data-mood='sorry'] .bd-brow.l {
+  transform: translateY(-0.6px) rotate(-17deg);
+}
+.bd[data-mood='worried'] .bd-brow.r,
+.bd[data-mood='sorry'] .bd-brow.r {
+  transform: translateY(-0.6px) rotate(17deg);
+}
+.bd[data-mood='worried'] .x-sweat {
+  opacity: 1;
+  animation: bd-sweat 1.8s ease-in infinite;
+}
+/* sorry: the same brows, eyes down, a frown, the body sunk a little */
+.bd[data-mood='sorry'] .m-frown {
+  opacity: 1;
+}
+.bd[data-mood='sorry'] .bd-eye-open {
+  transform: translateY(1px) scaleY(0.9);
+}
+.bd[data-mood='sorry'] .bd-pose {
+  transform: translateY(1px) scale(1.02, 0.96);
+}
+/* focused: brows down in the middle, eyes narrowed, a set mouth */
+.bd[data-mood='focused'] .m-flat {
+  opacity: 1;
+}
+.bd[data-mood='focused'] .bd-eye-open {
+  transform: scaleY(0.7);
+}
+.bd[data-mood='focused'] .bd-brow {
+  opacity: 1;
+}
+.bd[data-mood='focused'] .bd-brow.l {
+  transform: translateY(1.3px) rotate(14deg);
+}
+.bd[data-mood='focused'] .bd-brow.r {
+  transform: translateY(1.3px) rotate(-14deg);
+}
+/* kind: soft brows, a small smile, the head tipped: for when something is weighing on the person */
+.bd[data-mood='kind'] .m-smile {
+  opacity: 1;
+  transform: scale(0.74);
+}
+.bd[data-mood='kind'] .bd-brow.l {
+  transform: rotate(-9deg);
+}
+.bd[data-mood='kind'] .bd-brow.r {
+  transform: rotate(9deg);
+}
+.bd[data-mood='kind'] .bd-pose {
+  transform: rotate(-4deg);
+}
+.bd[data-mood='kind'] .x-flush {
+  opacity: 0.22;
+}
+/* surprised: brows high, eyes wide, a round mouth */
+.bd[data-mood='surprised'] .m-o {
+  opacity: 1;
+  transform: scale(1.25);
+}
+.bd[data-mood='surprised'] .bd-eye-open {
+  transform: scale(1.26);
+}
+.bd[data-mood='surprised'] .bd-brow {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+.bd[data-mood='surprised'] .bd-pose {
+  transform: translateY(-1px);
+}
+/* sleepy: eyes shut, a small flat mouth: a team that has been stopped */
+.bd[data-mood='sleepy'] .bd-eye-shut {
+  opacity: 1;
+}
+.bd[data-mood='sleepy'] .m-flat {
+  opacity: 1;
+  transform: scaleX(0.6);
+}
+.bd[data-mood='sleepy'] .bd-pose {
+  transform: translateY(0.8px) rotate(3deg);
+}
+@keyframes bd-talk {
+  from {
+    transform: scale(0.8, 0.45);
+  }
+  to {
+    transform: scale(1.05, 1.5);
+  }
+}
+@keyframes bd-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+@keyframes bd-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  35% {
+    transform: translateY(-2.6px) scale(0.97, 1.04);
+  }
+  70% {
+    transform: translateY(0) scale(1.03, 0.97);
+  }
+}
+@keyframes bd-twinkle {
+  0%,
+  100% {
+    transform: scale(0.7) rotate(0deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.15) rotate(20deg);
+    opacity: 1;
+  }
+}
+@keyframes bd-sweat {
+  0% {
+    transform: translateY(-1px);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+}
+/* the small mark beside a Developer message keeps its feelings and drops the motion */
+.seat-mark.sm.av .bd-x,
+.seat-mark.sm.av .bd-m,
+.seat-mark.sm.av .bd-pose {
+  animation: none !important;
+}
+
+/* AN ANSWER THAT WAS REPLACED (js/team/thread.js). A teammate doubted it or put it right, and the one who gave it has given it
+   again below. It stays where it was said, drawn back, with a line saying so: nothing in a chat is taken away. */
+.msg.superseded .answer-card,
+.msg.superseded > div > p {
+  opacity: 0.5;
+  transition: opacity 0.4s;
+}
+.msg.superseded .msg-extra::after,
+.msg.superseded > div::after {
+  content: 'Updated below';
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  font: 600 11px/1.2 var(--body);
+  letter-spacing: 0.04em;
+  color: var(--mist);
+}
+.msg.superseded .msg-extra::after {
+  content: none;
+}
+
+/* WHAT GOES UNDER A REPLY BESIDES ITS WORDS (js/team/extras.js, js/views.js extrasOf). Small things in a row under the reply or its
+   card, each one line high where it can be. They share one look: a hairline, the page's own type, a jade mark for what is safe to
+   press. */
+.btn.tiny {
+  padding: 5px 11px;
+  border-radius: 999px;
+  font: 600 12px/1.2 var(--body);
+}
+.btn.tiny.danger {
+  border-color: rgba(255, 93, 87, 0.45);
+  color: #ff9c97;
+}
+.msg-extra {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+.msg-extra:empty {
+  display: none;
+}
+.x-origin,
+.x-sum,
+.x-timer,
+.x-day,
+.x-seen,
+.x-draft,
+.x-replies,
+.x-form,
+.x-reacts {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--mist);
+}
+.x-origin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+.x-origin i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mist);
+}
+.x-origin.is-looked i {
+  background: var(--jade);
+}
+.x-sum,
+.x-timer,
+.x-day,
+.x-seen {
+  display: grid;
+  gap: 4px 12px;
+  max-width: 40rem;
+  padding: 10px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.x-sum b,
+.x-timer b,
+.x-seen b {
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--jade);
+}
+.x-sum span {
+  font-size: 15px;
+  color: var(--fog);
+}
+.x-sum em,
+.x-day em,
+.x-timer em,
+.x-cmds em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--mist);
+}
+.x-timer {
+  grid-template-columns: auto auto auto 1fr;
+  align-items: center;
+}
+.x-clock {
+  min-width: 3.2em;
+  font: 500 22px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--fog);
+}
+.x-timer.is-done {
+  border-color: rgba(52, 211, 153, 0.6);
+}
+.x-timer.is-done .x-clock {
+  color: var(--jade);
+}
+.x-day ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.x-day li {
+  display: grid;
+  grid-template-columns: 3.6em minmax(0, 1fr);
+  gap: 10px;
+  padding-left: 12px;
+  border-left: 2px solid var(--line-2);
+  color: var(--fog);
+}
+.x-day time {
+  font: 500 13px/1.5 var(--mono);
+  color: var(--jade);
+}
+.x-day .btn {
+  justify-self: start;
+  margin-top: 4px;
+}
+.x-replies,
+.x-draft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.x-form {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 26rem);
+}
+.x-form label {
+  display: grid;
+  gap: 3px;
+}
+.x-form label span {
+  font-size: 12px;
+}
+.x-form input {
+  padding: 8px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--fog);
+  font: inherit;
+}
+.x-form .btn {
+  justify-self: start;
+}
+/* answers to tap and fields to fill belong to the latest thing the team said: once the person has written again they are gone */
+.msg.spent .x-replies,
+.msg.spent .x-form {
+  display: none;
+}
+.x-cmds {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 44rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.x-cmds li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+}
+.x-cmds code {
+  flex: 1 1 14rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: 500 12.5px/1.45 var(--mono);
+  color: var(--fog);
+}
+.x-cmds pre {
+  flex: 1 1 100%;
+  max-height: 14rem;
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  overflow: auto;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  font: 400 12px/1.45 var(--mono);
+  color: var(--mist);
+  white-space: pre-wrap;
+}
+.x-cmds li.is-failed {
+  border-color: rgba(255, 93, 87, 0.5);
+}
+.x-cmds li.is-ran {
+  border-color: rgba(52, 211, 153, 0.45);
+}
+.x-seen p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  color: var(--fog);
+}
+.x-seen p.not b {
+  color: #e8b970;
+}
+.x-seen .btn {
+  justify-self: start;
+}
+.x-reacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.x-react {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px 2px 3px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.x-react .seat-mark {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+.x-react .seat-mark svg {
+  width: 20px;
+  height: 20px;
+}
+.x-react i {
+  width: 9px;
+  height: 5px;
+  margin: -2px 1px 0 0;
+  border: solid var(--jade);
+  border-width: 0 0 2px 2px;
+  transform: rotate(-45deg);
+}
+.x-react em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--mist);
+}
+/* the runs of a proof, red to green */
+.x-runs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.x-runs li {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 8px;
+  max-width: 22rem;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 93, 87, 0.45);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--mist);
+}
+.x-runs li b {
+  color: var(--fog);
+}
+.x-runs li span {
+  justify-self: start;
+  font: 600 11px/1.5 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ff9c97;
+}
+.x-runs li em {
+  grid-column: 1 / -1;
+  font-style: normal;
+}
+.x-runs li.is-green {
+  border-color: rgba(52, 211, 153, 0.55);
+}
+.x-runs li.is-green span {
+  color: var(--jade);
+}
+/* on a card: options side by side, and the way to a map from a place */
+.ac-compare {
+  grid-column: 1 / -1;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.ac-compare th,
+.ac-compare td {
+  padding: 7px 10px;
+  border-top: 1px solid var(--line-2);
+  text-align: left;
+  vertical-align: top;
+}
+.ac-compare thead th {
+  border-top: 0;
+  font: 400 17px/1.2 var(--display);
+  color: var(--fog);
+}
+.ac-compare tbody th {
+  font: 500 11px/1.5 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mist);
+  white-space: nowrap;
+}
+.ac-compare td {
+  color: var(--fog);
+}
+.ac-map {
+  justify-self: start;
+  font-size: 12px;
+  color: var(--jade);
+}
+/* the plan card: the sections its planner chose, the choices on a proven change, and the diff */
+.round-card .plan-req.is-lead {
+  font-weight: 600;
+}
+.round-card .plan-lead {
+  margin-right: 8px;
+  padding: 1px 7px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  font: 500 10.5px/1.5 var(--mono);
+  letter-spacing: 0.06em;
+  color: var(--mist);
+  white-space: nowrap;
+}
+.plan-more {
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-2);
+  font-size: 13px;
+  color: var(--mist);
+}
+.plan-more p,
+.plan-diff p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  margin: 0;
+}
+.plan-more b {
+  min-width: 3.4em;
+  font: 600 10.5px/1.6 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+.plan-files code,
+.plan-cases span {
+  padding: 1px 7px;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  font: 500 12px/1.5 var(--mono);
+  color: var(--fog);
+}
+.plan-cases span {
+  font-family: var(--body);
+}
+.plan-risk {
+  color: #e8b970;
+}
+.plan-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.plan-diff {
+  font-size: 13px;
+  color: var(--mist);
+}
+.plan-diff summary {
+  cursor: pointer;
+  color: var(--fog);
+}
+.plan-diff pre {
+  max-height: 20rem;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  font: 400 12px/1.5 var(--mono);
+  color: var(--mist);
+}
+.plan-diff pre .add {
+  color: #7fe3b8;
+}
+.plan-diff pre .del {
+  color: #ff9c97;
+}
+.plan-diff pre .at {
+  color: #9db1ff;
+}
+
+/* HANDS (js/ui.js HANDS). Two small round ones of the body's own colour, out of sight until a feeling uses them. */
+.bd .bd-hand {
+  opacity: 0;
+  stroke: rgba(13, 17, 28, 0.35);
+  stroke-width: 0.7;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 0.2s ease,
+    transform 0.34s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.bd-overseer .bd-hand {
+  fill: #7d85ee;
+}
+.bd-steward .bd-hand {
+  fill: #f5b856;
+}
+.bd-operations .bd-hand {
+  fill: #3cc4b8;
+}
+.bd-ask .bd-hand {
+  fill: #f283b3;
+}
+.bd-master .bd-hand {
+  fill: #3cc391;
+}
+.bd[data-mood='thinking'] .bd-hand.r {
+  opacity: 1;
+  transform: translate(-7.5px, 1px);
+}
+.bd[data-mood='unsure'] .bd-hand {
+  opacity: 1;
+}
+.bd[data-mood='unsure'] .bd-hand.l {
+  transform: translate(-3px, -5px);
+}
+.bd[data-mood='unsure'] .bd-hand.r {
+  transform: translate(3px, -5px);
+}
+.bd[data-mood='happy'] .bd-hand {
+  opacity: 1;
+}
+.bd[data-mood='happy'] .bd-hand.l {
+  transform: translate(-2px, -13px);
+}
+.bd[data-mood='happy'] .bd-hand.r {
+  transform: translate(2px, -13px);
+  animation: bd-wave 0.5s ease-in-out 4 alternate;
+}
+.bd[data-mood='sorry'] .bd-hand {
+  opacity: 1;
+}
+.bd[data-mood='sorry'] .bd-hand.l {
+  transform: translate(11px, 3px);
+}
+.bd[data-mood='sorry'] .bd-hand.r {
+  transform: translate(-11px, 3px);
+}
+.bd[data-mood='curious'] .bd-hand.r {
+  opacity: 1;
+  transform: translate(-2px, -9px);
+}
+@keyframes bd-wave {
+  from {
+    transform: translate(2px, -13px) rotate(-14deg);
+  }
+  to {
+    transform: translate(4.5px, -14px) rotate(14deg);
+  }
+}
+/* HOW MUCH (data-strength: 1 a little, 3 a lot). The same parts, turned down or up. */
+.bd[data-mood='worried'][data-strength='3'] .bd-eye-open {
+  transform: scale(1.24);
+}
+.bd[data-mood='worried'][data-strength='3'] .bd-brow.l {
+  transform: translateY(-1.4px) rotate(-24deg);
+}
+.bd[data-mood='worried'][data-strength='3'] .bd-brow.r {
+  transform: translateY(-1.4px) rotate(24deg);
+}
+.bd[data-mood='worried'][data-strength='3'] .bd-pose {
+  animation: bd-shake 0.5s linear 3;
+}
+.bd[data-mood='worried'][data-strength='1'] .x-sweat {
+  opacity: 0;
+  animation: none;
+}
+.bd[data-mood='worried'][data-strength='1'] .bd-brow {
+  opacity: 0.6;
+}
+.bd[data-mood='happy'][data-strength='3'] .x-flush {
+  opacity: 0.75;
+}
+.bd[data-mood='happy'][data-strength='3'] .bd-pose {
+  animation: bd-bounce 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) 4;
+}
+.bd[data-mood='happy'][data-strength='1'] .bd-hand,
+.bd[data-mood='unsure'][data-strength='1'] .bd-hand {
+  opacity: 0;
+}
+.bd[data-mood='happy'][data-strength='1'] .bd-pose {
+  animation: none;
+}
+.bd[data-mood='unsure'][data-strength='3'] .bd-pose {
+  transform: rotate(-5deg);
+}
+.bd[data-mood='proud'][data-strength='3'] .bd-pose {
+  animation: bd-bounce 0.9s cubic-bezier(0.3, 1.5, 0.5, 1) 2;
+}
+.bd[data-mood='sorry'][data-strength='3'] .bd-pose {
+  transform: translateY(1.8px) scale(1.04, 0.93);
+}
+@keyframes bd-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-0.9px);
+  }
+  75% {
+    transform: translateX(0.9px);
+  }
+}
+/* EACH IN ITS OWN WAY. The same feelings, with each character's accent on them. */
+.bd-overseer[data-mood='thinking'] .bd-bulb {
+  animation: bd-glow 0.8s ease-in-out infinite;
+}
+.bd-overseer[data-mood='happy'] .bd-bulb,
+.bd-overseer[data-mood='proud'] .bd-bulb {
+  fill: #fff3c4;
+  filter: drop-shadow(0 0 3px #ffe29a);
+}
+.bd-overseer[data-mood='sorry'] .bd-bulb,
+.bd-overseer[data-mood='sleepy'] .bd-bulb {
+  fill: #8b8fb0;
+  animation: none;
+}
+.bd-steward[data-mood='unsure'] .bd-brow.r,
+.bd-steward[data-mood='curious'] .bd-brow.r {
+  transform: translateY(-3px) rotate(-12deg); /* over the rim of the glasses */
+}
+.bd-steward[data-mood='focused'] .bd-glasses {
+  transform: translateY(0.8px);
+  transform-box: fill-box;
+}
+.bd-operations[data-mood='happy'] .bd-zap,
+.bd-operations[data-mood='proud'] .bd-zap {
+  animation: bd-zap 0.6s ease-in-out 3;
+}
+.bd-operations[data-mood='sorry'] .bd-zap,
+.bd-operations[data-mood='sleepy'] .bd-zap {
+  opacity: 0.35;
+  animation: none;
+}
+.bd-ask[data-mood='happy'] .bd-spark,
+.bd-ask[data-mood='surprised'] .bd-spark {
+  animation-duration: 2.2s;
+}
+.bd-ask[data-mood='sorry'] .bd-spark,
+.bd-ask[data-mood='worried'] .bd-spark {
+  opacity: 0.3;
+}
+.bd-master[data-mood='proud'] .m-smirk,
+.bd-master[data-mood='happy'] .m-grin {
+  transform: scale(0.78); /* the smallest smile on the page */
+}
+.bd-master[data-mood='focused'] .bd-pencil,
+.bd-master[data-mood='thinking'] .bd-pencil {
+  animation-duration: 1.1s;
+}
+/* THEY LOOK AT WHOEVER IS SPEAKING (data-look, set by js/views.js), and down at the box while the person types. The eyes are moved
+   with their own property, so that a feeling's own turn of the eye still holds. */
+.bd .bd-eye-open {
+  translate: 0 0;
+}
+.bd[data-look='left'] .bd-eye-open {
+  translate: -1px 0;
+}
+.bd[data-look='right'] .bd-eye-open {
+  translate: 1px 0;
+}
+.bd[data-look='down'] .bd-eye-open,
+body[data-typing] .crew .bd .bd-eye-open {
+  translate: 0 1.1px;
+}
+.bd .bd-eye-open {
+  transition:
+    opacity 0.16s ease,
+    transform 0.26s cubic-bezier(0.3, 1.4, 0.5, 1),
+    translate 0.3s ease;
+}
+/* AT REST THEY ARE NOT QUITE STILL: now and then a glance to one side, each at its own moment. Not for anyone who has asked for
+   less motion (the rule that stops every animation on a buddy covers it). */
+.bd[data-mood='idle']:not([data-look]) .bd-eye-open {
+  animation: bd-glance 13s ease-in-out infinite;
+}
+.bd-steward[data-mood='idle']:not([data-look]) .bd-eye-open {
+  animation-delay: -4s;
+  animation-duration: 17s;
+}
+.bd-operations[data-mood='idle']:not([data-look]) .bd-eye-open {
+  animation-delay: -7.5s;
+  animation-duration: 11s;
+}
+.bd-ask[data-mood='idle']:not([data-look]) .bd-eye-open {
+  animation-delay: -2s;
+  animation-duration: 15s;
+}
+.bd-master[data-mood='idle']:not([data-look]) .bd-eye-open {
+  animation-delay: -10s;
+  animation-duration: 19s;
+}
+@keyframes bd-glance {
+  0%,
+  86%,
+  100% {
+    translate: 0 0;
+  }
+  89%,
+  93% {
+    translate: 1px -0.3px;
+  }
+  96% {
+    translate: -0.6px 0;
+  }
+}
+.seat-mark.sm.av .bd-eye-open,
+.seat-mark.sm.av .bd-hand {
+  animation: none !important;
+}
+
+/* the small buttons are small wherever they stand (the page's own button is larger in Developer) */
+.msg-extra .btn.tiny,
+.round-card .btn.tiny {
+  min-height: 0;
+  padding: 5px 11px;
+  font: 600 12px/1.2 var(--body);
+}
+/* picks with no picture among them are a short numbered list, not a column of tall blanks */
+.answer-card .ac-picks:not(:has(img)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.answer-card .ac-picks:not(:has(img)) li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 10px;
+}
+.answer-card .ac-picks:not(:has(img)) .ac-pick-art.none {
+  grid-row: 1 / span 2;
+  width: 30px;
+  height: 30px;
+  aspect-ratio: auto;
+  border-radius: 50%;
+  font-size: 15px;
+}
+.answer-card .ac-picks:not(:has(img)) li > span:not(.ac-pick-art) {
+  grid-column: 2 / -1;
+}
+
+/* THE LESSONS A ROUND MUST ANSWER, on the plan card; and how the team is doing, on the Soul page (js/team/hindsight.js) */
+.plan-checks {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--line-2);
+  list-style: none;
+  font-size: 13px;
+  color: var(--mist);
+}
+.plan-checks li {
+  display: grid;
+  grid-template-columns: 7.2em minmax(0, 1fr);
+  gap: 2px 10px;
+}
+.plan-checks b {
+  font: 600 10.5px/1.7 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+.plan-checks li.is-applied b {
+  color: var(--jade);
+}
+.plan-checks li.is-skipped b {
+  color: #e8b970;
+}
+.plan-checks span {
+  color: var(--fog);
+}
+.plan-checks em {
+  grid-column: 2;
+  font-style: normal;
+}
+.hind-read {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 12px;
+  margin: 0 0 18px;
+}
+.hind-read > div {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+}
+.hind-read > div.wide {
+  grid-column: 1 / -1;
+}
+.hind-read dt {
+  font: 500 11px/1.4 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+.hind-read dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  font: 400 26px/1.15 var(--display);
+  color: var(--fog);
+}
+.hind-read dd .tag {
+  font: 500 12px/1.5 var(--body);
+}
+.hind-read > div > span {
+  font-size: 12.5px;
+  color: var(--mist);
+}
+
+/* on a phone the small buttons are still big enough for a thumb */
+@media (max-width: 720px) {
+  .msg-extra .btn.tiny,
+  .round-card .btn.tiny {
+    min-height: 34px;
+    padding: 8px 13px;
   }
 }

@@ -10,6 +10,21 @@ import { installYou, standingIn } from './team/you.js';
 import { SETTLES, STAYS, branchFrom, directFrom, installSource, pushFrom } from './team/source.js';
 import { installTicket } from './team/ticket.js';
 import { installHost } from './team/host.js';
+import { installThread } from './team/thread.js';
+import { installSlates } from './team/slate.js';
+import { edgesOf, fileId, reachedBy, walk } from './team/graph.js';
+import { faultsIn, installHindsight } from './team/hindsight.js';
+import { forSharing } from './team/share.js';
+import { extrasOf } from './team/extras.js';
+import {
+  EXACT,
+  apartOn,
+  destroysIn,
+  installManners,
+  unseenIn,
+  withoutRepeats,
+  withoutSignOff,
+} from './team/manners.js';
 import { installBuild } from './team/build.js';
 import { installRound } from './team/round.js';
 import { cardWorthy, installCards } from './team/cards.js';
@@ -29,7 +44,9 @@ import {
   rng,
   seatAs,
   seedState,
+  short,
   slug,
+  unsaid,
 } from './team/base.js';
 export { FRIENDLY, SEATS, STAGES, seatAs } from './team/base.js';
 
@@ -267,7 +284,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
     emit('chat');
     let last = 0;
     try {
-      const stats = await ctx.engine.seat({
+      const request = {
         seat: seatId,
         system:
           soulOf(seatAs(speaker), mode, { claude: onClaude(), simple: isSimple() }) +
@@ -289,6 +306,8 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
                   '\n\n'
                 : '') +
               ctx.devNote() +
+              ctx.mannerNote() +
+              ctx.faultNote(seatId) +
               (mode === 'talk' && nameOf() ? 'Their name is ' + nameOf() + '. Use it when you greet them.\n\n' : '') +
               (you.length
                 ? (isSimple()
@@ -323,7 +342,8 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
                   ctx.state.attached.note +
                   '\n\n'
                 : '') +
-              ask,
+              ask +
+              ctx.shapeNote(mode),
           },
         ],
         onDelta: (d) => {
@@ -338,8 +358,43 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
           msg.resets++;
           emit('chat');
         },
-      }); // a local model's reply broke down and was cut: what was shown is replaced
+      };
+      const stats = await ctx.engine.seat(request); // a local model's reply broke down and was cut: what was shown is replaced
       if (stats && stats.broke) msg.broke = true;
+      // WHAT IT WAS NEVER SHOWN (Developer, a local model): an answer that names a file or a line that is nowhere in what the seat was
+      // given, or states the cause of a failure it knows nothing about, is written once more without it. What comes back stands.
+      const again = !isSimple() && !onClaude() && mode === 'answer' && !msg.broke;
+      const destroys = again ? destroysIn(msg.text, request.messages[0].content) : [];
+      const unseen = [...(again ? unseenIn(msg.text, request.messages[0].content) : []), ...destroys];
+      if (unseen.length) {
+        ctx.fault(seatId, destroys.length ? 'destroys' : 'unseen', unseen.join(', '));
+        const draft = msg.text;
+        msg.rewrote = unseen;
+        msg.text = '';
+        emit('chat');
+        try {
+          await ctx.engine.seat({
+            ...request,
+            messages: [
+              request.messages[0],
+              { role: 'assistant', content: draft },
+              {
+                role: 'user',
+                content: destroys.length
+                  ? 'That reply offers ' +
+                    destroys.join(', ') +
+                    ', which throws away work or data that cannot be got back, and nobody asked for it. Write the reply again in the same length: give the safe way only, and name the destructive one only as what to avoid.'
+                  : 'That reply spoke of ' +
+                    unseen.join(', ') +
+                    ', which nobody has shown you. Write the reply again without it: say what you would look at and how, in the same length, and say plainly that you have not seen their code or their logs. Name no file they did not name, no line, and no cause.',
+              },
+            ],
+          });
+        } catch {
+          /* the draft stands */
+        }
+        if (!msg.text.trim()) msg.text = draft;
+      }
     } catch (e) {
       msg.text =
         (msg.text ? msg.text + ' ' : '') +
@@ -357,7 +412,33 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         .replace(/(^|\s)__([^_\n]+)__(?=\s|[.,;:!?]|$)/g, '$1$2')
         .replace(/^#{1,4}\s+/gm, '')
         .trim() || '[no reply]';
+    if (mode === 'answer') {
+      // a sentence already said in this chat is not said again, and an answer does not end by offering more help. What had to be
+      // taken out, and what can be read off the reply itself, is a fault of a kind (team/hindsight.js): counted, never silent
+      const was = msg.text;
+      const once = withoutRepeats(was, ctx.saidSoFar(msg));
+      const done = withoutSignOff(once);
+      if (once !== was) ctx.fault(seatId, 'repeat', was);
+      if (done !== once) ctx.fault(seatId, 'sign-off', was);
+      msg.text = done;
+      for (const kind of faultsIn(done, { asked: opts.customer || '' })) ctx.fault(seatId, kind, done);
+    }
     if (opts.sources && opts.sources.length) msg.sources = opts.sources;
+    // WHAT GOES UNDER IT besides its words (team/extras.js): read off the reply and what was asked, never asked of a model
+    {
+      const shown = [
+        ctx.state.focus ? 'the ticket ' + ctx.state.focus.key : '',
+        ctx.state.attached && Date.now() - ctx.state.attached.at < 30 * 60000 ? 'what you attached' : '',
+      ].filter(Boolean);
+      const extras = extrasOf(msg, {
+        simple: isSimple(),
+        asked: opts.customer || '',
+        mode,
+        sourcesText: opts.sourcesText || '',
+        shown,
+      });
+      if (extras) msg.extras = extras;
+    }
     busy(seatId, '');
     // HINDSIGHT, the grade: a thing Vision showed counts as used when the reply draws on it (it shares two or more of its distinctive words)
     const said = rare(msg.text);
@@ -370,9 +451,11 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
     for (const v of seen) {
       let n = 0;
       for (const w of rare(v.text)) if (said.has(w)) n++;
+      if (v.ref && v.ref.id) (ctx.seenNow || (ctx.seenNow = new Set())).add(v.ref.id);
       if (n >= 2) {
         msg.used++;
         if (v.ref) v.ref.used = (v.ref.used || 0) + 1;
+        if (v.ref && v.ref.id) (ctx.usedNow || (ctx.usedNow = new Set())).add(v.ref.id);
       }
     }
     emit('chat');
@@ -419,8 +502,15 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
     m.rev++;
     busy(m.by, '');
   };
-  const episode = (kind, title, t0, v0, seats, kept) => {
-    ctx.state.episodes.unshift({
+  // AN EXPERIENCE (team/hindsight.js): one record for each finished piece of work. Besides what it always held (how long, how much
+  // Vision showed, whether a lesson was kept): whose it was, the mode, how many rounds it took, how it ended, and which lessons were
+  // in front of the seats and which they used. What was learned in it is tied to it, so that things kept together are recalled
+  // together. more: { seat, rounds, outcome }.
+  const episode = (kind, title, t0, v0, seats, kept, more = {}) => {
+    const plan =
+      kind === 'build' ? [...ctx.state.chat].reverse().find((m) => m.plan && m.plan.title === short(title)) : null;
+    const stage = plan ? plan.plan.stage : '';
+    const ep = {
       id: 'E-' + ++ctx.state.n,
       kind,
       title,
@@ -429,9 +519,33 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
       seconds: Math.round((Date.now() - t0) / 1000),
       shown: ctx.visionShown - v0,
       kept: !!kept,
-    });
-    ctx.state.episodes.length = Math.min(ctx.state.episodes.length, 40);
+      mode: isSimple() ? 'simple' : 'developer',
+      seat: more.seat || (kind === 'build' ? 'operations' : ''),
+      rounds: more.rounds || (plan ? plan.plan.n || 1 : 1),
+      outcome:
+        more.outcome ||
+        (stage === 'landed' ? 'landed' : stage === 'stopped' ? 'stopped' : stage === 'thrown' ? 'thrown' : 'stood'),
+      seen: [...(ctx.seenNow || [])],
+      used: [...(ctx.usedNow || [])],
+      files: plan
+        ? [...new Set([...((plan.plan.sections || {}).files || []), ...((plan.plan.diff || {}).files || [])])].slice(
+            0,
+            12,
+          )
+        : [],
+    };
+    ctx.seenNow = new Set();
+    ctx.usedNow = new Set();
+    for (const x of ctx.state.learning.ledger)
+      if (x.at >= t0 && !x.ep) {
+        x.ep = ep.id; // kept in this piece of work
+        if (ep.files.length) x.files = ep.files;
+      }
+    ctx.state.episodes.unshift(ep);
+    ctx.state.episodes.length = Math.min(ctx.state.episodes.length, 200);
+    ctx.believe(ep);
     emit('learning');
+    return ep;
   };
   ctx.teamSkills = {}; // by seat: what that seat knows of the languages the workspace is written in (the runner reads them from its files)
   // ASKED QUIETLY: a seat is asked something and its words are read here before any of them is shown. Used where what comes back
@@ -442,7 +556,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
     try {
       await ctx.engine.seat({
         seat: id,
-        system: soulOf(seatAs(seat(id)), 'answer', { claude: onClaude(), simple: isSimple() }),
+        system: o.system || soulOf(seatAs(seat(id)), 'answer', { claude: onClaude(), simple: isSimple() }), // o.system: a blank slate (team/slate.js)
         customer: o.customer || '',
         lang: o.lang || '',
         max: o.max || 0,
@@ -654,9 +768,22 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         .replace(/\s+/g, ' ');
       if (!clean) return;
       const at = /^@(\w+)/.exec(clean);
-      const named = [...new Set([...to, ...(at && seat(at[1].toLowerCase()) ? [at[1].toLowerCase()] : [])])].filter(
-        (id) => seat(id),
-      );
+      // spoken to by name, the way people do in a group chat ("Robin, is that right?"): that one answers
+      const called = /^(?:(?:hey|hi|ok|okay|so|and|thanks|cheers)[, ]+)?([A-Za-z]+)[,:]\s+\S/.exec(clean);
+      const calledSeat = called
+        ? SEATS.find((x) =>
+            (isSimple() ? [seatAs(x).title] : [x.id, x.title]).some(
+              (n) => String(n).toLowerCase() === called[1].toLowerCase(),
+            ),
+          )
+        : null;
+      const named = [
+        ...new Set([
+          ...to,
+          ...(at && seat(at[1].toLowerCase()) ? [at[1].toLowerCase()] : []),
+          ...(calledSeat ? [calledSeat.id] : []),
+        ]),
+      ].filter((id) => seat(id));
       if (!ctx.engine || !ctx.engine.route) {
         if (named.length || re || /\?\s*$/.test(clean)) core.say(clean, { to: named, re });
         else core.request(clean);
@@ -666,6 +793,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
       const body = clean.replace(/^@\w+[,:]?\s*/, '') || clean;
       if (!posted)
         post('you', clean, { to: named, re: quoted ? { by: quoted.by, text: quoted.text.slice(0, 160) } : null });
+      if (!isSimple()) ctx.sizeUp(body); // who the team is talking to is read from every message they write
       // the team asked its questions (Ask me first) and this is the customer's answer: the round carries on with it
       const small =
         /^(hi|hello|hey|hiya|thanks|thank you|cheers|good (morning|afternoon|evening))( there| all| team| everyone)?[.!\s]*$/i.test(
@@ -678,6 +806,8 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
       if (other) ctx.state.asking = null;
       if (isSimple() && !small && !named.length) ctx.keepWish(body);
       if (!named.length && !quoted && ctx.aboutMe(body)) return;
+      if (!named.length && !quoted && ctx.howWeAreDoing(body)) return;
+      ctx.putRight(body); // "no, I said Tuesday": kept as a lesson of its own, and counted when it is the second time
       const aside =
         !!ctx.state.asking &&
         !/^(yes|no|go|ok|sure)\b/i.test(body) &&
@@ -804,8 +934,22 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         // "What it must do" list, were read as something to find out; the cause was explained and nothing was changed.
         if (!isSimple() && route && route.kind !== 'build' && STATED.test(body) && !/\?\s*$/.test(body))
           route = { ...route, kind: 'build' };
+        // AN EXACT FACT GETS A SECOND OPINION ON A LOCAL MODEL (Simple): see EXACT and apartOn in team/manners.js. The answer is given
+        // from memory as before; the fact-checker is asked for the bare fact; and only if the two do not agree is it looked up.
+        // Not when they are in a hurry, not when they spoke to one of the five by name, and not when there is nothing to look with.
+        const exact =
+          isSimple() &&
+          !onClaude() &&
+          route.kind === 'question' &&
+          !named.length &&
+          !quoted &&
+          EXACT.test(body) &&
+          !!ctx.engine.tool &&
+          !(ctx.register() || {}).hurried;
         const who = named.length ? named : quoted ? [quoted.by] : [seat(route.seat) ? route.seat : 'overseer'];
         const opts = { lang: route.language || '' };
+        const startedAt = Date.now();
+        const visionBefore = ctx.visionShown;
         try {
           if (route.kind === 'draw' || route.kind === 'film') return await ctx.make(route.kind, body);
           if (route.kind === 'build' && !named.length && !quoted) return await ctx.round(body.slice(0, 2400), opts); // the whole request: the team plans and builds from every word of it (it was once cut to 90 characters, and the cut was what got built)
@@ -836,23 +980,120 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
               about: body,
               lang: opts.lang,
               max: route.kind === 'talk' ? 140 : 320,
+              // IN SIMPLE AN ANSWER IS NOT SHOWN WHILE IT IS WRITTEN: a card may be the whole of the reply, and words that appear and
+              // are then replaced by a card are two replies where there should be one. The words are shown, whole, only when it is
+              // settled that no card stands for them.
+              veil: isSimple() && route.kind !== 'talk',
             });
           const carded = isSimple() && route.kind !== 'talk' && cardWorthy(said) ? who[who.length - 1] : '';
+          const unveil = () => {
+            let any = false;
+            for (const msg of ctx.state.chat) if (msg.veil && !msg.live) any = delete msg.veil;
+            if (any) emit('chat');
+          };
+          if (!carded) unveil();
+          // A SEAT THAT SAYS IT WAS NOT TOLD ASKS THE MEMORY FOR MORE (after the system this team is modelled on, where memory is
+          // pushed at the start of a turn and can be pulled in the middle of one). Three things are put in front of a seat before it
+          // speaks; when it then says it does not remember or was never told, the rest of what the team holds on the question is
+          // put in front of it and it answers once more. Only when there IS more: otherwise what it said stands.
+          if (
+            route.kind !== 'talk' &&
+            /\b(you (haven'?t|have not|never) (told|said|mentioned)|i (don'?t|do not) (remember|recall)|i (wasn'?t|was not) told|not sure (what|which) you (like|prefer|said|meant)|i don'?t know (what|which|your))\b/i.test(
+              said,
+            )
+          ) {
+            const more = core
+              .ask(body)
+              .filter((v) => v.kind !== 'base')
+              .slice(3, 8);
+            const about = ctx.state.learning.ledger.filter((x) => x.kind === 'you').slice(8, 16);
+            if (more.length || about.length) {
+              const first = [...ctx.state.chat].reverse().find((m) => m.by === who[who.length - 1]);
+              if (first) first.superseded = true;
+              said = await speak(
+                who[who.length - 1],
+                "WHAT ELSE THE TEAM'S MEMORY HOLDS ON THIS (you asked for more; use what bears on the question):\n" +
+                  [...more.map((v) => '- [' + v.kind + '] ' + v.text), ...about.map((y) => '- ' + y.text)].join('\n') +
+                  '\n\nYou said: "' +
+                  String(said).slice(0, 400) +
+                  '". Answer the question again with this in front of you: "' +
+                  body.slice(0, 500) +
+                  '". If it still does not say, say so in one sentence and ask the one thing you need.',
+                { mode: 'answer', customer: body, about: body, lang: opts.lang, max: 320, veil: isSimple() },
+              );
+              const now = [...ctx.state.chat].reverse().find((m) => m.by === who[who.length - 1]);
+              if (now) now.thread = 'pulled';
+              unveil();
+            }
+          }
           // A SEAT THAT SAYS IT WOULD HAVE TO LOOK IT UP: the team has the tools, so it looks it up, there and then
+          // (In Developer, not for a question about the customer's OWN system: "what caused the outage this morning?" was looked up
+          // on the web and answered with somebody else's outage. What is theirs is asked for, not searched for.)
+          const theirs =
+            !isSimple() &&
+            /\b(our|ours|my|we|us|last night'?s?|this morning'?s?|yesterday'?s?|the (deploy|deployment|outage|incident|build|pipeline|release|server|database|logs?))\b/i.test(
+              body,
+            );
           if (
             route.kind !== 'talk' &&
             !quoted &&
             !named.length &&
+            !theirs &&
             /\bi (do not|don't) know\b|\b(need|have) to look (it|that|this) up\b|\bhaven'?t looked\b|\bfrom what i know\b|\bcan'?t give you a reliable\b|\bmy (information|knowledge) (may|might|could) be (out of date|old)\b/i.test(
               said,
             ) &&
             ctx.engine.tool
-          )
+          ) {
+            unveil(); // what it said is shown: it is going to look it up
             await ctx.research(body, who, opts);
-          else {
+          } else {
             if (carded) await ctx.cardFor(carded, said, body, opts.lang);
-            if (isSimple() && route.kind !== 'talk' && !named.length && !quoted && said.split(/\s+/).length >= 12)
+            unveil();
+            if (exact && said && !/^\[(no reply|this reply was interrupted)\]/.test(said)) {
+              const answerer = who[who.length - 1];
+              // A BLANK SLATE CHECKS IT (team/slate.js): a slot of the team's own model, opened empty, that has not heard the answer;
+              // and for a question someone will act on, a second one whose only job is to break the claim
+              const checked = await ctx.checkFact(body, said, { lang: opts.lang });
+              const second = checked.fact;
+              const apart = checked.apart;
+              const mine = [...ctx.state.chat].reverse().find((m) => m.by === answerer);
+              if (mine) {
+                mine.checkedBy = { seat: 'steward', agreed: !apart };
+                if (!apart) ctx.react(mine, 'steward', 'checked');
+                if (mine.extras && mine.extras.origin) mine.extras.origin.checked = !apart;
+                mine.xrev = (mine.xrev || 0) + 1;
+              }
+              ctx.state.secondTrace = { second: String(second).slice(0, 160), apart };
+              if (apart) {
+                if (mine) mine.superseded = true;
+                ctx.fault(answerer, 'replaced', String(second).slice(0, 100));
+                ctx.episode('answer', short(body), startedAt, visionBefore, 1, false, {
+                  seat: answerer,
+                  outcome: 'replaced',
+                });
+                post(
+                  'steward',
+                  "One thing first: I'm not sure of that. I'd have said " +
+                    String(second)
+                      .replace(/\s+/g, ' ')
+                      .replace(/[.\s]+$/, '')
+                      .slice(0, 120) +
+                    ". We don't agree, so let's look it up before you rely on either of us.",
+                  { chime: true },
+                );
+                return await ctx.research(body, ['operations'], opts);
+              }
+            }
+            if (route.kind !== 'talk' && !named.length && !quoted && said.split(/\s+/).length >= (isSimple() ? 12 : 25))
               await ctx.chimeIn(who[who.length - 1], body, said, opts);
+            // an answer is a piece of work like any other: what came of it is kept (it stood, or a teammate's doubt replaced it)
+            if (route.kind !== 'talk')
+              ctx.episode('answer', short(body), startedAt, visionBefore, 1, false, {
+                seat: who[who.length - 1],
+                outcome: ctx.state.chat.some((m) => m.superseded && m.by === who[who.length - 1] && m.at >= startedAt)
+                  ? 'replaced'
+                  : 'stood',
+              });
           } // the others chime in, when one has something to add
         } catch (e) {
           post(who[0], '[The team could not finish that: ' + String((e && e.message) || e).slice(0, 140) + ']');
@@ -972,6 +1213,138 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
       }
     },
     hostCheck: () => ctx.watchOnce(), // look once, now, at what is running and what is plugged in
+    // ---- WHAT THE PERSON PRESSES UNDER A REPLY (team/extras.js, js/views.js). Each says what it did in the chat.
+    // CHECK THIS: an answer given from memory is looked up, and the team says whether it held
+    async checkThis(id) {
+      const at = ctx.state.chat.findIndex((m) => m.id === id);
+      const msg = ctx.state.chat[at];
+      if (!msg || !ctx.engine) return;
+      if (msg.extras && msg.extras.origin && msg.extras.origin.checking) return;
+      const asked = [...ctx.state.chat.slice(0, at)].reverse().find((m) => m.by === 'you');
+      if (!asked) return;
+      const touch = (o) => {
+        msg.extras = {
+          ...(msg.extras || {}),
+          origin: { ...((msg.extras || {}).origin || { how: 'memory', sources: 0 }), ...o },
+        };
+        msg.xrev = (msg.xrev || 0) + 1;
+        emit('chat');
+      };
+      touch({ checking: true });
+      // WITH NOTHING TO LOOK THINGS UP WITH (offline, or a model with no tools): blank slates check it, and say that is what they did
+      if (!(ctx.engine.tool || onClaude())) {
+        const c = await ctx.checkFact(asked.text, msg.text, {}).catch(() => ({ apart: '', fact: '', slates: 0 }));
+        if (c.apart) msg.superseded = false; // nothing replaces it: the person is told it is in doubt
+        touch({ checking: false, checked: true, held: c.slates ? !c.apart : null });
+        post(
+          'steward',
+          !c.slates || (!c.fact && !c.apart)
+            ? 'I could not check that from here: there is nothing to look it up with, and a fresh reading did not know.'
+            : c.apart
+              ? 'Checked afresh, without looking it up: a fresh reading says ' +
+                c.fact +
+                ', which is not what was said. Treat it as in doubt until it can be looked up.'
+              : 'Checked afresh, without looking it up: ' +
+                (c.slates > 1 ? 'two fresh readings agree' : 'a fresh reading agrees') +
+                ' with it. That is the same model asked again, not a source.',
+          { chime: true },
+        );
+        return;
+      }
+      const from = ctx.state.chat.length;
+      try {
+        await ctx.research(asked.text, ['operations'], {
+          query: asked.text.replace(/[?.!]+$/, '').slice(0, 160),
+          because: 'the person asked for this to be checked',
+        });
+      } catch {
+        /* said in the chat by research itself */
+      }
+      const found = ctx.state.chat.slice(from).find((m) => m.by !== 'you' && m.sources && m.sources.length);
+      const apart = found ? apartOn(msg.text, found.text) : '';
+      if (found && apart) msg.superseded = true;
+      touch({ checking: false, checked: true, held: found ? !apart : null });
+      if (found)
+        post(
+          'steward',
+          apart
+            ? isSimple()
+              ? 'Checked, and the first answer does not hold: go by the one just above.'
+              : 'Checked against sources: the first answer does not hold. The one above replaces it.'
+            : isSimple()
+              ? 'Checked: the first answer holds.'
+              : 'Checked against sources: the first answer holds.',
+          { chime: true },
+        );
+    },
+    // RUN IT HERE (Developer): one of the commands a reply gave, in the connected workspace, when it only reads or tests
+    async runCommand(id, i) {
+      const msg = ctx.state.chat.find((m) => m.id === id);
+      const c = msg && msg.extras && msg.extras.commands && msg.extras.commands[i];
+      if (!c || !c.run || c.state === 'running' || !ctx.engine || !ctx.engine.work || !ctx.engine.work.run) return;
+      const touch = (o) => {
+        Object.assign(c, o);
+        msg.xrev = (msg.xrev || 0) + 1;
+        emit('chat');
+      };
+      touch({ state: 'running', out: '' });
+      try {
+        const r = await ctx.engine.work.run(c.cmd);
+        touch({
+          state: r && r.ok ? 'ran' : 'failed',
+          out: String((r && (r.out || r.why)) || '').slice(0, 6000),
+          code: r ? r.code : null,
+        });
+        // WHAT IT PRINTED IS READ BACK: the seat that gave the command says what the output shows and what to do next
+        if (r && r.out && ctx.seat(msg.by)) {
+          const says = await ctx.within(
+            quiet(
+              msg.by,
+              'The customer ran this in their workspace, at your suggestion: ' +
+                c.cmd +
+                '\nIt ' +
+                (r.ok ? 'finished' : 'failed with code ' + r.code) +
+                ' and printed:\n"""\n' +
+                String(r.out).slice(-1800) +
+                '\n"""\nIn at most 50 words: what this output shows, and the one next step. Speak only of what is printed here.',
+              { doing: 'Reading what it printed', max: 140 },
+            ),
+            30000,
+            'reading a command back',
+          );
+          if (says && !unsaid(says)) post(msg.by, says, { chime: true });
+        }
+      } catch (e) {
+        touch({ state: 'failed', out: String((e && e.message) || e).slice(0, 400) });
+      }
+    },
+    // SHOW ME THE DIFF FIRST, and HOLD IT FOR A REVIEW: on a change that is proven and waits for the customer's word
+    async planDiff(id) {
+      const msg = ctx.state.chat.find((m) => m.id === id);
+      if (!msg || !msg.plan || !ctx.engine || !ctx.engine.work || !ctx.engine.work.diff) return;
+      try {
+        const d = await ctx.engine.work.diff();
+        msg.plan.diff = {
+          files: (d.files || []).slice(0, 30),
+          text: String(d.diff || '').slice(0, 12000),
+          cut: !!d.cut || String(d.diff || '').length > 12000,
+        };
+      } catch (e) {
+        msg.plan.diff = { files: [], text: '', why: String((e && e.message) || e).slice(0, 200) };
+      }
+      msg.plan.rev = (msg.plan.rev || 0) + 1;
+      emit('chat');
+    },
+    planHold(id) {
+      const msg = ctx.state.chat.find((m) => m.id === id);
+      if (!msg || !msg.plan || msg.plan.held) return;
+      msg.plan.held = true;
+      msg.plan.rev = (msg.plan.rev || 0) + 1;
+      post(
+        'master',
+        'Held for a review. It stays proven and unlanded, and nothing leaves this machine. Say "land it" when it has been looked at, or "throw it away".',
+      );
+    },
     answerProposal(id, yes) {
       const prop = ctx.state.proposals.find((x) => x.id === id);
       if (!prop || prop.state !== 'open') return;
@@ -1012,9 +1385,22 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
       // WORDS ARE MATCHED WHOLE, by their stem. They used to be cut three letters short and looked for anywhere in a text, so "should"
       // became "sho" and found "show" and "short": a question about a cake recalled four lessons about proving a screen, and not the
       // customer's own "my sister is allergic to peanuts". A stem is the word less a plain ending; it must match a whole word's stem.
+      // little words that say nothing of what a question is about ("a line of its own" recalled a lesson with "its handler" in it)
+      const SMALL = new Set(
+        'its own our for and was did has had not but can are way new one two out how why who all any get got let put see use via per yet too may now src lib'.split(
+          ' ',
+        ),
+      );
       const stem = (w) => {
-        const x = w.replace(/ies$/, 'y').replace(/(ing|edly|ed|es|ly|s)$/, '');
-        return x.length >= 4 ? x : w;
+        // "messages" and "message", "changed" and "change", "keys" and "key" are one word each (measured by training/recall.mjs:
+        // cutting "es" made "messag" of one and left the other whole, and a three-letter stem was thrown away)
+        const x = w
+          .replace(/ies$/, 'y')
+          .replace(/([sxz]|ch|sh)es$/, '$1')
+          .replace(/(ing|edly|ed|ly)$/, '')
+          .replace(/s$/, '')
+          .replace(/e$/, '');
+        return x.length >= 3 ? x : w;
       };
       const stems = (t) =>
         new Set(
@@ -1023,7 +1409,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
               .toLowerCase()
               .match(/[a-z0-9]{3,}/g) || []
           )
-            .filter((w) => !STOP.has(w) && !DULL_ASK.has(w))
+            .filter((w) => !STOP.has(w) && !DULL_ASK.has(w) && !SMALL.has(w))
             .map(stem),
         );
       const words = [...stems(question)];
@@ -1031,7 +1417,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
       const items = [
         ...ctx.state.rulings
           .filter((r) => !r.superseded)
-          .map((r) => ({ kind: 'ruling', at: r.at, text: r.text, from: 'your ruling, in force' })),
+          .map((r) => ({ kind: 'ruling', nid: r.id, at: r.at, text: r.text, from: 'your ruling, in force' })),
         ...(ctx.soulKeeps == null ? ctx.state.learning.ledger : ctx.state.learning.ledger.slice(0, ctx.soulKeeps)).map(
           (x) => ({
             kind: 'lesson',
@@ -1043,6 +1429,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         ),
         ...ctx.state.proofs.map((p) => ({
           kind: 'proof',
+          nid: p.id,
           at: p.at,
           from: "this team's proofs",
           text:
@@ -1066,6 +1453,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         // only on a firm match (two of the question's words), and the team's own lessons win a tie, being newer.
         ...BASE.map((b) => ({
           kind: 'base',
+          nid: b.id,
           at: 0,
           text: b.text,
           match: b.when + ' ' + b.text,
@@ -1076,14 +1464,109 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
       // THE TEAM'S OWN KNOWLEDGE COMES FIRST: what this customer told it, what it settled and what it proved outrank what every team starts
       // with, whatever the count of matching words. General practice fills what is left, and only on a firm match.
       const own = (it) => (it.kind === 'base' ? 0 : 1);
-      return items
-        .map((it) => {
-          const has = stems(it.match || it.text);
-          return { ...it, score: words.reduce((n, w) => n + (has.has(w) ? 1 : 0), 0) };
+      // THE PIECES OF WORK are nodes too. They are not shown as lessons are, but the walk passes through them: a question that
+      // names a piece of work reaches what was learned in it.
+      const again =
+        /\b(again|still|last time|like before|as before|keeps? (happening|failing|breaking)|same (as|thing)|once more)\b/i.test(
+          String(question),
+        );
+      const told = {
+        stood: 'it stood as given',
+        landed: 'it landed',
+        corrected: 'you put it right afterwards',
+        replaced: 'a teammate doubted it and it was replaced',
+        stopped: 'it was stopped before it was done',
+        thrown: 'it was thrown away',
+      };
+      const work = (ctx.state.episodes || []).map((e) => ({
+        kind: 'experience',
+        nid: e.id,
+        at: e.at,
+        match: e.title,
+        from: 'what happened the last time',
+        text:
+          'Last time ("' +
+          e.title +
+          '"): ' +
+          (told[e.outcome] || 'it was finished') +
+          (e.rounds > 1 ? ', after ' + e.rounds + ' rounds' : '') +
+          (e.faults && e.faults.length ? '. What had to be put right then: ' + e.faults.join(', ') : '') +
+          '.',
+      }));
+      const all = [...items, ...work];
+      const idOf = (it, i) => (it.ref && it.ref.id) || it.nid || 'I' + i;
+      // A RARE WORD WEIGHS MORE. A word found in many of the things kept says little about which one is meant; one found in two
+      // says a lot. How many words match decides WHETHER a thing is a seed (one for the team's own, two for general practice and
+      // for a piece of work); the weight decides the ORDER.
+      const held = all.map((it) => stems(it.match || it.text));
+      const weight = new Map(
+        words.map((w) => [
+          w,
+          1 + Math.log((all.length + 1) / (held.reduce((n, has) => n + (has.has(w) ? 1 : 0), 0) + 1)),
+        ]),
+      );
+      // WHAT THE TEAM HAS COME TO BELIEVE OF A LESSON moves it too (team/hindsight.js): one that has helped rises, one shown three
+      // times and never used sinks. It moves down the order; it is never dropped from it.
+      const belief = (it) => {
+        const r = it.ref;
+        if (!r) return 0;
+        return (
+          ((r.conf == null ? 0.5 : r.conf) - 0.5) * 2 +
+          ((r.shown || 0) >= 3 ? (r.used || 0) / r.shown - (r.used ? 0 : 0.8) : 0)
+        );
+      };
+      // ---- THE SEEDS: where the question lands
+      const seeds = new Map(); // what the walk starts from: firm matches only (two words, a named file, a piece of work)
+      const landed = new Map(); // every match, firm or not: id -> { hits, rank }
+      all.forEach((it, i) => {
+        const hits = words.filter((w) => held[i].has(w));
+        const need = it.kind === 'base' || it.kind === 'experience' ? (again && it.kind === 'experience' ? 1 : 2) : 1;
+        if (hits.length < need) return;
+        const rank = hits.reduce((n, w) => n + weight.get(w), 0);
+        landed.set(idOf(it, i), { hits: hits.length, rank });
+        if (hits.length >= 2 || it.kind === 'experience') seeds.set(idOf(it, i), rank);
+      });
+      const edges = edgesOf(ctx.state);
+      // a file the request names is a seed of its own, and the strongest: it outranks any one word
+      const known = new Set(edges.flatMap(([a, b]) => [a, b]));
+      for (const name of String(question).match(/\b[\w.-]+(?:\/[\w.-]+)*\.[a-z]{1,5}\b/gi) || [])
+        for (const id of known)
+          if (
+            id.startsWith('F:') &&
+            (id === fileId(name) || id.endsWith('/' + name.toLowerCase()) || fileId(name).endsWith('/' + id.slice(2)))
+          )
+            seeds.set(id, 8);
+      // ---- THE WALK: two steps out along what ties the kept things together (team/graph.js)
+      const found = walk({ seeds, edges, steps: 2 });
+      const ranked = all
+        .map((it, i) => {
+          const id = idOf(it, i);
+          const hit = landed.get(id);
+          const got = found.get(id);
+          const reached = got && got.hops > 0 && (!hit || got.rank > hit.rank);
+          if (!hit && !(got && got.hops > 0 && got.rank >= 1.5)) return null; // reached, but too faintly to be worth a seat's eye
+          return {
+            ...it,
+            score: hit ? hit.hits : 1,
+            rank: Math.max(hit ? hit.rank : 0, got ? got.rank : 0) + belief(it),
+            ...(reached ? { from: reachedBy(got.via), reached: got.via } : {}),
+          };
         })
-        .filter((it) => it.score > (it.kind === 'base' ? 1 : 0))
-        .sort((a, b) => own(b) - own(a) || b.score - a.score || b.at - a.at)
-        .slice(0, 8);
+        .filter(Boolean);
+      // "AGAIN", "STILL", "LIKE LAST TIME": the earlier attempt itself is said first. Otherwise a piece of work is only a way through.
+      const before = again
+        ? ranked
+            .filter((it) => it.kind === 'experience')
+            .sort((a, b) => b.rank - a.rank || b.at - a.at)
+            .slice(0, 1)
+            .map((it) => ({ ...it, kind: 'earlier', score: 9, rank: 99 }))
+        : [];
+      return [
+        ...before,
+        ...ranked
+          .filter((it) => it.kind !== 'experience' && (it.kind !== 'base' || it.score > 1))
+          .sort((a, b) => own(b) - own(a) || b.rank - a.rank || b.at - a.at),
+      ].slice(0, 8);
     },
 
     // the ticket the customer chose on the Jira tab to talk about: every seat that answers is given it, until it is cleared
@@ -1230,6 +1713,19 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
       );
       emit('workspace');
     },
+    // HINDSIGHT'S READING (team/hindsight.js): how the team is doing, read off its own experiences
+    hindsight: () => ({ ...ctx.hindsight(), links: edgesOf(ctx.state).length }),
+    // THE SOUL'S EDGES (team/graph.js): what ties the kept things together, as [from, to, kind]
+    graph: () => edgesOf(ctx.state),
+    // WHAT WOULD BE CONTRIBUTED (team/share.js): the team's lessons with everything of the person's own taken out. Nothing is sent
+    // from here; this is what a sender would be handed, and all it would be handed.
+    contribution: () =>
+      ctx.state.learning.contribute
+        ? forSharing(
+            ctx.state.learning.ledger,
+            ctx.state.chat.filter((m) => m.by === 'you').map((m) => m.text),
+          )
+        : [],
     setContribute(on) {
       ctx.state.learning.contribute = !!on;
       emit('learning');
@@ -1264,9 +1760,13 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
   installSource(ctx);
   installTicket(ctx);
   installHost(ctx);
+  installManners(ctx);
   installBuild(ctx);
   installRound(ctx);
   installCards(ctx);
+  installThread(ctx);
+  installHindsight(ctx);
+  installSlates(ctx);
   installResearch(ctx);
   return core;
 }

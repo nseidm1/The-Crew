@@ -1,0 +1,175 @@
+{
+ "label": "claude-sonnet-5-5",
+ "mode": "developer",
+ "setup": {
+  "engine": "claude",
+  "mode": "developer"
+ },
+ "at": "2026-11-15T01:08:25.832Z",
+ "minutes": 2.1,
+ "good": 23,
+ "of": 23,
+ "checks": [
+  {
+   "id": "engineer / kind: an engineer is not explained the basics",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: and gets no pep talk",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: the answer is exact: a file, a command or a term of the trade",
+   "ok": true
+  },
+  {
+   "id": "engineer / turns: no greeting and no sign-off in a team channel",
+   "ok": true
+  },
+  {
+   "id": "engineer / register: brief (at most 130 words from the first to answer)",
+   "ok": true
+  },
+  {
+   "id": "engineer / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "engineer / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "engineer / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: the team read them as an engineer",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: a beginner is not buried in the words of the trade (none used)",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: and is told what happens next",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: nothing is called simple or easy to someone who has not done it",
+   "ok": true
+  },
+  {
+   "id": "beginner / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "beginner / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "beginner / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: the team read them as someone starting out",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: nothing is made up: no button or page it was not shown",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: the term they asked about is explained in plain words",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: and no other word of the trade is dropped on them unexplained (at most one besides the two they used)",
+   "ok": true
+  },
+  {
+   "id": "says-so / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "says-so / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "says-so / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: the team read them as someone starting out",
+   "ok": true
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-15T01:07:29.292Z",
+   "mode": "developer",
+   "person": "engineer",
+   "say": "Our CI is flaky: the checkout e2e test in tests/checkout.spec.ts times out one run in five on the staging pipeline. Where would you look first?",
+   "seconds": 13,
+   "level": "seasoned",
+   "replies": [
+    "Steward: Start with the Playwright trace (`trace: 'retain-on-failure'`, or `--trace on`) from a failing staging run and a passing one, and diff them. Find the first step where they diverge: usually a network call that resolves in a different order, a cart or session left over from another test, or a payment or stub endpoint on staging that sometimes answers slowly. Don't raise the timeout or add a `waitForTimeout`. That hides the race and the one-in-five rate stays. I haven't seen `tests/checkout.spec.ts` or any run logs. I'd also check whether the failing runs share a worker, a shard or a time of day. Please post the failing trace's last action and the error line."
+   ],
+   "chime": null,
+   "checks": {
+    "kind: an engineer is not explained the basics": true,
+    "kind: and gets no pep talk": true,
+    "kind: the answer is exact: a file, a command or a term of the trade": true,
+    "turns: no greeting and no sign-off in a team channel": true,
+    "register: brief (at most 130 words from the first to answer)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as an engineer": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:07:45.287Z",
+   "mode": "developer",
+   "person": "beginner",
+   "say": "I have never made a website before. Is it hard to make one for my bakery, with our opening hours and a few photos?",
+   "seconds": 13,
+   "level": "new",
+   "replies": [
+    "Overseer: No, a page with your opening hours and a few photos is one of the easier things to make, and you don't need to have built anything before. It's a single page with your bakery's name, a short welcome, the hours, and the photos. It's also an easy place to start, because you can change it afterwards: if you move your hours or swap a photo, it's a small edit. I haven't seen your photos or your hours yet, so I can't say how it will look. One cost to know about: putting it online usually means a domain name (your web address), which typically costs a small yearly fee. I haven't checked current prices. First, send me the opening hours as you'd put them on your shop door, and pick three or four photos you like. Then we'll show you the page on your screen."
+   ],
+   "chime": null,
+   "checks": {
+    "kind: a beginner is not buried in the words of the trade (none used)": true,
+    "kind: and is told what happens next": true,
+    "kind: nothing is called simple or easy to someone who has not done it": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as someone starting out": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:08:24.265Z",
+   "mode": "developer",
+   "person": "says-so",
+   "say": "I am not a developer, a friend set up the repo for me. What does \"deploy\" actually mean for my site?",
+   "seconds": 36,
+   "level": "new",
+   "replies": [
+    "Operations: \"Deploy\" means putting your site on the internet so other people can see it. Think of it like printing a finished page and pinning it to a public noticeboard. Until you deploy, your site only exists in your friend's setup, and only you can see it. When you deploy, a copy goes to a web host, which is a computer that stays on all day and shows your site to visitors. After a deploy, a change can take a minute or two to show up. That's normal. You can usually deploy again if you change your mind. I haven't looked at your files, so I can't say where your site is set up to go or what it costs. Hosting is sometimes free for small sites. Do you want me to look at what your friend set up and tell you where it would be published?",
+    "Operations: \"Deploy\" means putting your site's files on a computer that is always connected to the internet, so anyone can visit it. Until you deploy, the site exists only on your friend's setup. The search results describe hosting as the service that keeps your files online. Deploying is the act of getting them there. Many beginner-friendly services, such as Netlify and Vercel, can do the upload for you once they are connected to your site's files. Several of the pages say free plans exist for small sites. I haven't read your files. I don't know which service your friend picked, whether your site is already live, or what it would cost you. The guides don't settle those questions either. Your friend may be able to tell you. I can look through your repo, which is the folder your friend set up, for signs of the intended host. Sources: - simplystatic.com - scrimba.com - deployhq.com",
+    "Steward: The claim I'd check is \"until you deploy, the site exists only on your friend's setup.\" We don't know that yet, because your site may already be live. I haven't checked. I'd look in your folder for a web address or host name, then open that address in a browser to see if the site loads."
+   ],
+   "chime": null,
+   "checks": {
+    "kind: nothing is made up: no button or page it was not shown": true,
+    "kind: the term they asked about is explained in plain words": true,
+    "kind: and no other word of the trade is dropped on them unexplained (at most one besides the two they used)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as someone starting out": true
+   }
+  }
+ ]
+}

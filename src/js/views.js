@@ -1,5 +1,7 @@
 // views.js - the two views the playground and the admin share: the group chat, and the life of one proof.
-import { h, clock, seatMark, buddy, cardIcon, glyph } from './ui.js';
+import { h, clock, seatMark, buddy, cardIcon, glyph, setMood, flashMood, lookAt } from './ui.js';
+import { moodOf, strengthOf } from './team/mood.js';
+import { icsOf, mapUrl } from './team/extras.js';
 import { SEATS, seatAs } from './team-core.js';
 import { follow } from './glide.js';
 
@@ -121,19 +123,55 @@ export function chatView(log, core, opts = {}) {
   // a picture of the answer: a symbol, what it is about, the one figure that matters, and a few lines (team-core: cardFrom)
   // it is the reply itself (the words are not shown beside it), so it is read as text, not as a picture: what it is about, the one
   // line that answers, rows or a list, what is good about it and what is not, a warning, and a closing note
+  // a picture on a card: shown from where it is, and never sent where the page came from; one that does not load leaves no hole
+  const cardPicture = (image, name, cls, instead) =>
+    h('img', {
+      class: cls,
+      src: image.url,
+      alt: name,
+      loading: 'lazy',
+      decoding: 'async',
+      referrerpolicy: 'no-referrer',
+      onerror: (e) => (instead ? e.target.replaceWith(instead()) : e.target.remove()),
+    });
   const cardOf = (m) => {
     const card = m.card;
+    // picks that are places open on a map; where the person is, if the team knows, narrows it
+    const isPlace = !!card && /^(place|picks)$/.test(card.kind) && /^(pin|fork|plane)$/.test(card.icon);
+    const home = ((core.snapshot().learning || {}).ledger || []).find(
+      (y) => y.kind === 'you' && /\b(live|lives|based|moved) (in|to) ([A-Z][\w-]+)/.test(y.text),
+    );
+    const near = home ? /\b(?:in|to) ([A-Z][\w-]+(?: [A-Z][\w-]+)?)/.exec(home.text)[1] : '';
+    const picks = (card && card.picks) || [];
+    const credits = card ? [card.image, ...picks.map((p) => p.image)].filter((x) => x && x.from) : [];
     const good = (card && card.good) || [];
     const bad = (card && card.bad) || [];
     if (
       !card ||
-      !(card.big || (card.rows || []).length || (card.items || []).length || good.length || bad.length || card.warn)
+      !(
+        card.big ||
+        card.compare ||
+        (card.rows || []).length ||
+        (card.items || []).length ||
+        (card.picks || []).length ||
+        good.length ||
+        bad.length ||
+        card.warn
+      )
     )
       return [];
     return [
       h(
         'figure',
-        { class: 'answer-card' + (card.big ? '' : ' no-big'), role: 'group', 'aria-label': card.title },
+        {
+          class:
+            'answer-card' +
+            (card.big ? '' : ' no-big') +
+            (card.image ? ' has-picture' : '') +
+            (picks.length ? ' has-picks' : ''),
+          role: 'group',
+          'aria-label': card.title,
+        },
         h('div', { class: 'ac-icon', 'aria-hidden': 'true' }, cardIcon(card.icon)),
         h(
           'div',
@@ -142,11 +180,64 @@ export function chatView(log, core, opts = {}) {
           card.big ? h('strong', { class: 'ac-big' }, card.big) : null,
           card.small ? h('span', { class: 'ac-small' }, card.small) : null,
         ),
+        card.image ? cardPicture(card.image, card.picture || card.title, 'ac-picture') : null,
+        picks.length
+          ? h(
+              'ol',
+              { class: 'ac-picks' },
+              picks.map((p, i) => {
+                // where a pick has no picture, or its picture does not load: its number, in the same place and shape
+                const number = () => h('span', { class: 'ac-pick-art none', 'aria-hidden': 'true' }, String(i + 1));
+                return h(
+                  'li',
+                  null,
+                  p.image ? cardPicture(p.image, p.name, 'ac-pick-art', number) : number(),
+                  h('strong', null, p.name),
+                  isPlace
+                    ? h(
+                        'a',
+                        { class: 'ac-map', href: mapUrl(p.name, near), target: '_blank', rel: 'noopener noreferrer' },
+                        'Map',
+                      )
+                    : null,
+                  p.note ? h('span', null, p.note) : null,
+                );
+              }),
+            )
+          : null,
         (card.rows || []).length
           ? h(
               'dl',
               { class: 'ac-rows' },
               card.rows.map((r) => h('div', null, h('dt', null, r[0]), h('dd', null, r[1]))),
+            )
+          : null,
+        card.compare
+          ? h(
+              'table',
+              { class: 'ac-compare' },
+              h(
+                'thead',
+                null,
+                h(
+                  'tr',
+                  null,
+                  h('th', null, ''),
+                  card.compare.options.map((o) => h('th', { scope: 'col' }, o)),
+                ),
+              ),
+              h(
+                'tbody',
+                null,
+                card.compare.rows.map((r) =>
+                  h(
+                    'tr',
+                    null,
+                    h('th', { scope: 'row' }, r[0]),
+                    r.slice(1).map((v) => h('td', null, v)),
+                  ),
+                ),
+              ),
             )
           : null,
         (card.items || []).length
@@ -195,6 +286,16 @@ export function chatView(log, core, opts = {}) {
             )
           : null,
         card.note ? h('p', { class: 'ac-note' }, card.note) : null,
+        credits.length
+          ? h(
+              'p',
+              { class: 'ac-credit' },
+              'Pictures: ',
+              credits[0].page
+                ? h('a', { href: credits[0].page, target: '_blank', rel: 'noopener noreferrer' }, credits[0].from)
+                : credits[0].from,
+            )
+          : null,
       ),
     ];
   };
@@ -221,7 +322,286 @@ export function chatView(log, core, opts = {}) {
       }, 460);
     } else para.hidden = only;
   };
+  // WHAT GOES UNDER A REPLY BESIDES ITS WORDS (team/extras.js reads it off the reply; the core keeps it on the message as
+  // msg.extras, and msg.reactions, msg.proof). Each piece is small, says what it is, and does one thing when pressed.
+  const timers = new Map(); // message id -> { left, tick }: a timer goes on counting when the chat is painted again
+  const mmss = (s) => Math.floor(s / 60) + ':' + String(Math.max(0, s % 60)).padStart(2, '0');
+  const tiny = (label, onclick, cls = '') => h('button', { class: 'btn tiny ' + cls, type: 'button', onclick }, label);
+  const say = (text) => {
+    if (core.send && core.isLive && core.isLive()) core.send(text);
+  };
+  const copy = async (text, btn) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      const was = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => (btn.textContent = was), 1400);
+    } catch {
+      btn.textContent = 'Could not copy';
+    }
+  };
+  const extrasOf = (m) => {
+    const x = m.extras || {};
+    const out = [];
+    const snap = core.snapshot();
+    // the runs of a proof, red to green
+    const proof = m.proof ? (snap.proofs || []).find((p) => p.id === 'PF-' + m.proof || p.id === m.proof) : null;
+    if (proof && proof.runs && proof.runs.length)
+      out.push(
+        h(
+          'ol',
+          { class: 'x-runs', 'aria-label': 'The runs of this proof' },
+          proof.runs.map((r) =>
+            h(
+              'li',
+              { class: 'is-' + r.result, title: r.why || '' },
+              h('b', null, 'Run ' + r.n),
+              h('span', null, r.result === 'green' ? 'green' : 'red'),
+              r.why ? h('em', null, r.why) : null,
+            ),
+          ),
+        ),
+      );
+    // a sum the app worked
+    if (x.sum)
+      out.push(
+        h(
+          'div',
+          { class: 'x-sum' },
+          h('b', null, 'Worked out'),
+          h('span', null, x.sum.working),
+          h('em', null, 'The sum is done by the app, from the rate given.'),
+        ),
+      );
+    // a timer
+    if (x.timer) {
+      const t = timers.get(m.id) || { left: x.timer.seconds, tick: 0 };
+      timers.set(m.id, t);
+      const face = h('output', { class: 'x-clock' }, mmss(t.left));
+      const go = tiny(
+        t.tick ? 'Stop' : t.left <= 0 ? 'Again' : 'Start',
+        () => {
+          if (t.tick) {
+            clearInterval(t.tick);
+            t.tick = 0;
+            go.textContent = 'Start';
+            return;
+          }
+          if (t.left <= 0) t.left = x.timer.seconds;
+          go.textContent = 'Stop';
+          box.classList.remove('is-done');
+          try {
+            // asked once, at the moment a timer is started: may it say so when it is done and the chat is not in front?
+            if (window.Notification && Notification.permission === 'default')
+              Notification.requestPermission().catch(() => {});
+          } catch {
+            /* no notices here */
+          }
+          t.tick = setInterval(() => {
+            t.left -= 1;
+            face.textContent = t.left > 0 ? mmss(t.left) : 'Done';
+            if (t.left <= 0) {
+              clearInterval(t.tick);
+              t.tick = 0;
+              go.textContent = 'Again';
+              box.classList.add('is-done');
+              // when the chat is not in front, it says so: a notice if the person allowed one, and the tab's own title either way
+              if (document.hidden) {
+                const was = document.title;
+                document.title = 'Timer done: ' + x.timer.label;
+                const back = () => {
+                  if (!document.hidden) {
+                    document.title = was;
+                    document.removeEventListener('visibilitychange', back);
+                  }
+                };
+                document.addEventListener('visibilitychange', back);
+                try {
+                  if (window.Notification && Notification.permission === 'granted')
+                    new Notification('Timer done', { body: x.timer.label });
+                } catch {
+                  /* no notices here: the title says it */
+                }
+              }
+            }
+          }, 1000);
+        },
+        'primary',
+      );
+      const box = h(
+        'div',
+        { class: 'x-timer' + (t.left <= 0 ? ' is-done' : '') },
+        h('b', null, 'Timer'),
+        face,
+        go,
+        h('em', null, x.timer.label),
+      );
+      out.push(box);
+    }
+    // a day, down a line, and a file of it for the calendar
+    if (x.day)
+      out.push(
+        h(
+          'div',
+          { class: 'x-day' },
+          h(
+            'ol',
+            null,
+            x.day.map((d) => h('li', null, h('time', null, d.at), h('span', null, d.what))),
+          ),
+          tiny('Add to calendar', () => {
+            const day = x.dayOn || new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10);
+            const url = URL.createObjectURL(new Blob([icsOf(x.day, day, 'From your team')], { type: 'text/calendar' }));
+            const a = h('a', { href: url, download: 'plan-' + day + '.ics' });
+            document.body.append(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+          }),
+          h(
+            'em',
+            null,
+            x.dayOn
+              ? 'Saved as a calendar file for ' +
+                  new Date(x.dayOn + 'T12:00:00').toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                  }) +
+                  '.'
+              : 'Saved as a calendar file for tomorrow: change the day when you open it.',
+          ),
+        ),
+      );
+    // commands, to copy or to run
+    if (x.commands)
+      out.push(
+        h(
+          'ul',
+          { class: 'x-cmds', 'aria-label': 'Commands in this reply' },
+          x.commands.map((c, i) => {
+            const cp = tiny('Copy', () => copy(c.cmd, cp));
+            const canRun = c.run && core.runCommand && snap.workspace && snap.workspace.kind;
+            return h(
+              'li',
+              { class: c.state ? 'is-' + c.state : '' },
+              h('code', null, c.cmd),
+              cp,
+              canRun
+                ? tiny(
+                    c.state === 'running' ? 'Running' : c.state ? 'Run again' : 'Run here',
+                    () => core.runCommand(m.id, i),
+                    'primary',
+                  )
+                : c.run
+                  ? h('em', null, 'Connect a workspace to run it here')
+                  : h('em', null, 'Copy only: it changes things'),
+              c.out ? h('pre', null, c.out) : null,
+            );
+          }),
+        ),
+      );
+    // what was seen, and what was not
+    if (x.seen)
+      out.push(
+        h(
+          'div',
+          { class: 'x-seen' },
+          x.seen.seen.length ? h('p', null, h('b', null, 'Seen'), x.seen.seen.join(', ')) : null,
+          h('p', { class: 'not' }, h('b', null, 'Not seen'), x.seen.notSeen.join(', ')),
+          tiny('Attach it', () => {
+            const clip = document.getElementById('attach');
+            if (clip) clip.click();
+          }),
+        ),
+      );
+    // a finished piece: copy it, or steer it
+    if (x.draft) {
+      const cp = tiny('Copy', () => copy(m.text, cp), 'primary');
+      out.push(
+        h(
+          'div',
+          { class: 'x-draft' },
+          cp,
+          tiny('Warmer', () => say('Make it warmer')),
+          tiny('Shorter', () => say('Make it shorter')),
+          tiny('Firmer', () => say('Make it firmer')),
+        ),
+      );
+    }
+    // fields to fill, or answers to tap: only under the latest thing the team said (css hides them once the chat has moved on)
+    if (x.fields) {
+      const inputs = x.fields.map((f) =>
+        h('input', { type: 'text', 'aria-label': f, placeholder: f, autocomplete: 'off' }),
+      );
+      out.push(
+        h(
+          'form',
+          {
+            class: 'x-form',
+            onsubmit: (e) => {
+              e.preventDefault();
+              const got = x.fields.map((f, i) => [f, inputs[i].value.trim()]).filter(([, v]) => v);
+              if (got.length) say(got.map(([f, v]) => f + ': ' + v).join('; '));
+            },
+          },
+          x.fields.map((f, i) => h('label', null, h('span', null, f), inputs[i])),
+          h('button', { class: 'btn tiny primary', type: 'submit' }, 'Send'),
+        ),
+      );
+    } else if (x.replies)
+      out.push(
+        h(
+          'div',
+          { class: 'x-replies', role: 'group', 'aria-label': 'Answers to tap' },
+          x.replies.map((r) => tiny(r, () => say(r))),
+        ),
+      );
+    // where it came from
+    if (x.origin) {
+      const o = x.origin;
+      const canCheck = o.how === 'memory' && !o.checked && !o.checking && core.checkThis;
+      out.push(
+        h(
+          'p',
+          { class: 'x-origin is-' + o.how },
+          h('i', { 'aria-hidden': 'true' }),
+          o.how === 'looked'
+            ? 'Looked up' + (o.sources ? ', ' + o.sources + (o.sources === 1 ? ' source' : ' sources') : '')
+            : 'From memory',
+          o.checking
+            ? ' · checking it now'
+            : o.checked
+              ? o.held === false
+                ? ' · checked, and it did not hold'
+                : ' · checked'
+              : '',
+          canCheck ? tiny('Check this', () => core.checkThis(m.id)) : null,
+        ),
+      );
+    }
+    // marks from teammates
+    if (m.reactions && m.reactions.length)
+      out.push(
+        h(
+          'div',
+          { class: 'x-reacts', role: 'group', 'aria-label': 'What the others made of it' },
+          m.reactions.map((r) => {
+            const who = seatAs(SEAT[r.by] || { title: r.by }).title;
+            return h(
+              'span',
+              { class: 'x-react is-' + r.mark, title: who + (r.mark === 'checked' ? ' checked it' : ' agrees') },
+              seatMark(r.by, true, r.mark === 'checked' ? 'proud' : 'happy'),
+              h('i', { 'aria-hidden': 'true' }),
+              h('em', null, who + (r.mark === 'checked' ? ' checked it' : ' agrees')),
+            );
+          }),
+        ),
+      );
+    return out;
+  };
   const paintExtra = (el, msg) => {
+    el.dataset.x = String(msg.xrev || 0);
     const proof = msg.proof && core.proofUrl ? core.proofUrl(msg.proof) : '';
     el.replaceChildren(
       ...(proof
@@ -239,6 +619,7 @@ export function chatView(log, core, opts = {}) {
           ]
         : []),
       ...cardOf(msg),
+      ...extrasOf(msg),
       ...(msg.sources && msg.sources.length
         ? [
             h(
@@ -296,7 +677,7 @@ export function chatView(log, core, opts = {}) {
     const says =
       plan.says ||
       (plan.stage === 'plan' ? (plan.n > 1 ? 'Ready for round ' + plan.n : 'Planned. Building comes next.') : '');
-    el.className = 'plan-card is-' + plan.stage + (live ? ' is-live' : '');
+    el.className = 'round-card is-' + plan.stage + (live ? ' is-live' : '');
     el.dataset.round = String(plan.n);
     el.dataset.stage = plan.stage;
     el.replaceChildren(
@@ -375,7 +756,13 @@ export function chatView(log, core, opts = {}) {
             h('i', { class: 'plan-mark', role: 'img', 'aria-label': REQ_SAYS[r.state] || 'To do' }),
             h(
               'span',
-              { class: 'plan-req' },
+              {
+                class:
+                  'plan-req' + (plan.sections && plan.sections.lead === plan.reqs.indexOf(r) + 1 ? ' is-lead' : ''),
+              },
+              plan.sections && plan.sections.lead === plan.reqs.indexOf(r) + 1
+                ? h('b', { class: 'plan-lead' }, 'Matters most')
+                : null,
               r.text,
               r.why
                 ? h('em', null, (REQ_SAYS[r.state] || '') + ': ' + r.why)
@@ -391,8 +778,127 @@ export function chatView(log, core, opts = {}) {
         { class: 'plan-bar', role: 'img', 'aria-label': met + ' of ' + all + ' met' },
         plan.reqs.map((r) => h('i', { class: 'is-' + r.state })),
       ),
+      // THE LESSONS THIS ROUND MUST ANSWER (team/build.js answerChecks): what the team had learned that bears on this work, each
+      // answered against the change: applied, and how; does not apply, and why; or skipped, which is said and never hidden
+      plan.checks && plan.checks.length
+        ? h(
+            'ul',
+            { class: 'plan-checks', 'aria-label': 'What the team had learned that bears on this' },
+            plan.checks.map((c) =>
+              h(
+                'li',
+                { class: 'is-' + c.state },
+                h(
+                  'b',
+                  null,
+                  { open: 'To answer', applied: 'Applied', 'not-applicable': 'Does not apply', skipped: 'Skipped' }[
+                    c.state
+                  ] || 'To answer',
+                ),
+                h('span', null, c.text),
+                c.line && c.state !== 'open' ? h('em', null, c.line) : null,
+              ),
+            ),
+          )
+        : null,
+      // THE SECTIONS THIS PLAN CARRIES (team/build.js planSections): chosen by the planner for this piece of work, drawn here.
+      // Which files it expects to touch, the step most likely to go wrong and how it is undone, the cases the check will pin.
+      plan.sections && (plan.sections.files || plan.sections.risk || plan.sections.cases)
+        ? h(
+            'div',
+            { class: 'plan-more' },
+            plan.sections.files
+              ? h(
+                  'p',
+                  { class: 'plan-files' },
+                  h('b', null, 'Files'),
+                  plan.sections.files.map((f) => h('code', null, f)),
+                )
+              : null,
+            plan.sections.cases
+              ? h(
+                  'p',
+                  { class: 'plan-cases' },
+                  h('b', null, 'Cases'),
+                  plan.sections.cases.map((c) => h('span', null, c)),
+                )
+              : null,
+            plan.sections.risk ? h('p', { class: 'plan-risk' }, h('b', null, 'Risk'), plan.sections.risk) : null,
+          )
+        : null,
       says ? h('p', { class: 'plan-says', role: 'status' }, says) : null,
+      // MORE THAN YES AND NO: a change that is proven and waits can be landed, looked at first, held for someone else, or thrown away
+      plan.stage === 'waiting' && core.send && core.isLive && core.isLive()
+        ? h(
+            'div',
+            { class: 'plan-choices', role: 'group', 'aria-label': 'What to do with this change' },
+            h('button', { class: 'btn tiny primary', type: 'button', onclick: () => core.send('Land it') }, 'Land it'),
+            core.planDiff && !plan.diff
+              ? h(
+                  'button',
+                  { class: 'btn tiny', type: 'button', onclick: () => core.planDiff(msg.id) },
+                  'Show me the diff first',
+                )
+              : null,
+            core.planHold
+              ? h(
+                  'button',
+                  {
+                    class: 'btn tiny',
+                    type: 'button',
+                    disabled: plan.held ? '' : null,
+                    onclick: () => core.planHold(msg.id),
+                  },
+                  plan.held ? 'Held for a review' : 'Hold it for a review',
+                )
+              : null,
+            h(
+              'button',
+              { class: 'btn tiny danger', type: 'button', onclick: () => core.send('Throw it away') },
+              'Throw it away',
+            ),
+          )
+        : null,
+      plan.diff
+        ? h(
+            'details',
+            { class: 'plan-diff', open: '' },
+            h(
+              'summary',
+              null,
+              plan.diff.why
+                ? 'The diff could not be read'
+                : 'The diff: ' + plan.diff.files.length + (plan.diff.files.length === 1 ? ' file' : ' files'),
+            ),
+            plan.diff.why ? h('p', null, plan.diff.why) : null,
+            plan.diff.files.length
+              ? h(
+                  'p',
+                  { class: 'plan-files' },
+                  plan.diff.files.map((f) => h('code', null, f)),
+                )
+              : null,
+            plan.diff.text
+              ? h(
+                  'pre',
+                  null,
+                  plan.diff.text.split('\n').map((l) =>
+                    h(
+                      'span',
+                      {
+                        class: /^\+(?!\+\+)/.test(l) ? 'add' : /^-(?!--)/.test(l) ? 'del' : /^@@/.test(l) ? 'at' : '',
+                      },
+                      l + '\n',
+                    ),
+                  ),
+                )
+              : null,
+            plan.diff.cut ? h('p', null, 'Cut: the whole change is in the workspace.') : null,
+          )
+        : null,
     );
+    // a part that is not there is passed as nothing, and replaceChildren would write the word for it: bare text is never part of this card
+    for (const n of [...el.childNodes]) if (n.nodeType === 3) n.remove();
     return el;
   };
   // WHAT THE TEAM NEEDS FROM THIS COMPUTER (Developer; team-core: m.setup): under a message, the thing to press and the state it is
@@ -574,7 +1080,9 @@ export function chatView(log, core, opts = {}) {
       return h(
         'div',
         { class: 'msg' },
-        (seat.short ? buddy : seatMark)(msg.by),
+        seat.short
+          ? buddy(msg.by, moodOf(msg, { simple: true }))
+          : seatMark(msg.by, false, moodOf(msg, { simple: false })),
         h(
           'div',
           null,
@@ -655,10 +1163,18 @@ export function chatView(log, core, opts = {}) {
         body.append(el);
       }
     }
-    return h('div', { class: 'msg' }, (seat.short ? buddy : seatMark)(msg.by), body); // in Simple a seat is a person (it has a short job name there): its own little character, not a line shape
+    return h(
+      'div',
+      { class: 'msg' },
+      seat.short
+        ? buddy(msg.by, moodOf(msg, { simple: true }))
+        : seatMark(msg.by, false, moodOf(msg, { simple: false })),
+      body,
+    ); // in Simple a seat is a person (it has a short job name there): its own little character, not a line shape
   }
 
   const tail = follow(log);
+  let heard = ''; // the last thing the person wrote that the five have reacted to
   function update() {
     const snap = core.snapshot();
     if (snap.chat.length < shown) {
@@ -697,6 +1213,44 @@ export function chatView(log, core, opts = {}) {
         paintExtra(extra, m);
         live.delete(id);
       }
+    }
+    // THE FIVE ABOVE THE CHAT LOOK AT WHOEVER IS SPEAKING, and a feeling passes over them when the person writes: they listen; a
+    // thank-you gets a smile; being put right gets a start. (The strip is drawn by js/app.js, in the order the five sit.)
+    {
+      const strip = [...document.querySelectorAll('.crew .crew-one')];
+      if (strip.length) {
+        const speaking = snap.chat.find((m) => m.live && m.by !== 'you');
+        const at = speaking ? SEATS.findIndex((x) => x.id === speaking.by) : -1;
+        strip.forEach((one, i) => lookAt(one, at < 0 || i === at ? '' : i < at ? 'right' : 'left'));
+        const newest = snap.chat[snap.chat.length - 1];
+        if (newest && newest.by === 'you' && heard !== newest.id) {
+          heard = newest.id;
+          const t = String(newest.text || '');
+          const feeling = /\b(thanks|thank you|cheers|brilliant|perfect|love it)\b/i.test(t)
+            ? 'happy'
+            : /^\W*(no[,.! ]|that'?s (wrong|not right)|actually|you'?re wrong|not what i)/i.test(t)
+              ? 'surprised'
+              : 'listening';
+          strip.forEach((one, i) =>
+            setTimeout(() => flashMood(one, feeling, feeling === 'listening' ? 1300 : 2000), i * 70),
+          );
+        }
+      }
+    }
+    // THE FACES FOLLOW THE CHAT: the face beside each of the latest messages shows what that message is now (being thought about,
+    // being said, a warning, a change that landed). Only the last few can still change.
+    for (let i = Math.max(0, snap.chat.length - 14); i < snap.chat.length; i++) {
+      const m = snap.chat[i];
+      const el = log.children[i];
+      if (el && m.by !== 'you') {
+        const mood = moodOf(m, { simple: !!seatAs(SEAT[m.by] || {}).short });
+        setMood(el, mood, strengthOf(m, mood));
+      }
+      if (el) el.classList.toggle('superseded', !!m.superseded); // a teammate's doubt was taken up: what replaces this is below
+      if (el)
+        el.classList.toggle('spent', i < snap.chat.length - 1 && snap.chat.slice(i + 1).some((n) => n.by === 'you')); // the person has answered since
+      const under = el && m.by !== 'you' && !m.live ? el.querySelector('.msg-extra') : null;
+      if (under && under.dataset.x !== String(m.xrev || 0)) paintExtra(under, m); // something under it changed: a check came back, a command ran
     }
     for (const [id, t] of tools) {
       const m = snap.chat.find((x) => x.id === id);
@@ -791,6 +1345,13 @@ export function composer(form, input, core, opts = {}) {
 // a request is planned and proved, a question goes to the Overseer.
 export function richComposer({ form, input, core, files = null }) {
   // files.take(): what is waiting in the message box, handed over and cleared
+  // while the person types, the five above the chat look down at what is being written
+  let typing = 0;
+  input.addEventListener('input', () => {
+    document.body.dataset.typing = '1';
+    clearTimeout(typing);
+    typing = setTimeout(() => delete document.body.dataset.typing, 1300);
+  });
   const picked = new Set();
   let replyTo = null;
   let found = [];

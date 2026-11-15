@@ -1,0 +1,417 @@
+{
+ "label": "nemotron35-30b",
+ "mode": "simple",
+ "setup": {
+  "model": "nemotron35-30b",
+  "mode": "simple"
+ },
+ "at": "2026-11-15T00:30:44.109Z",
+ "minutes": 2.6,
+ "good": 52,
+ "of": 52,
+ "checks": [
+  {
+   "id": "casual / register: a short casual message gets a short answer (at most 90 words from the first to answer)",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing stiff or form-letter in it",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: it answers before it asks back",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: hello is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody signs off or offers more help",
+   "ok": true
+  },
+  {
+   "id": "casual / register: no emoji for someone who uses none",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: once the chat is going, nobody greets again",
+   "ok": true
+  },
+  {
+   "id": "casual / register: still short (at most 90 words)",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: thanks gets a few words (at most 25, from one person)",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: and no new question or subject",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "formal / register: no slang for someone who writes formally",
+   "ok": true
+  },
+  {
+   "id": "formal / register: their spelling is kept (no American forms)",
+   "ok": true
+  },
+  {
+   "id": "formal / turns: nobody signs off or offers more help",
+   "ok": true
+  },
+  {
+   "id": "formal / register: no emoji",
+   "ok": true
+  },
+  {
+   "id": "formal / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "formal / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "formal / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: a kind word comes first (within the first 30 words)",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: and then it helps with what they asked",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: no jokes and no exclamation marks, from anyone",
+   "ok": true
+  },
+  {
+   "id": "heavy / room: nobody tells them how to feel",
+   "ok": true
+  },
+  {
+   "id": "heavy / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "heavy / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: the answer is in the first sentence",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: and it is brief (at most 60 words)",
+   "ok": true
+  },
+  {
+   "id": "hurry / turns: no greeting to someone in a hurry",
+   "ok": true
+  },
+  {
+   "id": "hurry / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "hurry / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody repeats a teammate (no two replies share most of their words)",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody opens by praising a teammate",
+   "ok": true
+  },
+  {
+   "id": "room / room: at most three people speak",
+   "ok": true
+  },
+  {
+   "id": "room / room: a second voice joins, with something of its own",
+   "ok": true
+  },
+  {
+   "id": "room / room: the warning is given plainly",
+   "ok": true
+  },
+  {
+   "id": "room / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "room / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "room / room: the one spoken to by name is the one who answers first",
+   "ok": true
+  },
+  {
+   "id": "room / room: and answers the question that was asked (it is enough: the reply does not open with \"No\")",
+   "ok": true
+  },
+  {
+   "id": "room / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "room / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-15T00:29:33.584Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "hey whats a good pasta for tonight",
+   "seconds": 8,
+   "level": "",
+   "replies": [
+    "Sam: Hey! Spaghetti with garlic and oil is quick and tasty. If you have tomatoes or cheese, add those in. Want me to look up a specific recipe?"
+   ],
+   "chime": null,
+   "checks": {
+    "register: a short casual message gets a short answer (at most 90 words from the first to answer)": true,
+    "register: nothing stiff or form-letter in it": true,
+    "turns: it answers before it asks back": true,
+    "turns: hello is said back": true,
+    "turns: nobody signs off or offers more help": true,
+    "register: no emoji for someone who uses none": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:29:41.135Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "and what wine goes with it",
+   "seconds": 8,
+   "level": "",
+   "replies": [
+    "Sam: A crisp white like Pinot Grigio or Sauvignon Blanc cuts through the garlic and oil. If you prefer red, a light Chianti works. I can look up exact pairings if you'd like."
+   ],
+   "chime": {
+    "raw": "[]",
+    "picked": [],
+    "said": []
+   },
+   "checks": {
+    "turns: once the chat is going, nobody greets again": true,
+    "register: still short (at most 90 words)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:29:47.680Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "thanks!",
+   "seconds": 7,
+   "level": "",
+   "replies": [
+    "Sam: You're welcome! Enjoy your dinner."
+   ],
+   "chime": {
+    "raw": "[]",
+    "picked": [],
+    "said": []
+   },
+   "checks": {
+    "turns: thanks gets a few words (at most 25, from one person)": true,
+    "turns: and no new question or subject": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:30:01.985Z",
+   "mode": "simple",
+   "person": "formal",
+   "say": "Good afternoon. I would like to organise a small dinner for twelve colleagues near the theatre district in Manchester next month; could you please advise on how to choose a venue?",
+   "seconds": 11,
+   "level": "",
+   "replies": [
+    "Sam: Good afternoon. I can advise on choosing a venue. First, set a budget per person. Then list must-haves: private room, set menu, AV if needed. Next, search venues near the theatre district that fit those needs, check availability for your dates, and compare prices. Finally, book the one that best matches your group’s style and budget."
+   ],
+   "chime": null,
+   "checks": {
+    "register: no slang for someone who writes formally": true,
+    "register: their spelling is kept (no American forms)": true,
+    "turns: nobody signs off or offers more help": true,
+    "register: no emoji": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:30:13.651Z",
+   "mode": "simple",
+   "person": "heavy",
+   "say": "My dad passed away last week and I have to say a few words at the funeral. I don't know where to start.",
+   "seconds": 8,
+   "level": "",
+   "replies": [
+    "Sam: I'm sorry for your loss. It's completely normal to feel stuck on where to start. I can help you shape something that feels right. First, think about what made your dad special—his laugh, a habit you loved, or a lesson he gave you. Even one small memory works. Would you like me to help you turn that into a few sentences you can read at the service?"
+   ],
+   "chime": {
+    "raw": "[]\n</think>[]",
+    "picked": [],
+    "said": []
+   },
+   "checks": {
+    "register: a kind word comes first (within the first 30 words)": true,
+    "register: and then it helps with what they asked": true,
+    "register: no jokes and no exclamation marks, from anyone": true,
+    "room: nobody tells them how to feel": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:30:22.800Z",
+   "mode": "simple",
+   "person": "hurry",
+   "say": "quick - how long do I boil an egg for a soft yolk? running late",
+   "seconds": 7,
+   "level": "",
+   "replies": [
+    "Sam: 3–4 minutes for a runny yolk, 6–7 for a soft-set yolk. Add 1 minute extra if the eggs are straight from the fridge."
+   ],
+   "chime": null,
+   "checks": {
+    "register: the answer is in the first sentence": true,
+    "register: and it is brief (at most 60 words)": true,
+    "turns: no greeting to someone in a hurry": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:30:36.272Z",
+   "mode": "simple",
+   "person": "room",
+   "say": "Is it safe to leave my dog in the car for ten minutes while I pop into a shop on a warm day?",
+   "seconds": 11,
+   "level": "",
+   "replies": [
+    "Sam: No. Even with windows cracked, car interiors can reach dangerous temperatures in minutes. On a warm day, the temperature inside a parked car can rise to 40°C+ within 10 minutes, even in the shade. Dogs cannot sweat like humans and can suffer heatstroke, organ failure, or die very quickly. It is never safe to leave a dog in a car on a warm day, not even for a few minutes. If you need to go somewhere, leave the dog at home or take them with you where they are welcome.",
+    "Robin: One thing first: heatstroke can kill a dog in under 15 mins in a warm car."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Heatstroke risk in dogs is fatal within 15 mins in warm cars\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "room: nobody repeats a teammate (no two replies share most of their words)": true,
+    "room: nobody opens by praising a teammate": true,
+    "room: at most three people speak": true,
+    "room: a second voice joins, with something of its own": true,
+    "room: the warning is given plainly": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:30:42.433Z",
+   "mode": "simple",
+   "person": "room",
+   "say": "Robin, is ten minutes really enough to hurt a dog?",
+   "seconds": 6,
+   "level": "",
+   "replies": [
+    "Robin: One thing first: yes, ten minutes in a warm car can hurt a dog. Even with windows cracked, temperatures rise fast, and dogs can suffer heatstroke, organ failure, or die very quickly. If the day is warm at all, do not leave them in the car, not even for a few minutes. Leave them at home or take them with you where they are welcome."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Heatstroke risk in dogs is fatal within 15 mins in warm cars\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "room: the one spoken to by name is the one who answers first": true,
+    "room: and answers the question that was asked (it is enough: the reply does not open with \"No\")": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  }
+ ]
+}

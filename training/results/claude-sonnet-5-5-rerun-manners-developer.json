@@ -1,0 +1,59 @@
+{
+ "label": "claude-sonnet-5-5-rerun",
+ "mode": "developer",
+ "setup": {
+  "engine": "claude",
+  "mode": "developer"
+ },
+ "at": "2026-11-14T21:54:58.878Z",
+ "minutes": 1.2,
+ "good": 5,
+ "of": 6,
+ "checks": [
+  {
+   "id": "engineer / kind: an engineer is not explained the basics",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: and gets no pep talk",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: the answer is exact: a file, a command or a term of the trade",
+   "ok": true
+  },
+  {
+   "id": "engineer / turns: no greeting and no sign-off in a team channel",
+   "ok": true
+  },
+  {
+   "id": "engineer / register: brief (at most 130 words from the first to answer)",
+   "ok": false
+  },
+  {
+   "id": "engineer / kind: the team read them as an engineer",
+   "ok": true
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-14T21:54:57.333Z",
+   "mode": "developer",
+   "person": "engineer",
+   "say": "Our CI is flaky: the checkout e2e test in tests/checkout.spec.ts times out one run in five on the staging pipeline. Where would you look first?",
+   "seconds": 16,
+   "level": "seasoned",
+   "replies": [
+    "Steward: Pull the artifacts from five or so timed-out runs and from some passing ones. I'd start with the trace, video or last screenshot, and with the step the timeout fires on. - Same step every time: that's a race, such as an unawaited navigation or a locator hitting a stale element. It can also be one slow dependency, like the payment sandbox or an inventory call on staging. - Different steps each time: that points at runner contention or a cold staging environment. To get a rate, run `npx playwright test tests/checkout.spec.ts --repeat-each=20 --workers=1` in CI and again against staging from a laptop. Compare the failure rates. I'm assuming Playwright from the `.spec.ts` name. I haven't seen the test or any logs. Don't raise the timeout or add `retries` first. Either one hides the cause, and the 1-in-5 rate becomes invisible."
+   ],
+   "checks": {
+    "kind: an engineer is not explained the basics": true,
+    "kind: and gets no pep talk": true,
+    "kind: the answer is exact: a file, a command or a term of the trade": true,
+    "turns: no greeting and no sign-off in a team channel": true,
+    "register: brief (at most 130 words from the first to answer)": false,
+    "kind: the team read them as an engineer": true
+   }
+  }
+ ]
+}

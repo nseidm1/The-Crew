@@ -42,6 +42,7 @@ export const LIKES = [
   [/\b(funn(y|ier)|humou?r(ous)?|jok(e|es|ey)|playful|light-?hearted)\b/i, 'tone', 'a lighter, funnier tone'],
   [/\b(more formal|formal|professional|more serious)\b/i, 'tone', 'a more formal tone'],
   [/\b(warmer|friendlier|kinder|more personal)\b/i, 'tone', 'a warmer, more personal tone'],
+  [/\b(firmer|more direct|stronger|blunter|more assertive)\b/i, 'tone', 'a firmer, more direct tone'],
   [/\b(shorter|more concise|briefer|less wordy|too long)\b/i, 'length', 'things kept shorter'],
   [/\b(longer|more detail(ed)?|too short)\b/i, 'length', 'things longer, with more detail'],
   [/\b(simpler|plainer|easier to read)\b/i, 'words', 'simpler words'],
@@ -195,6 +196,7 @@ export function installYou(ctx) {
         return n * 10 >= Math.min(a.length, ws.length) * 7;
       });
       if (old) {
+        if (old.text !== text) old.was = [...(old.was || []), old.text].slice(-3); // the earlier wording is kept beside the new one
         old.text = text;
         old.at = Date.now();
         kept.push(old);
@@ -230,7 +232,17 @@ export function installYou(ctx) {
               ? "Here's what we've picked up about you so far:"
               : 'What the team has learned about you, and what you have asked of it:') +
               '\n' +
-              [...facts.map((x) => '- ' + x.text), ...wishes.map((r) => '- You asked: ' + r.text)].join('\n') +
+              [
+                ...facts.map(
+                  (x) =>
+                    '- ' + x.text + (x.was && x.was.length ? ' (before that: ' + x.was[x.was.length - 1] + ')' : ''),
+                ),
+                ...wishes.map((r) => '- You asked: ' + r.text),
+                ...ctx.state.rulings
+                  .filter((r) => r.superseded && /^(standing|likes)/.test(r.kind))
+                  .slice(0, 3)
+                  .map((r) => '- Before that you had asked: ' + r.text + ' (no longer in force)'),
+              ].join('\n') +
               '\n' +
               (isSimple()
                 ? 'If any of it is wrong, say "forget that ..." and it\'s gone. "Forget everything about me" clears the lot.'

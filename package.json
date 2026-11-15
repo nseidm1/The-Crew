@@ -11,7 +11,7 @@
     "start": "node src/server.mjs",
     "bundle": "node tools/bundle.mjs",
     "gateway": "node tools/gateway.mjs",
-    "owner": "FO_OWNER_DIR=.owner FO_KEEP=1 node src/server.mjs",
+    "owner": "PORT=${PORT:-5220} FO_OWNER_DIR=.owner FO_KEEP=1 node src/server.mjs",
     "test": "node tests/run.mjs core runner",
     "test:core": "node tests/run.mjs core",
     "test:runner": "node tests/run.mjs runner",

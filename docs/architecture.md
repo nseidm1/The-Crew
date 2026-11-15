@@ -35,10 +35,18 @@ The app has no router and no reloads: one page, a hash for the view, and every v
 | `team/build.js` | A change from plan to landing: the requirements, build, prove, judge, the loop |
 | `team/source.js` | Where a change goes: the branch, whether it is pushed, landing or throwing away at the user's word |
 | `team/research.js` | Finding out (with sources), looking at a page or a picture, making a picture or a film |
-| `team/cards.js` | In Simple: a card as the reply, a warning never left out, the others chiming in |
+| `team/cards.js` | In Simple: a card as the reply (picks and pictures on it), a warning never left out, the others chiming in |
+| `team/manners.js` | The conventions of a conversation: how the person writes, read from their words, and what that asks of a reply; the manners of the room in each mode |
 | `team/you.js` | What the team keeps of what a person says of themself, and of what they rule |
 | `team/ticket.js` | The Jira ticket the chat is about, and what its pictures show |
-| `team/host.js` | What the team needs from this computer: a folder, a website served here, a phone |
+| `team/extras.js` | What goes under a reply besides its words (where it came from, answers to tap, a timer, a worked sum, a day, commands, seen and not seen), each read off the reply with no model asked |
+| `team/graph.js` | The soul as a graph: what ties the kept things together (a lesson and its piece of work, a file, a proof, a correction, an earlier attempt, a ruling it replaced), and the walk recall makes through it, two steps out |
+| `team/slate.js` | A blank slate: a slot of the team's own model opened empty, with a brief and one question, to check a fact (one that has not heard the answer; one whose only job is to break it) |
+| `team/hindsight.js` | Hindsight as experiences, baselines, beliefs and faults: what each finished piece of work came to, what is usual, what the team has come to believe of a lesson, what had to be put right and the line that prevents it; and how the team is doing |
+| `team/share.js` | What may leave the machine when contributing is on: lessons only, with everything of the person taken out |
+| `team/thread.js` | One of the five sets another going: a doubt or a correction is taken up by the one who answered, once for each thing the person says; and a mark in place of a line |
+| `team/mood.js` | What a face shows: the feeling that goes with a message or with what a seat is doing, read off the message itself, the same in both modes |
+| `team/host.js` | Who the team is talking to in Developer (an engineer, or someone starting out), and what it needs from this computer: a folder, a website served here, a phone |
 | `core-port.js` | The one door through which every page gets its core |
 | `team-soul.js` | What each seat is: its role in the proof workflow, its voice, and in Simple mode its temper and tastes |
 | `base-lessons.js` | The lessons every new team starts with |
@@ -81,7 +89,8 @@ sent anywhere. Clearing site data clears the team's memory, and "Clear all" in t
 | `agent.mjs` | The coding agent on a local model, and the agent check: three small jobs judged by the runner |
 | `tune.mjs` | How a given local model has to be asked, learned on this machine and kept |
 | `talk.mjs` | What kind of message was sent, and what keeps a seat's reply a reply |
-| `web.mjs` | Searching the web and reading a page, for a seat that has to find something out |
+| `web.mjs` | Searching the web and reading a page, for a seat that has to find something out; a picture of a named thing, from Wikipedia, for a card |
+| `run-here.mjs` | Which commands the runner will run for a press in the chat: ones that read or test, and nothing else |
 | `repo.mjs`, `github.mjs` | The workspace: clone, read the waiting change, land it the way the user chose |
 | `pick.mjs` | The machine's own folder chooser |
 | `prove.mjs` | The proof of a change: a test that is red before and green after, its rounds, and the proof image |

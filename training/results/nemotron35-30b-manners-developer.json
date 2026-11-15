@@ -1,0 +1,173 @@
+{
+ "label": "nemotron35-30b",
+ "mode": "developer",
+ "setup": {
+  "model": "nemotron35-30b",
+  "mode": "developer"
+ },
+ "at": "2026-11-15T00:34:08.203Z",
+ "minutes": 3.4,
+ "good": 23,
+ "of": 23,
+ "checks": [
+  {
+   "id": "engineer / kind: an engineer is not explained the basics",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: and gets no pep talk",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: the answer is exact: a file, a command or a term of the trade",
+   "ok": true
+  },
+  {
+   "id": "engineer / turns: no greeting and no sign-off in a team channel",
+   "ok": true
+  },
+  {
+   "id": "engineer / register: brief (at most 130 words from the first to answer)",
+   "ok": true
+  },
+  {
+   "id": "engineer / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "engineer / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "engineer / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: the team read them as an engineer",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: a beginner is not buried in the words of the trade (none used)",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: and is told what happens next",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: nothing is called simple or easy to someone who has not done it",
+   "ok": true
+  },
+  {
+   "id": "beginner / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "beginner / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "beginner / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: the team read them as someone starting out",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: nothing is made up: no button or page it was not shown",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: the term they asked about is explained in plain words",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: and no other word of the trade is dropped on them unexplained (at most one besides the two they used)",
+   "ok": true
+  },
+  {
+   "id": "says-so / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "says-so / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "says-so / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: the team read them as someone starting out",
+   "ok": true
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-15T00:33:43.705Z",
+   "mode": "developer",
+   "person": "engineer",
+   "say": "Our CI is flaky: the checkout e2e test in tests/checkout.spec.ts times out one run in five on the staging pipeline. Where would you look first?",
+   "seconds": 9,
+   "level": "seasoned",
+   "replies": [
+    "Steward: Start by running the test in isolation with `npx playwright test tests/checkout.spec.ts --grep \"checkout\" --reporter=line` on the staging runner. Compare two runs: note the exact step and timestamp where the first failure occurs. Look at the DOM snapshot and network trace for that step—check if an element is missing, stale, or if a network request is still pending. The trade-off: isolating the run removes the flaky pipeline context but reveals the exact race. Never extend the timeout; a fixed wait hides the fault."
+   ],
+   "chime": null,
+   "checks": {
+    "kind: an engineer is not explained the basics": true,
+    "kind: and gets no pep talk": true,
+    "kind: the answer is exact: a file, a command or a term of the trade": true,
+    "turns: no greeting and no sign-off in a team channel": true,
+    "register: brief (at most 130 words from the first to answer)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as an engineer": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:33:55.292Z",
+   "mode": "developer",
+   "person": "beginner",
+   "say": "I have never made a website before. Is it hard to make one for my bakery, with our opening hours and a few photos?",
+   "seconds": 9,
+   "level": "new",
+   "replies": [
+    "Overseer: Making a website for a bakery is not hard when you start from a ready-made template. Most website builders let you drag and drop, type your opening hours, and upload photos in minutes. You do not need to write code. First: pick a simple website builder (Wix, Squarespace, or Shopify's basic plan). Then: choose a bakery template, fill in your hours and add your photos. You will have a live site in under an hour."
+   ],
+   "chime": null,
+   "checks": {
+    "kind: a beginner is not buried in the words of the trade (none used)": true,
+    "kind: and is told what happens next": true,
+    "kind: nothing is called simple or easy to someone who has not done it": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as someone starting out": true
+   }
+  },
+  {
+   "at": "2026-11-15T00:34:06.566Z",
+   "mode": "developer",
+   "person": "says-so",
+   "say": "I am not a developer, a friend set up the repo for me. What does \"deploy\" actually mean for my site?",
+   "seconds": 9,
+   "level": "new",
+   "replies": [
+    "Operations: Deploy is the act of sending your site’s files from your computer to a server that visitors can reach. When you “deploy,” the code you write leaves your machine and lives on a public address so anyone can view it in a browser. Next step: your friend or the person who set up the repo will have a way to push the current version of your site up. Ask them which command or button they use, or if there’s a “Deploy” button in the repo’s settings. That is the first action to make your site live."
+   ],
+   "chime": null,
+   "checks": {
+    "kind: nothing is made up: no button or page it was not shown": true,
+    "kind: the term they asked about is explained in plain words": true,
+    "kind: and no other word of the trade is dropped on them unexplained (at most one besides the two they used)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as someone starting out": true
+   }
+  }
+ ]
+}

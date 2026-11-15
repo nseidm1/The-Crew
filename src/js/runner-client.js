@@ -97,6 +97,7 @@ async function live(base = '') {
     workspaceDiscard: () => post('api/workspace/discard'),
     workspaceLook: (task) => post('api/workspace/look', { task }), // the team searches the code and says what it found; nothing is changed
     workspaceDiff: () => post('api/workspace/diff'),
+    workspaceRun: (cmd) => post('api/workspace/run', { cmd }), // one command that reads or tests, in the connected workspace
     workspaceJudge: (requirements, task) => post('api/workspace/judge', { requirements, task }),
     workspaceProve: () => post('api/workspace/prove'), // red on the code before the change, green after it, and one proof image
     proofUrl: (id) => base + 'api/proof/' + id + '.png',

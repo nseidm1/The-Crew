@@ -46,6 +46,7 @@ export function installResearch(ctx) {
         .replace(/[?.!]+$/, '')
         .trim()
         .slice(0, 160) || text.slice(0, 160);
+    const searchFor = opts.query || query; // what a teammate's doubt asked to be settled, when that is why it is being looked up
     let answer = '';
     let sources = [];
     if (ctx.onClaude())
@@ -53,7 +54,11 @@ export function installResearch(ctx) {
         lead,
         'The customer asked the team to find this out: "' +
           text +
-          '". Search the web and read what you need. ' +
+          '". ' +
+          (opts.because
+            ? 'A teammate doubted the first answer: "' + String(opts.because).slice(0, 240) + '". Settle that. '
+            : '') +
+          'Search the web and read what you need. ' +
           (isSimple()
             ? 'Start with the answer itself, in one plain sentence. Answer in at most 100 words from what you found, give the address of each source you relied on, and say in one sentence what you could not settle, if anything.'
             : 'Answer in at most 150 words from what you found, give the address of each source you relied on, and say plainly what you could not settle.'),
@@ -89,7 +94,7 @@ export function installResearch(ctx) {
         }
         return { found, list, usable: list.some((x) => x.text) };
       };
-      let got = await look(query);
+      let got = await look(searchFor);
       if (!got.found.ok) {
         ctx.shut(noteMsg);
         ctx.post(
@@ -172,12 +177,17 @@ export function installResearch(ctx) {
           max: 520,
           veil: isSimple(),
           sources: sources.map(({ n, title, url }) => ({ n, title, url })),
+          sourcesText: sources
+            .map((x) => x.text || x.line || '')
+            .join(' ')
+            .slice(0, 8000), // for a sum the app can work (team/extras.js)
         },
       );
     }
     await ctx.cardFor(lead, answer, text, opts.lang);
+    let checked = '';
     if (lead !== 'steward' && !unsaid(answer))
-      await ctx.speak(
+      checked = await ctx.speak(
         'steward',
         'The customer asked the team to find this out: "' +
           text +
@@ -192,7 +202,16 @@ export function installResearch(ctx) {
           ' In at most 50 words: name the one claim you would check before the team relies on this, and how you would check it.',
         { ...speakOpts, mode: 'check', max: 220 },
       );
-    if (!unsaid(answer)) await ctx.chimeIn(lead, text, answer, { lang: opts.lang, skip: ['steward'], max: 1 }); // Robin has had its say: one more of the others may add something
+    // THE CHECK MAY SET THE TEAM GOING AGAIN (team/thread.js): when it says the answer may be wrong (a guess, one source, sources
+    // that disagree), it is looked up once more, aimed at that. Once for each thing the person says.
+    const again =
+      checked && !unsaid(checked) && !unsaid(answer)
+        ? await ctx
+            .takeUp(lead, text, answer, [{ by: 'steward', text: checked }], { lang: opts.lang, strong: true })
+            .catch(() => '')
+        : '';
+    if (!unsaid(answer) && !again)
+      await ctx.chimeIn(lead, text, answer, { lang: opts.lang, skip: ['steward'], max: 1 }); // Robin has had its say: one more of the others may add something
     const kept = !unsaid(answer)
       ? ctx.learn(
           'kept',

@@ -276,7 +276,7 @@ export function planPanel({ lic, said, runner, back, say, changed, focus }) {
           h(
             'p',
             { class: 'price' },
-            id === 'free' ? 'Free' : offer && offer.price ? offer.price : 'Not on sale yet',
+            id === 'free' ? 'No charge' : offer && offer.price ? offer.price : 'Not on sale yet',
             offer && offer.days ? h('span', null, ' for ' + offer.days + ' days') : null,
           ),
           h('p', { class: 'muted' }, tier.blurb),

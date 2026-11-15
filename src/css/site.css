@@ -3682,3 +3682,32 @@ body.site {
   height: 52px;
   transition: filter 0.4s;
 }
+
+/* ONE TEXT, AND IT IS IN VIEW (the flight carries no words of its own: the caption is what is read while it plays). On a phone the
+   caption used to sit under the film, below the first screen; there it is set above the film, so the words and the top of the
+   picture are seen together, and the dots stay under it. */
+@media (max-width: 900px) {
+  .hero-uni {
+    margin-top: 104px;
+    margin-bottom: 64px;
+  }
+  .uni-cap {
+    top: -100px;
+    bottom: auto;
+  }
+  .uni-dots {
+    bottom: -48px;
+  }
+}
+
+/* THE HEADLINE ARRIVES ONCE. It used to come in twice: whole, with the rest of the hero's words, and then again word by word once
+   the page's script had split it. Where scripts run and motion is wanted it now waits for its words (js/site.js adds
+   .rise-words), and if they have not come within a second and a half it arrives whole, as it does with no script at all. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .hero h1:not(.rise-words) {
+    animation: rise 0.9s 1.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .hero h1.rise-words {
+    animation: none;
+  }
+}

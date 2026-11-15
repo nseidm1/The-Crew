@@ -55,8 +55,32 @@ without the proof you can open and read.
 
 - **Five seats, one chat.** Overseer plans, Steward proves, Operations builds, Ask looks, Master lands. In Simple mode they are
   five people with first names, plain jobs and tastes of their own.
+- **Faces that show what is happening.** Each of the five has fourteen expressions (thinking, speaking, pleased, proud,
+  unsure, worried, sorry and more), set by what it is doing or has just said: proud because the change landed, worried
+  because the answer carries a warning. The same characters and the same faces in both modes.
+- **Replies you can act on.** Under a reply, where it bears them out: where the answer came from and a way to have it
+  checked, answers to tap, a timer, a sum worked by the app, a day with a calendar file, options side by side, a map link.
+  In Developer: commands to copy or run in your workspace, what the team was and was not shown, a proof's runs, and four
+  choices on a proven change. All of it is read off the reply by the app, so it is the same on any engine.
+- **A memory that is a graph.** What the team keeps is tied together: a lesson to the work it came from, to the files that
+  work touched, to its proof, to what you put right about it, to an earlier attempt. Recall lands on what a question names
+  and walks two steps out, so a thing that shares no word with the question still comes back when it is tied to one that does.
+- **Facts checked by a blank slate.** A fact-checker is a context and a brief. The team opens a slot of its own model with
+  nothing in it but the question, so it has not heard the answer; for something you will act on it opens a second whose only
+  job is to break the claim. If they do not agree with the answer, the team says so and looks it up.
+- **Hindsight that says whether it helps.** Every finished piece of work is kept as what happened: how many rounds, how it
+  ended, which lessons were used. A lesson that helps rises and one that does not sinks; what had to be put right is counted
+  by kind, and a seat that keeps making one kind of mistake is told the line that prevents it. Ask "how is the team doing?"
+  and it answers from those numbers.
+- **A team that answers itself.** When one of the five doubts another's answer, the one who gave it takes that up: it looks
+  it up, or says the answer again put right, and the first answer is marked as replaced.
 - **Two modes, one switch.** Simple is the conversation and nothing else. Developer adds the workspace, Jira, proofs and the
   team's settings. Switching redraws the app in place.
+- **It talks the way you do.** The team reads how you write (short or long, casual or formal, your spelling, a hurry, a hard
+  day) and answers in kind. In Simple it keeps the manners of a group chat; in Developer it works out whether you are an
+  engineer or starting out, and talks to each accordingly.
+- **Answers you can take in at a glance.** In Simple mode an answer that suits one becomes a card: steps, a warning, or
+  several picks each with its picture (a film's poster, a place), found on Wikipedia and credited there.
 - **A memory you can read.** What you decide is kept as a ruling, what the team learns as a lesson, and both are shown to a seat
   before it speaks (Soul, Vision, Hindsight). It is kept in your browser, and you can list it and remove from it.
 
@@ -178,10 +202,10 @@ npm run test:all         # everything, one after another
 
 | Suite | What it drives | Checks |
 |---|---|---|
-| `tests/core/` | The team core in Node, with a stand-in engine | 72 |
-| `tests/runner/` | The whole runner over HTTP, with stand-ins for every program it starts; the installer's banner in real terminals | 552 |
-| `tests/browser/` | The app in Chromium at computer and phone sizes, and a crawl of every page | 177, and the crawl |
-| `tests/landing/` | The landing page: layout, the film frame by frame | 26, and two measurements |
+| `tests/core/` | The team core in Node, with a stand-in engine | 180 |
+| `tests/runner/` | The whole runner over HTTP, with stand-ins for every program it starts; the installer's banner in real terminals | 555 |
+| `tests/browser/` | The app in Chromium at computer and phone sizes, and a crawl of every page | 214, and the crawl |
+| `tests/landing/` | The landing page: layout, the film frame by frame | 29, and two measurements |
 
 [tests/README.md](tests/README.md) lists every check and what it covers.
 

@@ -1,0 +1,468 @@
+{
+ "label": "claude-sonnet-5-5",
+ "mode": "simple",
+ "setup": {
+  "engine": "claude",
+  "mode": "simple"
+ },
+ "at": "2026-11-15T01:06:21.552Z",
+ "minutes": 3.9,
+ "good": 52,
+ "of": 52,
+ "checks": [
+  {
+   "id": "casual / register: a short casual message gets a short answer (at most 90 words from the first to answer)",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing stiff or form-letter in it",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: it answers before it asks back",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: hello is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody signs off or offers more help",
+   "ok": true
+  },
+  {
+   "id": "casual / register: no emoji for someone who uses none",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: once the chat is going, nobody greets again",
+   "ok": true
+  },
+  {
+   "id": "casual / register: still short (at most 90 words)",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: thanks gets a few words (at most 25, from one person)",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: and no new question or subject",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "formal / register: no slang for someone who writes formally",
+   "ok": true
+  },
+  {
+   "id": "formal / register: their spelling is kept (no American forms)",
+   "ok": true
+  },
+  {
+   "id": "formal / turns: nobody signs off or offers more help",
+   "ok": true
+  },
+  {
+   "id": "formal / register: no emoji",
+   "ok": true
+  },
+  {
+   "id": "formal / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "formal / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "formal / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: a kind word comes first (within the first 30 words)",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: and then it helps with what they asked",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: no jokes and no exclamation marks, from anyone",
+   "ok": true
+  },
+  {
+   "id": "heavy / room: nobody tells them how to feel",
+   "ok": true
+  },
+  {
+   "id": "heavy / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "heavy / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: the answer is in the first sentence",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: and it is brief (at most 60 words)",
+   "ok": true
+  },
+  {
+   "id": "hurry / turns: no greeting to someone in a hurry",
+   "ok": true
+  },
+  {
+   "id": "hurry / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "hurry / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody repeats a teammate (no two replies share most of their words)",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody opens by praising a teammate",
+   "ok": true
+  },
+  {
+   "id": "room / room: at most three people speak",
+   "ok": true
+  },
+  {
+   "id": "room / room: a second voice joins, with something of its own",
+   "ok": true
+  },
+  {
+   "id": "room / room: the warning is given plainly",
+   "ok": true
+  },
+  {
+   "id": "room / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "room / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "room / room: the one spoken to by name is the one who answers first",
+   "ok": true
+  },
+  {
+   "id": "room / room: and answers the question that was asked (it is enough: the reply does not open with \"No\")",
+   "ok": true
+  },
+  {
+   "id": "room / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "room / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-15T01:03:33.443Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "hey whats a good pasta for tonight",
+   "seconds": 25,
+   "level": "",
+   "replies": [
+    "Sam: Hey! Go with a simple garlic and olive oil spaghetti, or aglio e olio if you want to sound fancy. It's about 15 minutes, uses stuff you probably have already, and it's really good. Add chili flakes and a handful of parsley if you've got them. Salt the pasta water well and save a splash of it to toss everything together.",
+    "Alex: Slice the garlic thin and keep the heat low. Pull it the second it goes golden, because once it browns it turns bitter. Pour in a ladle of pasta water early to cool the pan down if it speeds up.",
+    "Robin: Just check that nobody eating has a garlic or gluten allergy, since this dish is mostly garlic and wheat. And wash your hands after handling the chili flakes, because they really sting if they touch your eyes."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"operations\",\"point\":\"Don't let the garlic brown past golden or it turns bitter; slice it thin and cook it gently in the oil.\"},{\"seat\":\"steward\",\"point\":\"Check nobody eating has a gluten or garlic allergy; chili flakes also hurt if they touch eyes.\"}]",
+    "picked": [
+     "operations",
+     "steward"
+    ],
+    "said": [
+     "operations: spoke"
+    ]
+   },
+   "checks": {
+    "register: a short casual message gets a short answer (at most 90 words from the first to answer)": true,
+    "register: nothing stiff or form-letter in it": true,
+    "turns: it answers before it asks back": true,
+    "turns: hello is said back": true,
+    "turns: nobody signs off or offers more help": true,
+    "register: no emoji for someone who uses none": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:03:57.315Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "and what wine goes with it",
+   "seconds": 24,
+   "level": "",
+   "replies": [
+    "Sam: A dry white like Pinot Grigio or Vermentino. Something crisp with good acidity cuts through the olive oil and handles the garlic without fighting it. If you'd rather have red, go light, like a chilled Pinot Noir. Skip anything oaky or heavy.",
+    "Robin: Just check that nobody having wine is driving, pregnant or on medication that doesn't mix with alcohol. Put water on the table too, plus something non-alcoholic, so nobody feels stuck with wine.",
+    "Alex: Chill the white to about 8–10°C, so 2–3 hours in the fridge or 20 minutes in ice water. If you're going red, pull it out of the fridge for 15 minutes so it's cool, not icy."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Alcohol warning: check anyone drinking isn't driving, pregnant or on medication, and have water and a non-alcoholic option on the table.\"},{\"seat\":\"operations\",\"point\":\"Serve the white well chilled, about 8–10°C; take the red out of the fridge briefly so it's cool, not icy.\"}]",
+    "picked": [
+     "steward",
+     "operations"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "turns: once the chat is going, nobody greets again": true,
+    "register: still short (at most 90 words)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:04:05.392Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "thanks!",
+   "seconds": 8,
+   "level": "",
+   "replies": [
+    "Sam: Enjoy tonight's dinner. Have a good one!"
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Alcohol warning: check anyone drinking isn't driving, pregnant or on medication, and have water and a non-alcoholic option on the table.\"},{\"seat\":\"operations\",\"point\":\"Serve the white well chilled, about 8–10°C; take the red out of the fridge briefly so it's cool, not icy.\"}]",
+    "picked": [
+     "steward",
+     "operations"
+    ],
+    "said": [
+     "steward: spoke",
+     "operations: spoke"
+    ]
+   },
+   "checks": {
+    "turns: thanks gets a few words (at most 25, from one person)": true,
+    "turns: and no new question or subject": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:04:34.511Z",
+   "mode": "simple",
+   "person": "formal",
+   "say": "Good afternoon. I would like to organise a small dinner for twelve colleagues near the theatre district in Manchester next month; could you please advise on how to choose a venue?",
+   "seconds": 26,
+   "level": "",
+   "replies": [
+    "Sam: Good afternoon. For twelve people, I would choose in this order. First, ring or email the restaurant's group-bookings team and ask for a set menu. A fixed menu with a pre-order keeps the evening to time, and it stops the kitchen being overwhelmed by a table of twelve. Then, check three things: that they have a private room or a reserved area, that they can seat twelve together at one table, and that they will agree a time limit and a per-head price. After that, ask about dietary needs and step-free access before you commit. Book as early as you can, since theatre-district tables fill quickly. Many places ask for a deposit for large parties, so confirm the cancellation terms in writing. Next, shortlist three restaurants and compare their menus and prices. ! Careful: Theatre-district tables fill quickly, so book as early as you can. Confirm cancellation terms in writing because of deposits. Booking dinner for twelve Steps in order Ring or email the group-bookings team and ask for a set menu Check for a private room or reserved area Check they can seat all twelve together at one table Agree a time limit and a per-head price Ask about dietary needs and step-free access before committin",
+    "Robin: Just check that the deposit and cancellation terms are in writing, and ask whether a booking fee or service charge is added on top of the per-head price. It can quietly raise the total.",
+    "Alex: Check the venue is a short walk or tram ride from the theatre, and ask for the kitchen's last-order time before curtain. A late start for the kitchen could leave twelve colleagues rushing their main course."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Check the deposit and cancellation terms in writing, and watch for 'booking fee' or service charge added on top of the per-head price.\"},{\"seat\":\"operations\",\"point\":\"Check the venue is a short walk or tram ride from the theatre, and get the kitchen's last-order time before curtain.\"}]",
+    "picked": [
+     "steward",
+     "operations"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "register: no slang for someone who writes formally": true,
+    "register: their spelling is kept (no American forms)": true,
+    "turns: nobody signs off or offers more help": true,
+    "register: no emoji": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:05:05.247Z",
+   "mode": "simple",
+   "person": "heavy",
+   "say": "My dad passed away last week and I have to say a few words at the funeral. I don't know where to start.",
+   "seconds": 28,
+   "level": "",
+   "replies": [
+    "Sam: I'm so sorry about your dad. You don't have to write a speech, just a few true things. First, jot down three or four memories of him without worrying about wording: something he often said, something he did for others, a moment that makes you smile. Then pick the one or two that feel most like him. Those are your speech. After that, shape it simply: who he was to you, one short story, and a closing line of thanks or goodbye. Two or three minutes is plenty. If you'd like, send me those memories and we'll shape them into words together. If you'd like, send the memories and we'll shape them into words together. Writing a short speech for your dad A few true things is enough Jot down three or four memories of him, without worrying about wording. Include something he often said, something he did for others, a moment that makes you smil Pick the one or two that feel most like him. Those are your speech. Shape it: who he was to you, one short story, a closing line of thanks or goodbye. If you'd like, send the memories and we'll shape them into words together.",
+    "Pat: Sam's three parts are the whole shape: open by saying who he was to you, tell one short story, then close with a line of thanks. Plain words are enough, and reading from a page is completely fine."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"master\",\"point\":\"Offer a simple shape for the words: a warm opening, one short story, a closing line. Plain, sincere wording beats polish, and reading from paper is fine.\"}]",
+    "picked": [
+     "master"
+    ],
+    "said": [
+     "master: spoke"
+    ]
+   },
+   "checks": {
+    "register: a kind word comes first (within the first 30 words)": true,
+    "register: and then it helps with what they asked": true,
+    "register: no jokes and no exclamation marks, from anyone": true,
+    "room: nobody tells them how to feel": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:05:35.978Z",
+   "mode": "simple",
+   "person": "hurry",
+   "say": "quick - how long do I boil an egg for a soft yolk? running late",
+   "seconds": 28,
+   "level": "",
+   "replies": [
+    "Sam: Boil it 6 to 6½ minutes from when the water's already bubbling, then straight into cold water so it stops cooking. Gently lower it in with a spoon so the shell doesn't crack. 6 gives you a runny yolk, 6½ is jammy. Lowering the egg gently with a spoon keeps the shell from cracking. Soft-boiled egg timing 6–6½ min from bubbling water 6 minutes Runny yolk 6½ minutes Jammy yolk Start timing Water already bubbling After boiling Straight into cold water Lowering in Gently, with a spoon Lowering the egg gently with a spoon keeps the shell from cracking.",
+    "Robin: Just a heads-up: if any of these are for kids, someone pregnant, elderly or unwell, cook the egg all the way through. Runny yolks carry a small salmonella risk, so skip the 6 minutes for them.",
+    "Alex: Fridge-cold egg? Go the full 6½. Room-temp ones cook faster, so trim it a bit. That timing's for large eggs, so add 30 seconds if they're extra large."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Cook eggs fully if serving children, pregnant people, elderly or unwell; runny yolks carry a small salmonella risk.\"},{\"seat\":\"operations\",\"point\":\"Egg straight from the fridge needs the full 6½; room-temperature eggs cook faster. Large eggs assumed, so add 30 seconds for extra large.\"}]",
+    "picked": [
+     "steward",
+     "operations"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "register: the answer is in the first sentence": true,
+    "register: and it is brief (at most 60 words)": true,
+    "turns: no greeting to someone in a hurry": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:06:03.813Z",
+   "mode": "simple",
+   "person": "room",
+   "say": "Is it safe to leave my dog in the car for ten minutes while I pop into a shop on a warm day?",
+   "seconds": 25,
+   "level": "",
+   "replies": [
+    "Sam: No, it isn't safe. Even ten minutes on a warm day can be dangerous. A car heats up fast. On a day that feels merely warm, the inside can climb 10 to 15°C in ten minutes, and cracking a window barely helps. Dogs cool down mainly by panting, so they overheat much quicker than we do. That can mean heatstroke, brain damage or death. Here's what I'd do, in order. First, take the dog in with you if the shop allows it, since many do. Then, if it doesn't, shop another time or go with someone who can wait outside with the dog. Last resort: tie the dog up in the shade only if it's genuinely cool out. If you see a dog in distress in a hot car, call the emergency services. ! Careful: Even ten minutes on a warm day can be dangerous: heatstroke, brain damage or death. Dog in a warm car? Not safe, even ten minutes First: take the dog in with you if the shop allows it. Then: if not, shop another time or go with someone who waits outside. Last resort: tie the dog up in shade, only if it's genuinely cool out. Dog in distress in a hot car? Call the emergency services. NOT SO GOOD Inside can climb 10 to 15°C in ten minutes Cracking a window barely helps Dogs cool by panting, so they overheat faster th",
+    "Robin: Just check the dog's signs, since heatstroke can hide at first: heavy panting, drooling, wobbling, vomiting. If you see them, get the dog into shade, cool (not icy) water, and call a vet straight away."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Add the warning signs of heatstroke (heavy panting, drooling, wobbling, vomiting) and first aid: move the dog to shade, cool water, call a vet.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "room: nobody repeats a teammate (no two replies share most of their words)": true,
+    "room: nobody opens by praising a teammate": true,
+    "room: at most three people speak": true,
+    "room: a second voice joins, with something of its own": true,
+    "room: the warning is given plainly": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T01:06:19.973Z",
+   "mode": "simple",
+   "person": "room",
+   "say": "Robin, is ten minutes really enough to hurt a dog?",
+   "seconds": 16,
+   "level": "",
+   "replies": [
+    "Robin: Yes, it really can be. Just check one thing: \"warm\" outside is a poor guide, because the inside of a car can climb 10°C or more in ten minutes, and that's with a window open a crack. Dogs cool themselves mostly by panting, which stops working well in hot, still air. Some dogs get into trouble faster than others: flat-faced breeds like pugs and bulldogs, puppies, older dogs, thick-coated dogs, and dogs with heart or breathing problems. Most dogs would probably be fine for ten minutes on a mild day, but you can't tell in advance which ones won't be. Shop queues also tend to run longer than planned. ! Careful: \"Warm\" outside is a poor guide: the inside of a car heats fast, and some dogs get into trouble much faster than others. Dog in a warm car for ten minutes? Car heat Can climb 10°C or more in ten minutes Open window A crack doesn't stop it How dogs cool Mostly panting, poor in hot, still air Higher risk Flat-faced breeds (pugs, bulldogs), puppies, older dogs Also at risk Thick-coated dogs, dogs with heart or breathing problems Most dogs Probably fine ten minutes on a mild day GOOD Most dogs would probably be fine for ten minutes on a mild day NOT SO GOOD You can't tell in advance "
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Add the warning signs of heatstroke (heavy panting, drooling, wobbling, vomiting) and first aid: move the dog to shade, cool water, call a vet.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "room: the one spoken to by name is the one who answers first": true,
+    "room: and answers the question that was asked (it is enough: the reply does not open with \"No\")": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  }
+ ]
+}

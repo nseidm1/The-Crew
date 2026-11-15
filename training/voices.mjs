@@ -14,9 +14,9 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { FRIENDLY, SEATS } from '../js/team-core.js';
-import { soulOf, TEMPER } from '../js/team-soul.js';
-import { askRoom, tally } from '../runner/swarm.mjs';
+import { FRIENDLY, SEATS } from '../src/js/team-core.js';
+import { soulOf, TEMPER } from '../src/js/team-soul.js';
+import { askRoom, tally } from '../src/runner/swarm.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '..');
@@ -226,8 +226,33 @@ try {
     const letters = 'ABCDE';
     const key = order.map((i, n) => ({ letter: letters[n], id: said[i].id }));
     const who = seats
-      .map((s) => '- ' + s.title + ': ' + (simple ? TEMPER[s.id].plain : TEMPER[s.id].temper))
+      .map(
+        (s) => '- ' + s.title + ': ' + (simple ? TEMPER[s.id].plain + '. ' + TEMPER[s.id].says : TEMPER[s.id].temper),
+      )
       .join('\n');
+    // IS THE READER ANY GOOD? (the reliability of a model as a judge is itself in question: arXiv 2412.12509, 2410.02736.) Before its
+    // reading of the real answers is believed, it is given five answers anyone could tell apart, each saying outright what its
+    // speaker is like. A reader that cannot name four of those is not reading, and its verdict on the real ones is VOID: reported,
+    // and counted neither for the team nor against it.
+    const plainly = seats.map(
+      (x) => 'Speaking as someone of whom this is true: ' + (simple ? TEMPER[x.id].plain : TEMPER[x.id].temper) + '.',
+    );
+    const trial = await speak({
+      seat: 'steward',
+      max: 120,
+      system: 'You match unnamed answers to the people who gave them. You reply with the five pairs and nothing else.',
+      prompt:
+        'Five people each said one thing.\n\nWhat each of them is like:\n' +
+        who +
+        '\n\nWhat they said, in no particular order:\n' +
+        order.map((i, n) => letters[n] + ': ' + plainly[i]).join('\n\n') +
+        '\n\nWho said which? Each person said exactly one. Reply with exactly five lines of the form "A: name".',
+    });
+    const able =
+      key.filter((k) => {
+        const m = new RegExp('\\b' + k.letter + '\\s*[:=-]\\s*(?:the\\s+)?([A-Za-z]+)', 'i').exec(trial);
+        return m && m[1].toLowerCase() === seats.find((x) => x.id === k.id).title.toLowerCase();
+      }).length >= 4;
     const guess = await speak({
       seat: 'steward',
       max: 120,
@@ -246,11 +271,71 @@ try {
       const name = seats.find((s) => s.id === k.id).title;
       return m && m[1].toLowerCase() === name.toLowerCase();
     }).length;
-    check(
-      mode + '.a-reader-can-tell-who-said-what',
-      right >= 3,
-      right + ' of 5 named rightly. The reader said: ' + guess.slice(0, 200),
-    );
+    // THEIR TASTES ARE THEIR OWN (after "Quantifying and optimizing global faithfulness in persona-driven role-playing", arXiv
+    // 2405.07726: a character should answer to what bears on it and stay out of what does not). Each of the five is given a subject
+    // that is one seat's and nobody else's; asked who has most to say on it, the team's model names that seat for at least four.
+    if (simple) {
+      const SUBJECTS = [
+        ['overseer', 'getting six people to the airport on time for a morning flight'],
+        ['steward', 'an email that says I have won a prize and asks for my bank details'],
+        ['operations', 'my bike chain keeps slipping off and I need a quick fix'],
+        ['ask', 'colours and decorations for the birthday party of a five-year-old'],
+        ['master', 'how to word a polite no to a wedding invitation'],
+      ];
+      let right = 0;
+      const got = [];
+      for (const [id, subject] of SUBJECTS) {
+        const named = await speak({
+          seat: 'overseer',
+          max: 20,
+          system: 'You say which person a subject belongs to. You reply with one name and nothing else.',
+          prompt:
+            'Five people, and what each cares about:\n' +
+            seats.map((x) => '- ' + x.title + ': ' + TEMPER[x.id].cares).join('\n') +
+            '\n\nWho has the most to say about this: "' +
+            subject +
+            '"? Reply with the one name.',
+        });
+        const want = seats.find((x) => x.id === id).title;
+        if (new RegExp('\\b' + want + '\\b', 'i').test(named)) right++;
+        got.push(want + ': ' + named.slice(0, 20));
+      }
+      check('simple.their-tastes-are-told-apart', right >= 4, right + ' of 5. ' + got.join('; '));
+    }
+    // each voice's own way of speaking, read off its answer: no reader is needed, so a small model's reading does not blur it
+    if (simple) {
+      const first = (t) => String(t).split(/(?<=[.!?])\s+/)[0] || '';
+      const count = (t) => String(t).trim().split(/\s+/).length;
+      const shortest = Math.min(...said.map((x) => count(x.text)));
+      const WAY = {
+        overseer: (t) => /\b(first|then|after that|next)\b/i.test(t),
+        steward: (t) => /\b(check|one thing|careful|make sure|watch|before you|depends|unless)\b/i.test(first(t)),
+        operations: (t) =>
+          /^\W*(grab|try|skip|go|pick|head|start|make|take|get|find|pack|book|call|walk|cook|sleep)\b/i.test(t),
+        ask: (t) => /\blike an?\b|\b(looks?|feels?|picture|imagine|colou?r)\b/i.test(t),
+        master: (t) => count(t) === shortest || count(t) <= 45,
+      };
+      const kept = said.filter((x) => WAY[x.id](x.text)).map((x) => x.name);
+      check(
+        'simple.each-voice-keeps-its-way-of-speaking',
+        kept.length >= 4,
+        kept.length + ' of 5: ' + (kept.join(', ') || 'none'),
+      );
+    }
+    if (able)
+      check(
+        mode + '.a-reader-can-tell-who-said-what',
+        right >= 3,
+        right + ' of 5 named rightly. The reader said: ' + guess.slice(0, 200),
+      );
+    else
+      console.log(
+        '  VOID  ' +
+          mode +
+          '.a-reader-can-tell-who-said-what   this model could not name answers that say outright who gave them, so its reading (' +
+          right +
+          ' of 5) is not counted',
+      );
     if (simple)
       check(
         'simple.no-seat-uses-a-developer-word',

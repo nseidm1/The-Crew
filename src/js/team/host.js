@@ -1,6 +1,7 @@
 // host.js - WHAT THE TEAM NEEDS FROM THIS COMPUTER (Developer): whether it is speaking to someone new or to a developer; a folder to
 // build in; the website it made, served here and watched; and a phone to put an app on. Each is a message with something to press.
 import { isSimple } from '../mode.js';
+import { SHOP, SHOP_BRIEF } from './manners.js';
 
 // ---- WHO THE TEAM IS TALKING TO (Developer): someone new to building software, or someone who does it for a living. It is read
 // from what they say: the words of the trade make them experienced, and that sticks; the words of someone starting out make
@@ -12,12 +13,43 @@ export const SEASONED =
 export const NEWCOMER =
   /\b(i want to (make|build|create)|i('d| would) like to (make|build|create)|can you (make|build|create) me|how do i (start|make|build|create)|i('ve| have) never|i('m| am) new|no idea (how|where)|from scratch|my first (app|website|site|program)|don'?t know (how|where) to start)\b/i;
 
+// said of themself, which settles it either way
+export const SAYS_SEASONED =
+  /\b(i('m| am) an? (software |senior |staff |principal |lead |backend |back-end |frontend |front-end |full-?stack |mobile |ios |android |web |devops |data )*(engineer|developer|programmer|dev|sre)|i (code|program|write (code|software)|build software) (for a living|professionally|at work|for work)|i work as an? (software |web |mobile )?(engineer|developer|programmer)|as an? (engineer|developer|programmer),? i)\b/i;
+
+export const SAYS_NEW =
+  /\b(i('m| am) not (an? )?(technical|developer|programmer|coder|engineer|tech(y|ie)?( person)?)|i('m| am) (an? )?(beginner|newbie|amateur|hobbyist|non-?technical)|i (don'?t|do not|can'?t|cannot) (know how to )?(code|program)|i('m| am) (just )?(learning|starting|new) to (code|program)|i('ve| have) never (coded|programmed|written (any )?code)|(as|for) a hobby|not a (tech|computer) person)\b/i;
+
+// the words of the trade in a message, each counted once
+export const tradeIn = (text) => [
+  ...new Set((String(text || '').match(new RegExp(SEASONED.source, 'gi')) || []).map((w) => w.toLowerCase())),
+];
+
 export function installHost(ctx) {
   const sizeUp = (text) => {
     const t = String(text || '');
     const was = (ctx.state.dev && ctx.state.dev.level) || '';
-    const level = SEASONED.test(t) ? 'seasoned' : was !== 'seasoned' && NEWCOMER.test(t) ? 'new' : was;
-    if (level !== was) ctx.state.dev = { level, at: Date.now(), from: t.slice(0, 120) };
+    const trade = tradeIn(t);
+    const starting = NEWCOMER.test(t);
+    const level = SAYS_NEW.test(t)
+      ? 'new' // they said so themself: that outranks any word they used
+      : SAYS_SEASONED.test(t) || trade.length >= 2 || (trade.length === 1 && !starting)
+        ? 'seasoned'
+        : was !== 'seasoned' && starting
+          ? 'new' // one word of the trade inside "I want to make an app with an API" is someone starting out
+          : was;
+    if (level !== was)
+      ctx.state.dev = {
+        level,
+        at: Date.now(),
+        from: t.slice(0, 120),
+        why:
+          SAYS_NEW.test(t) || SAYS_SEASONED.test(t)
+            ? 'they said so'
+            : trade.length
+              ? 'the words of the trade: ' + trade.slice(0, 4).join(', ')
+              : 'the words of someone starting out',
+      };
     return level;
   };
 
@@ -26,9 +58,7 @@ export function installHost(ctx) {
   const devNote = () =>
     isSimple() || !ctx.state.dev || !ctx.state.dev.level
       ? ''
-      : ctx.state.dev.level === 'new'
-        ? 'WHO YOU ARE TALKING TO: someone new to building software. Use plain words; when you must use a term, say in a few words what it means; say what happens next; and never ask them for a path, a branch or a command to run: the chat gives them a button for what this computer needs.\n\n'
-        : 'WHO YOU ARE TALKING TO: an experienced developer. Be brief and exact, use the proper terms, and leave out explanations they do not need.\n\n';
+      : (ctx.onClaude() ? SHOP : SHOP_BRIEF)[ctx.state.dev.level === 'new' ? 'new' : 'seasoned'] + '\n\n';
 
   // ---- WHAT THE TEAM NEEDS FROM THIS COMPUTER, ASKED FOR IN THE CHAT (Developer): a folder to work in, the website it made (served
   // here, with whether it still is), a phone to put an app on. Each is a message with something to press under it (m.setup), and

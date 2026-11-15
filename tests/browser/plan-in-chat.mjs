@@ -128,7 +128,7 @@ check('the team has a Git folder to work in, and the page says so', /menu-site/.
 await p.evaluate(() => {
   window.__seen = [];
   const note = () => {
-    for (const c of document.querySelectorAll('.plan-card')) {
+    for (const c of document.querySelectorAll('.round-card')) {
       const k = c.dataset.round + ':' + c.dataset.stage;
       if (!window.__seen.includes(k)) window.__seen.push(k);
     }
@@ -146,7 +146,7 @@ const say = async (t) => {
 };
 await say('Add the opening hours to the README and keep its title');
 // the Overseer may say where it will go and wait for "go"
-for (let i = 0; i < 80 && !(await p.locator('.plan-card').count()); i++) {
+for (let i = 0; i < 80 && !(await p.locator('.round-card').count()); i++) {
   if (await p.evaluate(() => /Say "go"|say "go"/.test(document.querySelector('.chat-log').innerText))) {
     await say('go');
     await sleep(1500);
@@ -154,7 +154,7 @@ for (let i = 0; i < 80 && !(await p.locator('.plan-card').count()); i++) {
   await sleep(400);
 }
 try {
-  await p.locator('.plan-card').first().waitFor({ timeout: 60000 });
+  await p.locator('.round-card').first().waitFor({ timeout: 60000 });
 } catch {
   console.log(
     'NO PLAN. The chat:\n' +
@@ -172,21 +172,21 @@ try {
 }
 let mid = null;
 try {
-  await p.locator('.plan-card[data-round="2"].is-live').waitFor({ timeout: 150000 });
+  await p.locator('.round-card[data-round="2"].is-live').waitFor({ timeout: 150000 });
   await sleep(250);
   mid = await p.evaluate(() => {
-    const c = document.querySelector('.plan-card[data-round="2"]');
+    const c = document.querySelector('.round-card[data-round="2"]');
     return c
       ? { stage: c.dataset.stage, now: (c.querySelector('.plan-track li[aria-current="step"]') || {}).innerText || '' }
       : null;
   });
-  await p.locator('.plan-card[data-round="2"]').scrollIntoViewIfNeeded();
+  await p.locator('.round-card[data-round="2"]').scrollIntoViewIfNeeded();
   await p.screenshot({ path: path.join(OUT, 'round-2-live.png') });
 } catch {
   mid = null;
 }
 try {
-  await p.locator('.plan-card[data-round="2"][data-stage="landed"]').waitFor({ timeout: 120000 });
+  await p.locator('.round-card[data-round="2"][data-stage="landed"]').waitFor({ timeout: 120000 });
 } catch {
   console.log(
     'NOT LANDED. The chat:\n' +
@@ -198,7 +198,7 @@ try {
               ': ' +
               ((m.querySelector('p') || {}).innerText || '').slice(0, 400) +
               ' ' +
-              [...m.querySelectorAll('.plan-card')]
+              [...m.querySelectorAll('.round-card')]
                 .map(
                   (c) =>
                     '[card ' +
@@ -219,7 +219,7 @@ await sleep(700);
 const read = () =>
   p.evaluate(() => {
     const log = document.querySelector('.chat-log').getBoundingClientRect();
-    const cards = [...document.querySelectorAll('.plan-card')].map((c) => {
+    const cards = [...document.querySelectorAll('.round-card')].map((c) => {
       const b = c.getBoundingClientRect();
       const shown = (q) => {
         const e = c.querySelector(q);
@@ -328,12 +328,12 @@ check(
   d.cards.every((c) => c.inside && !c.clipped) && d.wide <= 0,
   { cards: d.cards.map((c) => [c.inside, c.clipped]), wide: d.wide },
 );
-await p.locator('.plan-card[data-round="1"]').scrollIntoViewIfNeeded();
+await p.locator('.round-card[data-round="1"]').scrollIntoViewIfNeeded();
 await sleep(200);
-await p.locator('.plan-card[data-round="1"]').screenshot({ path: path.join(OUT, 'round-1-card.png') });
-await p.locator('.plan-card[data-round="2"]').scrollIntoViewIfNeeded();
+await p.locator('.round-card[data-round="1"]').screenshot({ path: path.join(OUT, 'round-1-card.png') });
+await p.locator('.round-card[data-round="2"]').scrollIntoViewIfNeeded();
 await sleep(200);
-await p.locator('.plan-card[data-round="2"]').screenshot({ path: path.join(OUT, 'round-2-card.png') });
+await p.locator('.round-card[data-round="2"]').screenshot({ path: path.join(OUT, 'round-2-card.png') });
 await p.screenshot({ path: path.join(OUT, 'desktop.png') });
 // on a phone: the same chat, read again from where it is kept
 const ph = await browser.newContext({
@@ -350,7 +350,7 @@ await q.locator('.composer input').waitFor({ timeout: 20000 });
 await sleep(900);
 const m = await q.evaluate(() => {
   const log = document.querySelector('.chat-log').getBoundingClientRect();
-  const cards = [...document.querySelectorAll('.plan-card')];
+  const cards = [...document.querySelectorAll('.round-card')];
   return {
     n: cards.length,
     inside: cards.every((c) => {
@@ -378,9 +378,20 @@ check(
   m.n === 2 && m.stages === 'again,landed' && m.inside && !m.clipped && m.wide <= 0 && m.small >= 11,
   m,
 );
-await q.locator('.plan-card[data-round="2"]').scrollIntoViewIfNeeded();
+await q.locator('.round-card[data-round="2"]').scrollIntoViewIfNeeded();
 await sleep(300);
 await q.screenshot({ path: path.join(OUT, 'phone.png') });
+{
+  // found by the crawl: a part of the card that was absent was written out as the word for it
+  const raw = (
+    (await q.evaluate(() => document.body.innerText)).match(/[^\n]*\b(null|undefined|NaN)\b[^\n]*/g) || []
+  ).slice(0, 3);
+  check(
+    'nothing on the page reads null or undefined: a part of a card that is not there is not written at all',
+    raw.length === 0,
+    raw,
+  );
+}
 check('no page errors', errors.length === 0, errors);
 await browser.close();
 console.log(bad ? bad + ' FAILED' : 'all passed');

@@ -274,6 +274,28 @@ export const BASE = [
       'A small model often breaks down on a long unfamiliar string or a repeated piece. Shorten paths, give repeats a name, and cut and ask again rather than wait for it to recover.',
     ],
   ]),
+  ...topicRows('Answering a question', [
+    [
+      'flaky',
+      'a flaky test, an intermittent failure, a test that times out sometimes, one run in five, CI is flaky',
+      'A test that fails some of the time is a race or shared state until shown otherwise. Find the step that differs between a failing run and a passing one, from the traces. A fixed wait or a longer timeout hides the fault: never offer one as the fix.',
+    ],
+    [
+      'undo',
+      'undo a commit that was pushed, a bad commit on main, others have pulled it, shared branch history',
+      'What others have already pulled is undone with a new commit: git revert. Rewriting shared history (reset --hard and a forced push) takes their work with it, so it is not offered as a way to do this, only named as what to avoid.',
+    ],
+    [
+      'secrets',
+      'store passwords, user passwords, password hash, credentials in the database',
+      'Passwords are stored as a slow, salted password hash: argon2id, bcrypt or scrypt, through a maintained library. Never encrypted, never a fast hash such as MD5 or SHA alone.',
+    ],
+    [
+      'unseen',
+      'what is in a file, what is on a line, why did it fail, what does the log say, what is in our config',
+      'A question about their own code, config or logs can only be answered from what was shown. If it was not shown, say so, and say how to look or ask for it. Never describe a file, a line or a cause from guesswork.',
+    ],
+  ]),
   ...topicRows('Looking at a screen', [
     [
       'visible',

@@ -149,6 +149,7 @@ check(
 // the rest of the team chimes in: after an answer, at most two of the others add a line of their own; one that passes is not shown
 {
   const c = createTeamCore({ persist: false });
+  c.adopt({ kind: 'claude' }); // the full form of the question; a local model's short form is in conversation.mjs
   const heard = [];
   c.useEngine({
     route: async () => ({ kind: 'question', seat: 'overseer' }),
@@ -259,5 +260,119 @@ check(
   ),
   seen.map((a) => a.slice(0, 160)),
 );
+// A DIRECT ANSWER (not looked up) that a card stands for: its words are never on the screen, at any moment, before the card is
+{
+  store.set('familyoffice.mode', 'simple');
+  const LONG =
+    'Yes, a bunny can eat celery, in small amounts. Cut it into pieces of 1 cm first, then offer 2 or 3 pieces. The strings can choke a rabbit, so never give a whole stalk. Start with one piece and wait a day.';
+  const BUNNY =
+    '{"kind":"facts","icon":"check","title":"Celery for a bunny","big":"Yes, in small amounts","small":"","items":["Cut it into pieces of 1 cm","Offer 2 or 3 pieces"],"warn":"The strings can choke a rabbit, so never give a whole stalk"}';
+  const watch = (answer, card) => {
+    const c = createTeamCore({ persist: false });
+    const shown = [];
+    c.on(() => {
+      for (const x of c.snapshot().chat)
+        if (x.by !== 'you' && x.text && !x.veil && !(x.card && x.cardOnly)) shown.push(x.text.slice(0, 40));
+    });
+    c.useEngine({
+      route: async () => ({ kind: 'question', seat: 'overseer' }),
+      seat: async (o) => {
+        const ask = o.messages[o.messages.length - 1].content;
+        const say = /Would a small card help/.test(ask) ? card : /useful to add/.test(ask) ? '[]' : answer;
+        if (o.onDelta) for (const piece of say.match(/.{1,25}/gs)) o.onDelta(piece);
+        return {};
+      },
+    });
+    return { c, shown };
+  };
+  const carded = watch(LONG, BUNNY);
+  carded.c.send('Can a bunny eat celery?');
+  await wait(2500);
+  const reply = carded.c.snapshot().chat.find((x) => x.card);
+  check(
+    'a direct answer that a card stands for is never shown as words first: while it is written and while the card is drawn there are only the dots, then the card',
+    !!reply && reply.cardOnly === true && !reply.veil && carded.shown.length === 0,
+    { card: !!reply, shown: [...new Set(carded.shown)] },
+  );
+  const plain = watch(LONG, '{"kind":"none"}');
+  plain.c.send('Can a bunny eat celery?');
+  await wait(2500);
+  const words = plain.c.snapshot().chat.find((x) => x.by !== 'you' && /bunny can eat celery/.test(x.text || ''));
+  check(
+    'when no card stands for it, the answer is shown whole, as words, and nothing is left hidden',
+    !!words && !words.veil && !words.card && plain.shown.length > 0 && !plain.c.snapshot().chat.some((x) => x.veil),
+    { words: !!words, veiled: plain.c.snapshot().chat.filter((x) => x.veil).length },
+  );
+}
+// PICKS, WITH PICTURES: several named things, each under its own name with a picture the runner found for it
+{
+  store.set('familyoffice.mode', 'simple');
+  const FILMS =
+    'The top film this weekend is You Can See Everything, a documentary. Right behind it are Wildwood and Clayface. Some charts also list Moonrise Kingdom Come, which I could not confirm, so treat the order as rough and first check the cinema for showtimes, then choose.';
+  const PICKS = JSON.stringify({
+    kind: 'picks',
+    icon: 'star',
+    title: 'Top films at the cinema',
+    big: '',
+    picks: [
+      { name: 'You Can See Everything', note: 'a documentary' },
+      { name: 'Wildwood', note: 'right behind it' },
+      { name: 'Clayface', note: 'right behind it' },
+      { name: 'A Film The Answer Never Named', note: 'made up' },
+    ],
+    note: 'Treat the order as rough',
+  });
+  const asked = [];
+  const c = createTeamCore({ persist: false });
+  c.useEngine({
+    route: async () => ({ kind: 'question', seat: 'overseer' }),
+    tool: async (o) => {
+      asked.push(o);
+      return {
+        ok: true,
+        pictures: o.names.map((name) =>
+          name === 'Clayface'
+            ? { ok: false, name }
+            : {
+                ok: true,
+                name,
+                url: 'https://upload.wikimedia.org/' + encodeURIComponent(name) + '.jpg',
+                page: 'https://en.wikipedia.org/wiki/x',
+                from: 'Wikipedia',
+              },
+        ),
+      };
+    },
+    seat: async (o) => {
+      const ask = o.messages[o.messages.length - 1].content;
+      const say = /Would a small card help/.test(ask) ? PICKS : /useful to add/.test(ask) ? '[]' : FILMS;
+      if (o.onDelta) o.onDelta(say);
+      return {};
+    },
+  });
+  c.send('What films are on at the cinema this weekend?');
+  await wait(2500);
+  const card = (c.snapshot().chat.find((x) => x.card) || {}).card;
+  check(
+    'several named things are picks: each under the name the answer gave it, and one the answer never named is left off',
+    !!card &&
+      card.picks.map((p) => p.name).join('|') === 'You Can See Everything|Wildwood|Clayface' &&
+      card.rows.length === 0 &&
+      card.items.length === 0,
+    card && card.picks,
+  );
+  check(
+    'the runner is asked for a picture of each, told they are films; a pick has its picture and where it came from, and one with none found stands without',
+    asked.length === 1 &&
+      asked[0].tool === 'picture' &&
+      asked[0].hint === 'film' &&
+      asked[0].names.length === 3 &&
+      !!card &&
+      /You%20Can%20See%20Everything/.test(card.picks[0].image.url) &&
+      card.picks[0].image.from === 'Wikipedia' &&
+      !card.picks[2].image,
+    [asked, card && card.picks],
+  );
+}
 console.log(failed ? failed + ' FAILED' : 'all passed');
 process.exit(failed ? 1 : 0);

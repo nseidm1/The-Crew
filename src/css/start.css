@@ -2342,6 +2342,10 @@ details.more[open] > summary {
 .ways.two .way {
   grid-template-rows: auto auto auto 1fr auto;
 }
+.ways.two .way ul {
+  align-self: start; /* the lines stay together at the top: a shorter list is not spread down a taller card */
+  align-content: start;
+}
 .ways.two .way .btn {
   align-self: end;
 }

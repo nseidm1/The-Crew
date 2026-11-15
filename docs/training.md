@@ -16,6 +16,9 @@ The same script measures a local model and Claude Code. Only `--setup` differs, 
 | `voices.mjs` | Whether five seats on one model are five voices | How much two seats' answers share, and whether each keeps to its job |
 | `knows.mjs` | Whether the team gets to know the person | What it kept about them, and whether a later answer fits them |
 | `attached.mjs` | A ticket attached to the chat, then spoken of as "it" | Whether the reply is plainly about that ticket |
+| `recall.mjs` | Whether Vision puts the right thing in front of a seat: a frozen memory and twenty questions, with no model | Recall against the same set counted by shared words alone, and each miss |
+| `ratchet.mjs` | Which trainers have held everything for three full runs | The step each bar is raised to |
+| `manners.mjs` | Whether the team talks the way people talk: made-up people who write short, formally, in a hurry, with something heavy on their mind; in Developer, an engineer and someone starting out | Each reply against the conventions of that kind of conversation: register, turns, the room, and who it took them for |
 
 ### The hidden check
 
@@ -104,6 +107,64 @@ The passes of 12 and 13 November found, and the product now closes and checks, a
 - changes that broke the project's own tests, or did not compile, going on to the proof (the project's own tests now run first)
 - three false greens, each a different fault: a verdict read from the first words of a reply that went on to say the opposite;
   an assertion written over three lines; a proof written from the code it was proving
+
+### Conversation conventions (14 November 2026)
+
+`manners.mjs` has made-up people write to a real team the way people write, and reads each reply against the conventions of
+that kind of conversation. Every reading is of the words themselves. Full runs, both modes:
+
+| | Claude Code, Sonnet 5.5 | Local model, Nemotron 3.5 Lightning 30B |
+|---|---|---|
+| Simple: five people, nine messages (52 conventions) | 51 | 51 |
+| Developer: an engineer, a beginner, one who says so (23) | 22 | 23 |
+
+The three that missed were each looked at again by themselves, and held: a local model's "Let me know if you need the recipe!"
+(an answer's last sentence is now taken off when it is only an offer of more help), and two readings that counted a card or a
+command line as prose.
+
+What the passes changed, each found by reading the replies and not only the count:
+
+| Seen | Changed |
+|---|---|
+| The first graders passed a local model 24 of 24 while it answered a question with a question, opened with "Great question!", said its instructions back and spoke with one voice | Graders for each of those; the count went to 48 of 52 before it went up |
+| A long instruction is where a small model loses the plot | On a local model the note is its four most important lines, and the room's manners and who the team is talking to are short forms |
+| What a reply opens with and how long it is are let go of first, by either engine | The shape of the reply is said last, after what was asked |
+| Nobody chimed in on a local model: it thinks aloud before its JSON, and names the person in place of the seat | The picker reads the last array that parses and takes a name for its seat; a chime that says the answer again is dropped |
+| A sentence said again word for word | Taken out of a later answer |
+| "Robin, is that right?" was answered by someone else | A teammate spoken to by name answers |
+
+Not covered by any convention, and seen on the local model: advice that is thin or wrong in substance (an egg boiled for three
+minutes, a fixed wait added to a flaky test). Manners do not fix what a model knows.
+
+### Round 1 of train (14 November 2026)
+
+The first round of the standing command (`training/TRAIN.md`). It asked every question a second way, pushed back on right
+answers, checked its own readers and named what was lost. Full runs, read reply by reply:
+
+| | Claude Code, Sonnet 5.5 | Local model, Nemotron 3.5 Lightning 30B |
+|---|---|---|
+| Substance, Simple (12 everyday facts, two wordings each) | 12 right; 3 of 3 held when pushed | 9 right, 3 wrong as scored; 3 of 3 held |
+| Substance, Developer (12, of which 8 held out) | 10 right as scored, **12 once the readers were corrected**; all 8 held out right | 11 right, 1 wrong; 7 of 8 held out right |
+| Conversation, Simple (52 conventions) | 52 | 52 |
+| Conversation, Developer (23 conventions) | 23 | 23 |
+
+"As scored" matters. Every one of Claude Code's Developer misses was a reader misreading a correct reply ("No. A waitForTimeout
+only moves the race"), and so was one of the local model's ("Yes, but boil them first"). Each misreading is now a fixture: the
+readers are run against 22 replies whose verdict is known before any model is asked.
+
+What reading the replies found, and what was done:
+
+| Found | Done |
+|---|---|
+| Looking every exact fact up made some answers worse than memory (a soft egg "3 to 5 minutes" from mixed sources) | The answer is given from memory; the fact-checker is asked for the bare fact in one line; only if the two disagree is it looked up |
+| "You have not been shown their code" made a local model dodge a question of practice ("UTC or local time?") | A question of practice is answered outright; only what is in their own code, logs or settings has to have been shown |
+| A local model offered a forced push after a revert | An answer that offers a command that destroys work, unasked, is written again with the safe way only |
+| A local model named files, lines and causes it was never shown | Such an answer is written once more without them |
+| Asked "what caused the outage this morning?", a local model searched the web and described somebody else's outage | In Developer the fall-back to a web lookup is not taken for a question about the customer's own system |
+| On Claude Code, asked about "our nginx.conf" with no workspace connected, a seat searched the whole disk for five minutes | A seat looks for the customer's files only in the connected workspace, and asks for a path otherwise |
+
+Still wrong on the local model after the round: the time for a soft egg varies from run to run, and a 5 kg turkey is thawed in
+a day even after a lookup. Both are for round 2 (a worked sum, done by the app).
 
 ## Not measured
 

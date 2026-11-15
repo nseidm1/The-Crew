@@ -34,8 +34,13 @@ If Playwright is already installed somewhere else on the machine, point at that 
 |---|---|---|
 | `plan-loop.mjs` | Requirements from a request or a ticket; build, prove, judge; each way the loop stops; nothing lands with a requirement open | 27 |
 | `developer-setup.mjs` | Someone new and someone experienced; a folder to choose; a website served and stopped; a phone absent and plugged in | 18 |
-| `answer-cards.mjs` | In Simple: a card made only from an answer's own figures; a warning is never left out | 14 |
+| `answer-cards.mjs` | In Simple: a card made only from an answer's own figures; a warning is never left out; an answer a card stands for is never shown as words first; picks and their pictures | 18 |
 | `knows-you.mjs` | What a person says of themself is kept in their own words, shown to every seat, and can be listed and forgotten | 13 |
+| `conversation.mjs` | How a person writes is read from their own words and each seat is told what that asks of it; the manners of the room in each mode; an engineer told from someone starting out; the short form a local model is given, the shape of the reply said last, and what is tidied from an answer | 35 |
+| `moods.mjs` | What a face shows for a message and for a seat at work, in both modes | 4 |
+| `extras.mjs` | What goes under a reply: answers to tap, fields, a timer, a worked sum, a day and its calendar file, commands, seen and not seen | 19 |
+| `threads.mjs` | One of the five sets another going; a mark in place of a line; what a reply keeps under it; a plan's sections; a comparison card ; a fact checked by a blank slate, and by a second that tries to break it | 18 |
+| `hindsight.mjs` | Experiences, the person's corrections and "told twice", a fault seen twice adding its line, recall by rare words, by what was kept together, by the earlier attempt and by file, a seat given more when it was not told, and what may leave the machine ; the soul's edges and the walk through them | 22 |
 
 ### `runner/` the runner, over HTTP
 
@@ -44,6 +49,7 @@ If Playwright is already installed somewhere else on the machine, point at that 
 | `self-test.mjs` | The whole runner: setup on every engine and its refusals, the agent check, the workspace, proofs and their rounds, Jira, plans, the phone link, the owner's panel, the launcher and the bundle | 529 |
 | `host.mjs` | A plain folder made a workspace; a website served to this computer only; a phone that is or is not plugged in | 14 |
 | `banner.mjs` | The installer's banner in a real terminal at every width: it fits, it is plain ASCII, it is drawn again on a resize, and never into a pipe | 9 |
+| `run-here.mjs` | Which commands the runner will run for a press in the chat, and which it never will | 3 |
 
 ### `browser/` the real pages and the real runner, in Chromium
 
@@ -57,6 +63,8 @@ If Playwright is already installed somewhere else on the machine, point at that 
 | `ticket-media.mjs` | A ticket's pictures: read, said in the chat, and kept on the ticket the team is talking about | 13 |
 | `claude-sign-in.mjs` | Signing in to Claude as a step of setting up | 8 |
 | `runner-restart.mjs` | The app replaced under an open page (an update): the page is connected to the new one again and counted as open | 3 |
+| `picture-cards.mjs` | A card of picks with a picture over each name; a picture that is missing or fails; the chat filling the window at any size | 8 |
+| `under-a-reply.mjs` | Everything a reply carries under it, painted by the real app in both modes: the timer counts, the calendar file is handed over, a place opens on a map, a plan shows its sections and its choices | 15 |
 | `crawl.mjs` | A full pass over every page, hosted and live, at computer and phone sizes; prints an `ISSUE` line for anything wrong | a crawl |
 
 ### `landing/` the landing page

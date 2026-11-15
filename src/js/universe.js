@@ -71,10 +71,16 @@ const mix = (a, b, t) => [
 
 // each scene: how long it is held, where the camera rests (x, y, zoom), and what the page says under it
 // beats: the steps of the scene, each [how far into the scene it begins, the line that says what is being looked at]
+// A CAPTION IS HELD FOR AS LONG AS IT TAKES TO READ. The flight's words are in one place (the caption under it), and a caption that
+// changes before it has been read is worse than none. Reading is taken at fifteen characters a second, the comfortable rate for
+// subtitles, and half a second to land on it: readTime(). Each scene is as long as its captions need, and has as few as will do:
+// measured before this, sixteen of the eighteen were gone before they could be read. A caption that carries over from the end of
+// one scene to the start of the next is one caption (the page does not redraw a line that has not changed).
+export const readTime = (text) => Math.max(1.6, String(text).length / 15 + 0.5);
 export const SCENES = [
   {
     id: 'office',
-    d: 9,
+    d: 12.5,
     name: 'The Family Office',
     line: 'This is the Family Office. One window is lit.',
     cam: [0, -12, 0.7],
@@ -82,56 +88,53 @@ export const SCENES = [
       [0, 'This is the Family Office. One window is lit.'],
       [0.3, 'Inside, someone has sat down at their desk.'],
       [0.58, 'On their screen is this page. Look closer.'],
-      [0.84, 'What lives in there: one soul, and five who share it.'],
+      [0.86, 'What lives in there: one soul, and five who share it.'],
     ],
   },
   {
     id: 'five',
-    d: 9.5,
+    d: 13.5,
     name: 'The five',
     line: 'Five agents, each with a job and a voice of its own.',
     cam: [0, -12, 0.7],
     beats: [
-      [0, 'Around the soul are five agents, each with a job and a voice of its own.'],
-      [0.16, 'Ask once. The soul reaches each of them before it speaks.'],
-      [0.62, 'Five answers that fit together, because they share one soul.'],
+      [0, 'What lives in there: one soul, and five who share it.'],
+      [0.18, 'Ask once. Each takes its part: plan it, check it, do it, show it, wrap it up.'],
+      [0.66, 'Five answers that fit together, because they share one soul.'],
     ],
   },
   {
     id: 'vision',
-    d: 9.5,
+    d: 15.5,
     name: 'Vision',
     line: 'Before it speaks, it sees what matters.',
     cam: [0, -134, 0.95],
     beats: [
-      [0, 'Someone asks the team a question.'],
-      [0.24, 'Before anyone answers, the soul lights up what it knows that matters here.'],
-      [0.5, 'Those three things travel to its core, and out to Sam.'],
-      [0.78, 'So the answer fits this person, not everyone.'],
+      [0, 'Someone asks the team about dinner on Saturday.'],
+      [0.24, 'Before anyone answers, the soul lights up what it knows about them, and sends it to Sam.'],
+      [0.69, 'So the answer fits them: a vegetarian place, in their own city.'],
     ],
   },
   {
     id: 'hindsight',
-    d: 8.5,
+    d: 11.5,
     name: 'Hindsight',
     line: 'After every day, it is wiser.',
     cam: [60, -104, 0.92],
     beats: [
-      [0, 'After the answer, the team looks back at how it went.'],
-      [0.2, 'What it learned travels home to the soul.'],
-      [0.7, 'It lands as a new light, and its path stays gold: kept for next time.'],
+      [0, 'After the answer, what the team learned travels home to the soul.'],
+      [0.7, 'It lands as a new light, kept for next time.'],
     ],
   },
   {
     id: 'soul',
-    d: 7.5,
+    d: 9.5,
     name: 'Soul',
     line: 'It keeps what matters to you.',
     cam: [0, -10, 1.16],
     beats: [
-      [0, 'Closer now. This is the soul itself.'],
-      [0.18, 'Every light is something you told the team, or decided.'],
-      [0.6, 'You can ask what it knows. You can tell it to forget.'],
+      [0, 'Closer: this is the soul. Every light is something you told the team.'],
+      [0.56, 'You can ask what it knows. You can tell it to forget.'],
     ],
   },
   {
@@ -239,6 +242,7 @@ const SAID = [...SEEN, ...apart(3, 0.8, SEEN)].map((j, n) => [
   ['vegetarian', 'lives in Porto', 'Mia turns six', 'likes short answers', 'call me Dana', 'every change on a branch'][
     n
   ],
+  ['leaf', 'pin', 'cake', 'short', 'name', 'branch'][n],
 ]);
 const SEEN_WAYS = SEEN.map(wayIn);
 // WHAT HINDSIGHT HAS KEPT: each turn of the film one more lesson lands, on its own light, and its way in to the core stays gold
@@ -260,6 +264,7 @@ const FIVE = [
     name: 'Sam',
     c: [107, 116, 230],
     will: 'I’ll plan it.',
+    sign: 'plan',
     says: 'Park first, cake after.',
     does: 'plans it',
     tone: C.fog,
@@ -268,6 +273,7 @@ const FIVE = [
     name: 'Robin',
     c: [240, 169, 58],
     will: 'I’ll check it.',
+    sign: 'look',
     says: 'The café is shut. I checked.',
     does: 'writes the test: red',
     tone: C.garnet,
@@ -276,6 +282,7 @@ const FIVE = [
     name: 'Alex',
     c: [32, 179, 166],
     will: 'I’ll get it done.',
+    sign: 'cog',
     says: 'Sunny till six. Go early.',
     does: 'builds until it is green',
     tone: C.jade,
@@ -284,6 +291,7 @@ const FIVE = [
     name: 'Jamie',
     c: [236, 106, 160],
     will: 'I’ll show you.',
+    sign: 'picture',
     says: 'I drew Mia a card.',
     does: 'checks the screen',
     tone: C.fog,
@@ -292,6 +300,7 @@ const FIVE = [
     name: 'Pat',
     c: [34, 176, 125],
     will: 'I’ll wrap it up.',
+    sign: 'wrap',
     says: 'Short version: go by ten.',
     does: 'lands it, on the receipt',
     tone: C.jade,
@@ -439,6 +448,127 @@ function signal(g, pts, v, c, a, wide = 2) {
   }
   return head;
 }
+// SIGNS. In the flight (the hero) nothing is written inside the picture: the caption under it is the one thing to read, and the picture
+// shows what the caption says. So where a scene on its own writes a few words in a pill ("I'll plan it.", "vegetarian"), the flight
+// draws a sign in the same pill: a list for a plan, a lens for a check, a leaf for what someone eats. Each is line art in a box from
+// -1 to 1, in the pill's own colour.
+const SIGNS = {
+  ask: (g) => {
+    g.arc(0, -0.35, 0.4, Math.PI, Math.PI * 0.35);
+    g.lineTo(0, 0.25);
+    g.moveTo(0.01, 0.72);
+    g.lineTo(0, 0.72);
+  },
+  plan: (g) => {
+    for (const y of [-0.5, 0, 0.5]) {
+      g.moveTo(-0.66, y);
+      g.lineTo(-0.65, y);
+      g.moveTo(-0.28, y);
+      g.lineTo(0.7, y);
+    }
+  },
+  look: (g) => {
+    g.arc(-0.15, -0.15, 0.48, 0, TAU);
+    g.moveTo(0.2, 0.2);
+    g.lineTo(0.72, 0.72);
+  },
+  cog: (g) => {
+    g.arc(0, 0, 0.26, 0, TAU);
+    g.moveTo(0.52, 0);
+    g.arc(0, 0, 0.52, 0, TAU);
+    for (let s = 0; s < 8; s++) {
+      const a = (s * TAU) / 8;
+      g.moveTo(Math.cos(a) * 0.52, Math.sin(a) * 0.52);
+      g.lineTo(Math.cos(a) * 0.8, Math.sin(a) * 0.8);
+    }
+  },
+  picture: (g) => {
+    g.rect(-0.78, -0.6, 1.56, 1.2);
+    g.moveTo(-0.62, 0.42);
+    g.lineTo(-0.18, -0.08);
+    g.lineTo(0.12, 0.22);
+    g.lineTo(0.36, -0.02);
+    g.lineTo(0.64, 0.42);
+    g.moveTo(0.5, -0.3);
+    g.arc(0.38, -0.3, 0.12, 0, TAU);
+  },
+  wrap: (g) => {
+    g.rect(-0.66, -0.12, 1.32, 0.84);
+    g.moveTo(0, -0.12);
+    g.lineTo(0, 0.72);
+    g.moveTo(0, -0.14);
+    g.bezierCurveTo(-0.6, -0.8, -0.75, -0.2, 0, -0.14);
+    g.bezierCurveTo(0.6, -0.8, 0.75, -0.2, 0, -0.14);
+  },
+  leaf: (g) => {
+    g.moveTo(-0.62, 0.62);
+    g.bezierCurveTo(-0.72, -0.3, 0, -0.8, 0.72, -0.72);
+    g.bezierCurveTo(0.8, 0, 0.3, 0.72, -0.62, 0.62);
+    g.lineTo(0.28, -0.28);
+  },
+  pin: (g) => {
+    g.arc(0, -0.25, 0.5, Math.PI * 0.8, Math.PI * 0.2);
+    g.lineTo(0, 0.8);
+    g.closePath();
+    g.moveTo(0.16, -0.25);
+    g.arc(0, -0.25, 0.16, 0, TAU);
+  },
+  cake: (g) => {
+    g.rect(-0.62, 0.02, 1.24, 0.66);
+    g.moveTo(-0.62, 0.32);
+    g.lineTo(0.62, 0.32);
+    g.moveTo(0, 0.02);
+    g.lineTo(0, -0.4);
+    g.moveTo(0.01, -0.68);
+    g.lineTo(0, -0.68);
+  },
+  short: (g) => {
+    g.moveTo(-0.7, -0.26);
+    g.lineTo(0.34, -0.26);
+    g.moveTo(-0.7, 0.26);
+    g.lineTo(-0.1, 0.26);
+  },
+  name: (g) => {
+    g.arc(0, -0.34, 0.3, 0, TAU);
+    g.moveTo(-0.62, 0.74);
+    g.arc(0, 0.74, 0.62, Math.PI, TAU);
+  },
+  branch: (g) => {
+    g.arc(-0.4, -0.56, 0.17, 0, TAU);
+    g.moveTo(-0.23, 0.56);
+    g.arc(-0.4, 0.56, 0.17, 0, TAU);
+    g.moveTo(0.62, -0.2);
+    g.arc(0.45, -0.2, 0.17, 0, TAU);
+    g.moveTo(-0.4, -0.39);
+    g.lineTo(-0.4, 0.39);
+    g.moveTo(0.45, -0.03);
+    g.quadraticCurveTo(0.45, 0.3, -0.4, 0.3);
+  },
+  plate: (g) => {
+    g.arc(0, 0, 0.46, 0, TAU);
+    g.moveTo(0.24, 0);
+    g.arc(0, 0, 0.24, 0, TAU);
+    g.moveTo(-0.84, -0.62);
+    g.lineTo(-0.84, 0.62);
+    g.moveTo(0.84, -0.62);
+    g.lineTo(0.84, 0.62);
+  },
+};
+const sign = (g, kind, x, y, size, colour) => {
+  if (!SIGNS[kind]) return;
+  g.save();
+  g.translate(x, y);
+  g.scale(size / 2, size / 2);
+  g.strokeStyle = colour;
+  g.lineWidth = 0.17;
+  g.lineCap = 'round';
+  g.lineJoin = 'round';
+  g.beginPath();
+  SIGNS[kind](g);
+  g.stroke();
+  g.restore();
+};
+
 // WORDS. They are gathered while the frame is drawn and set down last, on top: each a small pill, never smaller on the screen than can
 // be read, kept inside what can be seen, and moved off another by as far as they overlap (gradually, as the other appears). side: 1 right of the point, -1 left, 0 centred on it, and anywhere between.
 // pop: how far it has sprung into place (it arrives a little large, and settles).
@@ -449,8 +579,9 @@ function setWords(g, list, px, box) {
   for (const w of list) {
     const f = px * (w.big ? 1.1 : 1);
     g.font = '600 ' + f + 'px Figtree, "Avenir Next", "Segoe UI", system-ui, sans-serif';
-    const tw = g.measureText(w.text).width;
-    const h = f * 1.9;
+    const each = f * 2.3; // a sign's own box, and the space between two of them
+    const tw = w.signs ? w.signs.length * each + (w.signs.length - 1) * f * 0.55 : g.measureText(w.text).width;
+    const h = w.signs ? f * 3.3 : f * 1.9;
     const pad = f * 0.8;
     const bw = tw + pad * 2;
     const gap = f * 0.3;
@@ -486,8 +617,14 @@ function setWords(g, list, px, box) {
     rr(g, -bw / 2, -h / 2, bw, h, h / 2);
     g.fill();
     g.stroke();
-    g.fillStyle = rgba(w.c, 1);
-    g.fillText(w.text, -bw / 2 + pad, f * 0.04);
+    if (w.signs)
+      w.signs.forEach((kind, n) =>
+        sign(g, kind, -bw / 2 + pad + each / 2 + n * (each + f * 0.55), 0, each, rgba(w.c, 1)),
+      );
+    else {
+      g.fillStyle = rgba(w.c, 1);
+      g.fillText(w.text, -bw / 2 + pad, f * 0.04);
+    }
     g.restore();
   }
   g.globalAlpha = 1;
@@ -547,7 +684,8 @@ function face(g, j, x, y, s, t, o) {
   w.eyes.forEach((e, n) => {
     const cx = e + fx + lx * 0.9;
     const cy = w.ey + fy + ly * 0.7;
-    if (w.wink && n === 1) {
+    if ((w.wink && n === 1) || (o.glad || 0) > 0.5) {
+      // a smiling eye: Jamie's wink, and anyone who is glad (it has just answered, or all of it has come together)
       g.strokeStyle = INK;
       g.lineWidth = 1.8;
       g.beginPath();
@@ -1260,8 +1398,10 @@ function draw(g, W, H, t, fixed, dpr, lean) {
   const narrow = W / dpr < 560;
   const words = [];
   const V = viewAt(t, lean);
+  const wordless = fixed == null; // the flight: the caption under it is the one text, so nothing is written in the picture
   const say = (x, y, text, a, c = C.fog, side = 1, o = {}) => {
-    if (near > 0) words.push({ x, y, text, a: a * near, c, side, ...o });
+    if (wordless && !o.signs) return;
+    if (near > 0) words.push({ x, y, text, a: a * near, c, side, ...o, signs: wordless ? o.signs : null });
   };
   const inset = fixed == null ? 0.16 : 0.04;
   const box = [
@@ -1586,7 +1726,7 @@ function draw(g, W, H, t, fixed, dpr, lean) {
       g.stroke();
     }
   } // the soul takes in what was learned, or what was proven: rings go out through it
-  SAID.forEach(([j, text], n2) => {
+  SAID.forEach(([j, text, drawn], n2) => {
     const a = Math.max(told(n2), lit(j));
     say(
       P[j][0],
@@ -1595,7 +1735,7 @@ function draw(g, W, H, t, fixed, dpr, lean) {
       a,
       C.gilt,
       narrow ? 0 : clamp(P[j][0] / 30, -1, 1) * (1 - 2 * seg(Math.abs(P[j][0]), 130, 170)),
-      { pop: 0.7 + 0.3 * spring(a) },
+      { pop: 0.7 + 0.3 * spring(a), signs: [drawn] },
     );
   });
 
@@ -1642,7 +1782,7 @@ function draw(g, W, H, t, fixed, dpr, lean) {
       open * (1 - ans * (narrow ? 1 : 0.3)),
       C.fog,
       narrow ? 0 : -1,
-      { big: !narrow, up: true, slot: narrow ? 'ask' : '', pop: spring(seg(vis, 0.1, 0.2)) },
+      { big: !narrow, up: true, slot: narrow ? 'ask' : '', pop: spring(seg(vis, 0.1, 0.2)), signs: ['plate', 'ask'] },
     );
     say(
       narrow ? NOW[0] : NOW[0] + 54,
@@ -1651,7 +1791,13 @@ function draw(g, W, H, t, fixed, dpr, lean) {
       ans,
       C.gilt,
       narrow ? 0 : 1,
-      { big: !narrow, up: true, slot: narrow ? 'ask' : '', pop: spring(seg(vis, 0.78, 0.88)) },
+      {
+        big: !narrow,
+        up: true,
+        slot: narrow ? 'ask' : '',
+        pop: spring(seg(vis, 0.78, 0.88)),
+        signs: ['plate', 'leaf', 'pin'],
+      },
     );
   }
 
@@ -1734,13 +1880,21 @@ function draw(g, W, H, t, fixed, dpr, lean) {
       lx,
       ly,
       yaw: V.yaw,
+      // THE FILM'S FIVE SHOW IT TOO: glad once each has said its part, when the answer fits, and when it is all one
+      glad: is('all')
+        ? seg(u, 0.12, 0.3)
+        : j === 0 && vis
+          ? seg(vis, 0.84, 0.9)
+          : team
+            ? seg(team, t0 + 0.1, t0 + 0.14)
+            : 0,
     });
     g.globalAlpha = (1 - alone) * 0.9 * hid;
     g.font = '600 ' + px * 0.95 + 'px Figtree, "Avenir Next", system-ui, sans-serif';
     g.textBaseline = 'middle';
     g.textAlign = 'center';
     g.fillStyle = rgba(C.fog, 0.82);
-    g.fillText(f.name, x, y + s * 0.52 + px * 0.66);
+    if (!wordless) g.fillText(f.name, x, y + s * 0.52 + px * 0.66);
     g.textAlign = 'start';
     g.globalAlpha = 1;
     if (team) {
@@ -1752,7 +1906,7 @@ function draw(g, W, H, t, fixed, dpr, lean) {
         hold,
         proof ? f.tone : C.fog,
         0,
-        { big: !narrow, up: true, pop: spring(seg(team, t0, t0 + 0.06)) },
+        { big: !narrow, up: true, pop: spring(seg(team, t0, t0 + 0.06)), signs: [f.sign] },
       );
     }
   });
@@ -1864,7 +2018,7 @@ function draw(g, W, H, t, fixed, dpr, lean) {
       bump(team, 0.04, 0.97, 0.04),
       C.fog,
       0,
-      { big: true, fill: 'rgba(40,52,84,.92)', pop: spring(seg(team, 0.04, 0.12)) },
+      { big: true, fill: 'rgba(40,52,84,.92)', pop: spring(seg(team, 0.04, 0.12)), signs: ['ask'] },
     ); // what the person asked, in both halves of the scene
 
   // as the film is first met (the end of the opening, the start of the scene after it) two things in it are named

@@ -42,9 +42,10 @@
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-  align-items: start;
+  align-items: stretch; /* the tiers stand side by side at one height, whatever each holds */
 }
 .plan-card {
+  position: relative;
   display: grid;
   gap: 14px;
   align-content: start;
@@ -66,7 +67,9 @@
     0 0 40px rgba(52, 211, 153, 0.08);
 }
 .plan-on {
-  justify-self: start;
+  position: absolute; /* in the corner, so that both tiers begin with their names on one line */
+  top: 20px;
+  right: 20px;
   padding: 5px 12px;
   border-radius: 999px;
   background: var(--jade);

@@ -57,6 +57,17 @@ export function installRound(ctx) {
           '". Write the piece out again with every point from the check put right and everything else kept. Give the finished piece on its own first. Then, on a new line, one short sentence offering to change anything.',
         { ...speakOpts, max: 300, doing: 'Putting the final version together' },
       );
+    // THE PIECE ITSELF: Alex's when nothing had to be fixed, Pat's when something did. It can be copied, and steered with a tap.
+    {
+      const piece = [...ctx.state.chat]
+        .reverse()
+        .find((m) => m.by === (fine ? 'operations' : 'master') && m.text && !unsaid(m.text));
+      if (piece) {
+        piece.extras = { ...(piece.extras || {}), draft: true };
+        piece.xrev = (piece.xrev || 0) + 1;
+        ctx.emit('chat');
+      }
+    }
     const kept =
       unsaid(note) || fine
         ? null

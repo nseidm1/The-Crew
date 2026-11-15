@@ -82,7 +82,9 @@ import { createLink } from './link.mjs';
 import { randomBytes } from 'node:crypto';
 import { createTune } from './tune.mjs';
 import { ROUTE_ASK, guessRoute, parseRoute, seatFor } from './talk.mjs';
-import { allowed, read as readPage, search } from './web.mjs';
+import { spawn as runSpawn } from 'node:child_process';
+import { runRefusal } from './run-here.mjs';
+import { allowed, picture, read as readPage, search } from './web.mjs';
 import { shotApp, shotPage } from './shot.mjs';
 import { langsOf, skillFor, seatSkills } from './skills.mjs';
 import { TEMPER } from '../js/team-soul.js';
@@ -1483,6 +1485,55 @@ export function createRunner({ root, port }) {
           }
           // WHAT IS WAITING, AS TEXT: the change in the clone (git's diff, and each new file), bounded. The Steward judges each
           // requirement of the plan against this, not against what the builder said it did.
+          // RUN IT HERE: one command a reply gave, run in the connected workspace when the customer presses for it. Only a command
+          // that reads or tests (the same list the page uses, held again here: a page is never trusted with what may run), with no
+          // shell in between, for at most two minutes, and what it printed is cut to what a chat can show.
+          if (route === '/api/workspace/run') {
+            const cmd = String(body.cmd || '')
+              .trim()
+              .slice(0, 300);
+            const why = runRefusal(cmd);
+            if (why) return json(res, 200, { ok: false, why });
+            if (!work.repo || !work.dir) return json(res, 200, { ok: false, why: 'No workspace is connected.' });
+            const argv = cmd.match(/"[^"]*"|'[^']*'|\S+/g).map((a) => a.replace(/^(["'])(.*)\1$/, '$2'));
+            const ran = await new Promise((done) => {
+              let out = '';
+              let child;
+              try {
+                child = runSpawn(argv[0], argv.slice(1), {
+                  cwd: work.dir,
+                  shell: false,
+                  env: { ...process.env, CI: '1', FORCE_COLOR: '0' },
+                });
+              } catch (e) {
+                return done({ ok: false, why: String((e && e.message) || e).slice(0, 200) });
+              }
+              const stop = setTimeout(() => {
+                out += '\n[stopped after two minutes]';
+                child.kill('SIGKILL');
+              }, 120000);
+              const take = (d) => {
+                if (out.length < 24000) out += d.toString();
+              };
+              child.stdout.on('data', take);
+              child.stderr.on('data', take);
+              child.on('error', (e) => {
+                clearTimeout(stop);
+                done({
+                  ok: false,
+                  why:
+                    e.code === 'ENOENT'
+                      ? argv[0] + ' is not installed on this machine.'
+                      : String(e.message).slice(0, 200),
+                });
+              });
+              child.on('close', (code) => {
+                clearTimeout(stop);
+                done({ ok: code === 0, code, out: out.replace(/\u001b\[[0-9;]*m/g, '').slice(-6000) });
+              });
+            });
+            return json(res, 200, ran);
+          }
           if (route === '/api/workspace/diff') {
             const st = await statusOf(work.dir);
             if (!st.changed.length) return json(res, 200, { diff: '', files: [], cut: false });
@@ -2819,6 +2870,13 @@ export function createRunner({ root, port }) {
         const self = [port, (runner.disk.link && runner.disk.link.port) || 0];
         const own = body.own === true;
         if (tool === 'search') return json(res, 200, await search(String(body.q || '')));
+        // a picture for each named thing a card is about (web.mjs picture): at most seven
+        if (tool === 'picture') {
+          const names = (Array.isArray(body.names) ? body.names : []).map((x) => String(x)).slice(0, 7);
+          const pictures = [];
+          for (const name of names) pictures.push(await picture(name, String(body.hint || ''))); // one after another: the search is a shared service
+          return json(res, 200, { ok: true, pictures });
+        }
         if (tool === 'read') return json(res, 200, await readPage(String(body.url || ''), { own, selfPorts: self }));
         if (tool === 'shot') {
           const id = randomBytes(6).toString('hex');

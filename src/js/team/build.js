@@ -21,6 +21,33 @@ import { branchFrom, directFrom, landedSays, pushFrom } from './source.js';
 export const PLAN_MAX = 3;
 
 // only lines the model marked as a list are requirements: a model that answered in prose has not given any
+// THE SECTIONS A PLAN MAY CARRY besides its requirements. The planner chooses which, for this piece of work; the card draws them.
+// They are read from lines after the list, each kept only when it says something: files with a name in them, cases that are more
+// than one, a lead that is one of the requirements.
+export const planSections = (raw, count) => {
+  const get = (key) => {
+    const m = new RegExp('^\\s*\\**' + key + '\\**\\s*:\\s*(.+)$', 'im').exec(String(raw || ''));
+    return m ? m[1].replace(/\*\*|\x60/g, '').trim() : '';
+  };
+  const out = {};
+  const files = get('FILES')
+    .split(/\s*,\s*/)
+    .map((x) => x.trim())
+    .filter((x) => /^[\w./@-]{3,80}$/.test(x) && /[./]/.test(x))
+    .slice(0, 8);
+  if (files.length) out.files = files;
+  const risk = get('RISK');
+  if (risk.length >= 12 && risk.length <= 240 && !/^(none|n\/a|no risk)/i.test(risk)) out.risk = risk;
+  const cases = get('CASES')
+    .split(/\s*\|\s*/)
+    .map((x) => x.trim())
+    .filter((x) => x.length >= 3 && x.length <= 70)
+    .slice(0, 6);
+  if (cases.length >= 2) out.cases = cases;
+  const lead = Number((/\d+/.exec(get('LEAD')) || [])[0]);
+  if (lead >= 1 && lead <= count && count > 1) out.lead = lead;
+  return Object.keys(out).length ? out : null;
+};
 export const reqLines = (raw) =>
   String(raw || '')
     .split('\n')
@@ -349,6 +376,7 @@ export function installBuild(ctx) {
       // round again, unless this was the last round, or it left exactly what the round before left, or the change cannot be proven.
       planTouch(planMsg, { stage: 'judge', says: 'Judging the change against each requirement' });
       const got = await judgePlan(planMsg, title, made, proof);
+      await answerChecks(planMsg, title);
       const all = planMsg.plan.reqs.length;
       const reqs = planMsg.plan.reqs.map((r, i) => {
         const v = got.get(i + 1);
@@ -420,6 +448,13 @@ export function installBuild(ctx) {
             plan: {
               ...planMsg.plan,
               reqs: reqs.map((r) => (r.state === 'met' ? r : { text: r.text, state: 'todo', why: '', was: r.why })),
+              ...(planMsg.plan.checks
+                ? {
+                    checks: planMsg.plan.checks.map((c) =>
+                      c.state === 'skipped' ? { ...c, state: 'open', line: '' } : c,
+                    ),
+                  }
+                : {}),
               n: lap + 1,
               stage: 'plan',
               says: '',
@@ -575,7 +610,8 @@ export function installBuild(ctx) {
     const old = ctx.state.chat.filter((m) => m.plan && m.plan.title === short(title) && m.plan.stage === 'talk').pop();
     const src = old ? old.plan.source : ctx.state.focus ? 'ticket' : 'request';
     const key = old ? old.plan.key : ctx.state.focus ? ctx.state.focus.key : '';
-    let reqs = old ? old.plan.reqs.map((r) => r.text) : []; // talked through before there was a workspace: the same plan is carried on, not read again
+    let reqs = old ? old.plan.reqs.map((r) => r.text) : [];
+    let sections = old ? old.plan.sections || null : null; // talked through before there was a workspace: the same plan is carried on, not read again
     if (!reqs.length) {
       const raw = await ctx.quiet(
         'overseer',
@@ -588,7 +624,8 @@ export function installBuild(ctx) {
           (ctx.state.focus ? 'the ticket states' : 'the customer stated') +
           ' it. A numbered list, one requirement on each line, at most six, the most important first. Each is one plain sentence that a test or a person could check as met or not met. Use the names and the numbers ' +
           (ctx.state.focus ? 'the ticket' : 'the request') +
-          ' uses. Add nothing that was not asked for, never a question, and no words before or after the list.',
+          ' uses. Add nothing that was not asked for, never a question, and no words before the list. ' +
+          'After the list you may add, each on a line of its own and only where it would help someone follow this piece of work: "FILES: <the files you expect to touch, with commas between>", "RISK: <the step most likely to go wrong, and how it is undone>", "CASES: <the cases the check will pin, with | between>", "LEAD: <the number of the requirement that matters most>". Leave out any that would be a guess.',
         {
           customer: title,
           lang: o.lang || '',
@@ -597,6 +634,7 @@ export function installBuild(ctx) {
         },
       );
       reqs = unsaid(raw) ? [] : reqLines(raw);
+      sections = unsaid(raw) ? null : planSections(raw, reqs.length);
     }
     if (!reqs.length) reqs = [short(title)]; // nothing to break it into: the request itself is the one thing to meet
     if (old) planTouch(old, { stage: 'moved', says: 'Carried on further down.' });
@@ -610,7 +648,23 @@ export function installBuild(ctx) {
       stage: 'plan',
       says: '',
       rev: 0,
+      ...(sections ? { sections } : {}),
+      // LESSONS AS CHECKS (after the system this team is modelled on): what the team's memory holds on this work is not only shown
+      // to a seat, where it may be passed over. Each becomes a line on the plan that the round has to answer: applied, and how, or
+      // does not apply, and why. One left unanswered is recorded as skipped; it never holds the work up.
+      checks: ctx.core
+        .ask(title + ' ' + ((sections && sections.files) || []).join(' '))
+        .filter((v) => (v.kind === 'lesson' || v.kind === 'base') && v.ref)
+        .slice(0, 3)
+        .map((v) => ({
+          id: v.ref.id || '',
+          text: String(v.text).slice(0, 220),
+          from: v.from,
+          state: 'open',
+          line: '',
+        })),
     };
+    if (!plan.checks.length) delete plan.checks;
     ctx.post(
       'overseer',
       'The plan, from ' +
@@ -623,6 +677,44 @@ export function installBuild(ctx) {
       { plan },
     );
     return ctx.state.chat[ctx.state.chat.length - 1];
+  }
+
+  // each lesson on the plan is answered against the change: applied or not-applicable, with a line. Asked once; what comes back
+  // unanswered is skipped, and says so on the card. A lesson that was applied counts as used in this piece of work.
+  async function answerChecks(planMsg, title) {
+    const checks = planMsg.plan.checks;
+    if (!checks || !checks.some((c) => c.state === 'open')) return;
+    let raw = '';
+    try {
+      raw = await ctx.within(
+        ctx.quiet(
+          'steward',
+          'A change was just made for: "' +
+            String(title).slice(0, 300) +
+            '". The team had these lessons from earlier work that bear on it:\n' +
+            checks.map((c, i) => i + 1 + '. ' + c.text).join('\n') +
+            '\n\nFor each, say whether this change applied it. Reply with one line for each and nothing else, in this form:\n1: applied - <what in the change shows it>\n2: not-applicable - <why it does not bear on this change>',
+          { doing: 'Answering what the team had learned', max: 200, customer: title },
+        ),
+        45000,
+        'answering lessons',
+      );
+    } catch {
+      raw = '';
+    }
+    const said = new Map();
+    for (const l of String(raw).split('\n')) {
+      const m = /^\s*(\d+)\s*[:.)]\s*\**(applied|not[- ]applicable)\**\s*[-:–]\s*(.{4,200})$/i.exec(l);
+      if (m)
+        said.set(Number(m[1]), { state: /^applied/i.test(m[2]) ? 'applied' : 'not-applicable', line: m[3].trim() });
+    }
+    planMsg.plan.checks = checks.map((c, i) => {
+      const a = said.get(i + 1);
+      if (a && a.state === 'applied' && c.id) (ctx.usedNow || (ctx.usedNow = new Set())).add(c.id);
+      return c.state !== 'open' ? c : a ? { ...c, ...a } : { ...c, state: 'skipped', line: 'not answered' };
+    });
+    planMsg.plan.rev = (planMsg.plan.rev || 0) + 1;
+    ctx.emit('chat');
   }
 
   async function judgePlan(planMsg, title, made, proof) {

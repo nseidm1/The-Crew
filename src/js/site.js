@@ -58,7 +58,7 @@ document.documentElement.classList.add('js');
       },
       // THE NARRATION: under the scene's name, one line for each step of the scene, saying what is being looked at
       onBeat: (i, b, text) => {
-        if (!line) return;
+        if (!line || line.textContent === text) return; // the same words, carried over from the scene before: left as they are
         line.classList.add('swap');
         setTimeout(
           () => {

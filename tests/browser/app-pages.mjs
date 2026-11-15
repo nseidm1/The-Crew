@@ -423,7 +423,7 @@ await p.locator('details.base-topic').first().locator('summary').click();
 const firstTopic = await flat(p.locator('details.base-topic').first());
 check(
   "soul: what the team started with is shown by subject, apart from the customer's own lessons, and says which were used",
-  topics.length === 6 &&
+  topics.length === 7 &&
     /Proving a change/.test(topics[0]) &&
     /When: about to say a change is done/.test(firstTopic) &&
     /[01] of 1 used/i.test(firstTopic),

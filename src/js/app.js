@@ -4,6 +4,7 @@ import { $, $$, h, ago, clock, seatFace, buddy, glyph } from './ui.js';
 import { connect } from './core-port.js';
 import { connectRunner } from './runner-client.js';
 import { STAGES, seatAs } from './team-core.js';
+import { moodOfSeat } from './team/mood.js';
 import { SOUL } from './team-soul.js';
 import { BASE } from './base-lessons.js';
 import { BILLING } from './billing.js';
@@ -58,6 +59,7 @@ function adoptRunner(next) {
                 task: (t, br, how) => runner.workspaceTask(t, br, how),
                 prove: () => runner.workspaceProve(),
                 diff: runner.workspaceDiff ? () => runner.workspaceDiff() : null,
+                run: runner.workspaceRun ? (cmd) => runner.workspaceRun(cmd) : null,
                 judge: runner.workspaceJudge ? (reqs, task) => runner.workspaceJudge(reqs, task) : null,
                 land: (br, how) => runner.workspaceLand(br, how),
                 discard: () => runner.workspaceDiscard(),
@@ -1442,7 +1444,7 @@ const seatRow = (x, more) =>
   h(
     'li',
     { class: 'seat' + (x.status === 'working' ? ' working' : '') },
-    seatFace(x.id), // a face, and the seat's manner beside its name
+    seatFace(x.id, moodOfSeat(x)), // a face that shows what it is doing, and the seat's manner beside its name
     h(
       'span',
       { class: 't' },
@@ -1779,7 +1781,7 @@ const VIEWS = {
           'div',
           { class: 'crew', 'aria-hidden': 'true' },
           ((core.snapshot().team || {}).seats || []).map((x) =>
-            h('span', { class: 'crew-one' }, buddy(x.id), h('em', null, seatAs(x).title)),
+            h('span', { class: 'crew-one' }, buddy(x.id, moodOfSeat(x)), h('em', null, seatAs(x).title)),
           ),
         )
       : null;
@@ -2143,6 +2145,82 @@ const VIEWS = {
             { class: 'muted' },
             'What happened, graded and kept. After each request the team keeps what it settled as a lesson, linked to the request it came from. Each time Vision recalls a lesson, the reply is checked: did the seat draw on it?',
           ),
+          // HOW THE TEAM IS DOING (team/hindsight.js): read off its own finished work, no model asked
+          (() => {
+            const r = core.hindsight ? core.hindsight() : null;
+            if (!r || !r.experiences)
+              return h('p', { class: 'empty' }, 'How the team is doing is shown here once it has finished some work.');
+            const pct = (x) => Math.round(x * 100) + '%';
+            return h(
+              'dl',
+              { class: 'hind-read' },
+              h(
+                'div',
+                null,
+                h('dt', null, 'Stood as first given'),
+                h('dd', null, pct(r.firstPass)),
+                h('span', null, 'of ' + r.experiences + ' finished pieces of work'),
+              ),
+              h(
+                'div',
+                null,
+                h('dt', null, 'Put right by you'),
+                h('dd', null, String(r.corrections)),
+                h(
+                  'span',
+                  null,
+                  r.toldTwice ? r.toldTwice + ' about something already said' : 'never twice about the same thing',
+                ),
+              ),
+              h(
+                'div',
+                null,
+                h('dt', null, 'Does keeping lessons help?'),
+                h(
+                  'dd',
+                  null,
+                  r.helped
+                    ? (r.helped.rounds >= 0 ? '-' : '+') + Math.abs(r.helped.rounds) + ' rounds'
+                    : 'Not measured',
+                ),
+                h(
+                  'span',
+                  null,
+                  r.helped
+                    ? 'where a lesson was used, against work with none'
+                    : 'needs five pieces of work of a kind, with and without',
+                ),
+              ),
+              h(
+                'div',
+                null,
+                h('dt', null, 'Tied together'),
+                h('dd', null, String(r.links || 0)),
+                h('span', null, 'links between what is kept: recall follows them two steps out'),
+              ),
+              r.faults.length
+                ? h(
+                    'div',
+                    { class: 'wide' },
+                    h('dt', null, 'What had to be put right'),
+                    h(
+                      'dd',
+                      null,
+                      r.faults
+                        .slice(0, 5)
+                        .map((f) => h('span', { class: 'tag' + (f.check ? ' ok' : '') }, f.says + ' · ' + f.n)),
+                    ),
+                    h(
+                      'span',
+                      null,
+                      r.landedShare == null
+                        ? ''
+                        : pct(r.landedShare) + ' of these kinds are now caught by the app itself',
+                    ),
+                  )
+                : null,
+            );
+          })(),
           h('h3', null, 'Lessons'),
           lessons.length
             ? h(
@@ -2188,10 +2266,22 @@ const VIEWS = {
                       h(
                         'span',
                         null,
-                        e.seats +
-                          ' seats, ' +
+                        // what came of it (team/hindsight.js): how it ended and in how many rounds, beside what it always said
+                        (e.seats ? e.seats + ' seats, ' : '') +
                           e.seconds +
                           ' s' +
+                          (e.rounds > 1 ? ', ' + e.rounds + ' rounds' : '') +
+                          (e.outcome
+                            ? ', ' +
+                              ({
+                                stood: 'it stood',
+                                landed: 'it landed',
+                                corrected: 'you put it right',
+                                replaced: 'replaced after a doubt',
+                                stopped: 'stopped',
+                                thrown: 'thrown away',
+                              }[e.outcome] || e.outcome)
+                            : '') +
                           (e.kept ? ', and a lesson was kept' : ', nothing kept'),
                       ),
                     ),

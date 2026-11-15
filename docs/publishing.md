@@ -71,7 +71,7 @@ lock, no codes, no Client ID). A publisher's own are kept in `.owner/`, which gi
 Each is a copy of the file of the same name under `src/js/`, with the publisher's values in it. To begin, copy the four files
 there. From then on:
 
-- `npm run owner` runs the app from source with those values (`FO_OWNER_DIR=.owner`), and the owner's panel edits them there.
+- `npm run owner` runs the app from source with those values (`FO_OWNER_DIR=.owner`), on port 5220 so that it never meets a team already running on 5210 (`PORT=...` chooses another), and the owner's panel edits them there.
 - `npm run bundle` puts them into `dist/` in place of the neutral ones, and says so. `FO_NO_OWNER=1` builds without them.
 - `tools/make-code.mjs` writes to `.owner/billing.js` when it exists.
 

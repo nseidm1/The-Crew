@@ -6,6 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SRC, WORK, PLAYWRIGHT_FROM } from '../support/paths.mjs';
+import { CAPTIONS, LENGTH, at as film } from '../support/film.mjs';
+const at = film;
 const require = createRequire(PLAYWRIGHT_FROM);
 const { chromium } = require('playwright');
 const ROOT = SRC;
@@ -73,8 +75,8 @@ const SHOTS = [
   ['4-soul', 40.25],
   ['5-one-soul', 48],
   ['2d-vision-answers', 26.86],
-]; // universe.js, the flight: the opening 0-9, the five to 18.5, vision to 28, hindsight to 36.5, soul to 44, all to 49.5
-let p = await open(1366, 900, '?uni=13.5');
+].map(([name, t]) => [name, at(t)]); // moments on the clock these were chosen against (the opening 0-9, the five to 18.5, vision to 28, hindsight to 36.5, soul to 44, all to 49.5), taken to the film's clock as it is now
+let p = await open(1366, 900, '?uni=' + at(13.5));
 const top = await p.evaluate(() => {
   const at = (q) => {
     const e = document.querySelector(q);
@@ -138,13 +140,36 @@ const cap = await p.evaluate(() => ({
 }));
 check(
   "the caption and the dots follow the scene (held near the end of Vision), and the line under the name is that step's",
-  cap.name === 'Vision' && /fits this person/.test(cap.line) && cap.dot === 2,
+  cap.name === 'Vision' && /fits them/.test(cap.line) && cap.dot === 2,
   cap,
 );
-// ---- the narration: each step of a scene has its own line, and the opening comes first
+// ---- the flight writes nothing of its own: past the opening (a building with its name on it, and this page on a screen), no words
+// are drawn in the hero's picture, so the caption under it is the one thing to read. The scenes further down still write theirs.
+{
+  const wrote = [];
+  for (const t of [12, 16, 22.5, 26, 31, 35, 40, 44, 47].map(at)) {
+    await p.goto(B + '/index.html?uni=' + t, { waitUntil: 'load' });
+    await p.evaluate(() => {
+      window.__wrote = [];
+      const was = CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText = function (text, ...rest) {
+        if (this.canvas.id === 'uni') window.__wrote.push(String(text));
+        return was.call(this, text, ...rest);
+      };
+    });
+    await p.waitForTimeout(600);
+    wrote.push(...(await p.evaluate(() => [...new Set(window.__wrote)])));
+  }
+  check(
+    'past its opening the flight draws no words: what it has to say is in the one caption under it',
+    wrote.length === 0,
+    wrote.slice(0, 12),
+  );
+}
+// ---- the narration: every caption of the flight, held at the moment it has just come, is the line under the scene's name
 const said = [];
-for (const t of [1, 3.4, 6, 8.4, 9.6, 12, 15.5, 19.2, 21.9, 24, 29, 34.5, 37.2, 41.5, 46]) {
-  await p.goto(B + '/index.html?uni=' + t, { waitUntil: 'load' });
+for (const c of CAPTIONS) {
+  await p.goto(B + '/index.html?uni=' + (c.from + Math.min(0.6, c.shown / 3)).toFixed(2), { waitUntil: 'load' });
   await p.waitForTimeout(700);
   said.push(
     await p.evaluate(
@@ -162,20 +187,48 @@ check(
 );
 check(
   'each step of a scene is narrated: the line under the name says what is being looked at, and changes as the scene goes',
-  /^The five: Around the soul are five agents/.test(said[4]) &&
-    /^The five: Ask once/.test(said[5]) &&
-    /Five answers that fit together/.test(said[6]) &&
-    /^Vision: Someone asks/.test(said[7]) &&
-    /lights up what it knows/.test(said[8]) &&
-    /travel to its core/.test(said[9]) &&
-    /^Hindsight: After the answer/.test(said[10]) &&
-    /stays gold/.test(said[11]) &&
-    /^Soul: Closer now/.test(said[12]) &&
-    /tell it to forget/.test(said[13]) &&
-    /^One soul: One system/.test(said[14]) &&
-    new Set(said).size === said.length,
-  said,
+  said.length === CAPTIONS.length &&
+    CAPTIONS.every((c, i) => said[i] === c.scene + ': ' + c.text) &&
+    /^The five: Ask once/.test(said[4]) &&
+    /^Vision: Someone asks/.test(said[6]) &&
+    /^Hindsight: After the answer/.test(said[9]) &&
+    /^Soul: Closer/.test(said[11]) &&
+    /^One soul: One system/.test(said[13]),
+  said.map((x, i) => (x === CAPTIONS[i].scene + ': ' + CAPTIONS[i].text ? 'ok ' : 'OFF ') + x),
 );
+// the caption is the one thing to read while the film plays, so each is there for as long as reading it takes (fifteen characters
+// a second, and half a second to land on it)
+check(
+  'every caption of the flight is on screen for as long as it takes to read',
+  CAPTIONS.every((c) => c.shown + 0.001 >= c.needs),
+  CAPTIONS.filter((c) => c.shown + 0.001 < c.needs).map(
+    (c) => c.shown.toFixed(1) + ' s for ' + c.needs.toFixed(1) + ' s: ' + c.text,
+  ),
+);
+// ---- the headline arrives once: it is not shown whole and then again word by word
+{
+  const q = await (await browser.newContext({ viewport: { width: 1366, height: 900 } })).newPage();
+  await q.addInitScript(() => {
+    window.__seen = [];
+    const look = () => {
+      const h1 = document.querySelector('.hero h1');
+      if (h1)
+        window.__seen.push({ split: h1.classList.contains('rise-words'), shown: Number(getComputedStyle(h1).opacity) });
+      if (window.__seen.length < 240) requestAnimationFrame(look);
+    };
+    requestAnimationFrame(look);
+  });
+  await q.goto(B + '/index.html', { waitUntil: 'load' });
+  await q.waitForTimeout(2600);
+  const seen = await q.evaluate(() => window.__seen);
+  const before = seen.filter((x) => !x.split);
+  check(
+    'the headline arrives once: until its words are ready to come in one by one it is not shown, and then it is',
+    seen.some((x) => x.split) && before.every((x) => x.shown < 0.05) && seen[seen.length - 1].shown === 1,
+    [before.length, before.slice(0, 3), seen[seen.length - 1]],
+  );
+  await q.context().close();
+}
 const capBox = await p.evaluate(() => {
   const r = (q) => document.querySelector(q).getBoundingClientRect();
   const c = r('.uni-cap');
@@ -200,7 +253,7 @@ const names = await p.evaluate(() =>
   [...document.querySelectorAll('#uni-dots button')].map((b) => b.getAttribute('aria-label')).join(' / '),
 );
 const heard = [];
-for (let t = 0.5; t < 49.5; t += 2.5) {
+for (let t = 0.5; t < LENGTH; t += 3.4) {
   await p.goto(B + '/index.html?uni=' + t, { waitUntil: 'load' });
   await p.waitForTimeout(450);
   heard.push(
@@ -217,7 +270,7 @@ check(
   [names, heard],
 );
 // ---- the sections under it
-await p.goto(B + '/index.html?uni=5', { waitUntil: 'load' });
+await p.goto(B + '/index.html?uni=' + at(5), { waitUntil: 'load' });
 await p.waitForTimeout(700);
 for (const [id, at] of [
   ['soul', 5.2],
@@ -225,7 +278,7 @@ for (const [id, at] of [
   ['worlds-b', 9.4],
   ['behind', 9.4],
 ]) {
-  await p.goto(B + '/index.html?uni=' + at, { waitUntil: 'load' });
+  await p.goto(B + '/index.html?uni=' + film(at), { waitUntil: 'load' });
   await p.waitForTimeout(500);
   await p.evaluate((i) => document.getElementById(i.replace('-b', '')).scrollIntoView({ block: 'start' }), id);
   await p.waitForTimeout(1300);
@@ -408,7 +461,7 @@ check(
 await p.screenshot({ path: path.join(OUT, 'reduced-motion.png') });
 await p.context().close();
 // ---- a phone
-p = await open(390, 844, '?uni=26.86');
+p = await open(390, 844, '?uni=' + at(26.86));
 const ph = await p.evaluate(() => {
   const r = (q) => document.querySelector(q).getBoundingClientRect();
   const h1 = document.querySelector('.hero h1');

@@ -40,9 +40,9 @@ const SHAPES = {
   ask: 'M4 6.5h16v11H4zM4 10h16M8 13.5h4',
   master: 'M7.5 3.5h9a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z',
 };
-export function seatMark(id, small) {
+export function seatMark(id, small, mood) {
   const fig = figure(id);
-  if (fig) return h('span', { class: 'seat-mark av' + (small ? ' sm' : '') }, fig); // one of the five: its character
+  if (fig) return setMood(h('span', { class: 'seat-mark av' + (small ? ' sm' : '') }, fig), mood); // one of the five: its character
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
   const p = document.createElementNS(ns, 'path');
@@ -109,85 +109,221 @@ const FACES = {
       INK,
   ),
 };
-export function seatFace(id) {
+export function seatFace(id, mood) {
   const fig = figure(id);
-  if (fig) return h('span', { class: 'seat-face av' }, fig); // one of the five: its character, the same as everywhere
+  if (fig) return setMood(h('span', { class: 'seat-face av' }, fig), mood); // one of the five: its character, the same as everywhere
   if (!FACES[id]) return seatMark(id, true);
   const t = document.createElement('template');
   t.innerHTML = FACES[id]; // static markup, written above: never data
   return h('span', { class: 'seat-face' }, t.content.firstChild);
 }
 
-// THE FIVE, AS SIMPLE SHOWS THEM (Sam, Robin, Alex, Jamie, Pat): static markup written here, never data; the motion is in css/app.css
-const EYE = (x) =>
-  '<ellipse cx="' +
+// THE FIVE (Sam, Robin, Alex, Jamie, Pat; in Developer the Overseer, the Steward, Operations, Ask and Master: the same five, the same
+// drawing). Static markup written here, never data; the motion and the feelings are in css/app.css.
+// A FACE THAT CAN CHANGE. Each face is drawn with every part it may need, and data-mood on the drawing says which show (MOODS
+// below; js/team/mood.js decides which from what the seat is doing). The parts:
+//   brows    two short strokes, not seen at rest: they come in when a feeling needs them, and their slant and height carry most of it
+//   eyes     open (a pupil with two lights in it), an arc (a smiling eye), or shut
+//   mouth    a smile, a grin, a flat line, an "o", a frown, a wobble, a half-smile, and one that moves while it speaks
+//   pose     the whole body: a bounce, a tilt, a droop
+//   marks    cheeks that flush, a bead of sweat, a sparkle, three dots while it thinks
+// What makes each of the five itself stays whatever it feels: Sam's lamp, Robin's glasses, Alex's bolt, Jamie's wink and sparks,
+// Pat's pencil, and the mouth each has at rest.
+const INK2 = '#1d2230';
+const eye = (x, side) =>
+  '<g class="bd-eye ' +
+  side +
+  '"><g class="bd-eye-open"><ellipse cx="' +
   x +
-  '" cy="26" rx="2" ry="2.5" fill="#1d2230"/><circle cx="' +
+  '" cy="26" rx="2" ry="2.5" fill="' +
+  INK2 +
+  '"/><circle cx="' +
   (x + 0.7) +
-  '" cy="25.1" r=".7" fill="#fff"/>';
-const BUD = (id, body, face, extra) =>
+  '" cy="25.1" r=".7" fill="#fff"/><circle cx="' +
+  (x - 0.6) +
+  '" cy="27" r=".3" fill="#fff" opacity=".7"/></g><path class="bd-eye-arc" d="M' +
+  (x - 2.3) +
+  ' 26.9q2.3-3 4.6 0" fill="none" stroke="' +
+  INK2 +
+  '" stroke-width="1.8" stroke-linecap="round"/><path class="bd-eye-shut" d="M' +
+  (x - 2.2) +
+  ' 26.4h4.4" fill="none" stroke="' +
+  INK2 +
+  '" stroke-width="1.7" stroke-linecap="round"/></g>';
+const brow = (x, side) =>
+  '<path class="bd-brow ' +
+  side +
+  '" d="M' +
+  (x - 2.7) +
+  ' 20.8q2.7-1.5 5.4 0" fill="none" stroke="' +
+  INK2 +
+  '" stroke-width="1.35" stroke-linecap="round"/>';
+const LINE = ' fill="none" stroke="' + INK2 + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>';
+// the mouths, drawn about (24, 0) and set down at the height of this character's own
+const mouths = (y) =>
+  '<g class="bd-mouths" transform="translate(0 ' +
+  y +
+  ')"><path class="bd-m m-smile" d="M19.5 0q4.5 3 9 0"' +
+  LINE +
+  '<path class="bd-m m-grin" d="M18.4 -.6q5.6 5.6 11.2 0z" fill="' +
+  INK2 +
+  '"/><path class="bd-m m-flat" d="M21 .9h6"' +
+  LINE +
+  '<ellipse class="bd-m m-o" cx="24" cy="1" rx="1.7" ry="2.1" fill="' +
+  INK2 +
+  '"/><path class="bd-m m-frown" d="M20 2q4-2.8 8 0"' +
+  LINE +
+  '<path class="bd-m m-wobble" d="M19.5 1.1q1.5-1.7 3 0t3 0t3 0"' +
+  LINE +
+  '<path class="bd-m m-smirk" d="M20 .3q4.6 3.2 8.6-1"' +
+  LINE +
+  '<ellipse class="bd-m m-talk" cx="24" cy=".9" rx="2.5" ry="1.5" fill="' +
+  INK2 +
+  '"/></g>';
+const MARKS =
+  '<g class="bd-marks"><circle class="bd-x x-flush" cx="13.5" cy="31" r="2.9" fill="#ff7fa6"/><circle class="bd-x x-flush" cx="34.5" cy="31" r="2.9" fill="#ff7fa6"/>' +
+  '<path class="bd-x x-sweat" d="M38.2 15.2q1.9 2.7 0 4.1a1.5 1.5 0 0 1-2.1-2z" fill="#7ad7ff"/>' +
+  '<path class="bd-x x-spark" d="M39 9.5l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z" fill="#ffe29a"/>' +
+  '<g class="bd-x x-dots" fill="#cfd8ea"><circle cx="35.5" cy="11.5" r="1.1"/><circle cx="39" cy="8.6" r="1.4"/><circle cx="43" cy="5.4" r="1.7"/></g></g>';
+// HANDS: two small round ones, of the body's own stuff, kept out of sight until a feeling uses them: one to the chin while it
+// thinks, both out in a shrug when it is unsure, both up when it is pleased, together when it is sorry.
+const HANDS =
+  '<g class="bd-hands"><circle class="bd-hand l" cx="9.5" cy="36" r="3.4"/><circle class="bd-hand r" cx="38.5" cy="36" r="3.4"/></g>';
+// id; what is behind the body and the body itself; the eyes' two places; the mouth's height; its mouth at rest; what it wears on its face;
+// what it carries, before and after the body
+const BUD = (id, body, ex, my, rest, worn, before, after) =>
   '<svg viewBox="0 0 48 48" class="bd bd-' +
   id +
+  '" data-mood="idle" data-rest="' +
+  rest +
   '" aria-hidden="true">' +
-  extra[0] +
-  '<g class="bd-body">' +
+  before +
+  '<g class="bd-pose"><g class="bd-body">' +
   body +
-  '<g class="bd-eyes">' +
-  face +
+  '<g class="bd-face"><g class="bd-brows">' +
+  brow(ex[0], 'l') +
+  brow(ex[1], 'r') +
+  '</g><g class="bd-eyes">' +
+  eye(ex[0], 'l') +
+  eye(ex[1], 'r') +
   '</g>' +
-  extra[1] +
-  '</g></svg>';
-const SMILE = (d) => '<path d="' + d + '" fill="none" stroke="#1d2230" stroke-width="1.7" stroke-linecap="round"/>';
+  worn +
+  mouths(my) +
+  '</g>' +
+  MARKS +
+  HANDS +
+  after +
+  '</g></g></svg>';
 const BLUSH =
   '<circle class="bd-blush" cx="13.5" cy="31" r="2.5" fill="#ff7fa6" opacity=".34"/><circle class="bd-blush" cx="34.5" cy="31" r="2.5" fill="#ff7fa6" opacity=".34"/>';
 const BUDDIES = {
   overseer: BUD(
     'overseer',
-    '<path d="M24 10V5.5" stroke="#aab2ff" stroke-width="1.8" stroke-linecap="round"/><circle class="bd-bulb" cx="24" cy="4.2" r="2.6" fill="#ffe29a"/><rect class="bd-shape" x="7" y="10" width="34" height="32" rx="13" fill="#6b74e6"/>',
-    EYE(18.5) + EYE(29.5),
-    ['', BLUSH + SMILE('M19.5 33q4.5 3 9 0')],
+    '<path d="M24 10V5.5" stroke="#aab2ff" stroke-width="1.8" stroke-linecap="round"/><circle class="bd-bulb" cx="24" cy="4.2" r="2.6" fill="#ffe29a"/><rect class="bd-shape" x="7" y="10" width="34" height="32" rx="13" fill="#6b74e6"/>' +
+      BLUSH,
+    [18.5, 29.5],
+    33,
+    'smile',
+    '',
+    '',
+    '',
   ),
   steward: BUD(
     'steward',
     '<circle class="bd-shape" cx="24" cy="26.5" r="17" fill="#f0a93a"/><path d="M21 9.5q3-5 6 0" fill="none" stroke="#b9770f" stroke-width="2" stroke-linecap="round"/>',
-    '<g class="bd-look">' + EYE(18) + EYE(30) + '</g>',
-    [
-      '',
-      '<circle cx="18" cy="26" r="5.4" fill="none" stroke="#1d2230" stroke-width="1.5"/><circle cx="30" cy="26" r="5.4" fill="none" stroke="#1d2230" stroke-width="1.5"/><path d="M23.4 26h1.2" stroke="#1d2230" stroke-width="1.5"/>' +
-        SMILE('M21 35.5q3 1.6 6 0'),
-    ],
+    [18, 30],
+    35.5,
+    'smile',
+    '<g class="bd-glasses"><circle cx="18" cy="26" r="5.4" fill="none" stroke="#1d2230" stroke-width="1.5"/><circle cx="30" cy="26" r="5.4" fill="none" stroke="#1d2230" stroke-width="1.5"/><path d="M23.4 26h1.2" stroke="#1d2230" stroke-width="1.5"/></g>',
+    '',
+    '',
   ),
   operations: BUD(
     'operations',
-    '<path class="bd-shape" d="M9 22q0-11 15-11t15 11v9q0 11-15 11T9 31z" fill="#20b3a6"/>',
-    EYE(18.5) + EYE(29.5),
-    [
-      '<path class="bd-zap" d="M27 1.5l-6 7.5h4.5l-2.5 6 8-8.5h-5z" fill="#ffd23f"/>',
-      BLUSH + '<path d="M18 33.5q6 5 12 0z" fill="#1d2230"/>',
-    ],
+    '<path class="bd-shape" d="M9 22q0-11 15-11t15 11v9q0 11-15 11T9 31z" fill="#20b3a6"/>' + BLUSH,
+    [18.5, 29.5],
+    34,
+    'grin',
+    '',
+    '<path class="bd-zap" d="M27 1.5l-6 7.5h4.5l-2.5 6 8-8.5h-5z" fill="#ffd23f"/>',
+    '',
   ),
   ask: BUD(
     'ask',
-    '<path class="bd-shape" d="M8 27q0-15 16-15t16 15q0 15-16 15T8 27z" fill="#ec6aa0"/>',
-    EYE(18.5) +
-      '<path d="M27 26.6q2.5-2.6 5 0" fill="none" stroke="#1d2230" stroke-width="1.8" stroke-linecap="round"/>',
-    [
-      '<g class="bd-spark"><circle cx="24" cy="2.5" r="2" fill="#ffd23f"/><circle cx="43" cy="33" r="1.8" fill="#7ad7ff"/><circle cx="5" cy="33" r="1.8" fill="#b6f09c"/></g>',
-      BLUSH + SMILE('M19 32.5q5 4.4 10 0'),
-    ],
+    '<path class="bd-shape" d="M8 27q0-15 16-15t16 15q0 15-16 15T8 27z" fill="#ec6aa0"/>' + BLUSH,
+    [18.5, 29.5],
+    32.5,
+    'smile',
+    '',
+    '<g class="bd-spark"><circle cx="24" cy="2.5" r="2" fill="#ffd23f"/><circle cx="43" cy="33" r="1.8" fill="#7ad7ff"/><circle cx="5" cy="33" r="1.8" fill="#b6f09c"/></g>',
+    '',
   ),
   master: BUD(
     'master',
-    '<rect class="bd-shape" x="8" y="11" width="32" height="31" rx="15" fill="#22b07d"/>',
-    EYE(18.5) + EYE(29.5),
-    [
-      '',
-      BLUSH +
-        SMILE('M20.5 33.5q3.5 2 7 0') +
-        '<g class="bd-pencil"><path d="M35.5 14.5l6.5-6.5 2.2 2.2-6.5 6.5z" fill="#ffd23f"/><path d="M35.5 14.5l-1.2 3.4 3.4-1.2z" fill="#1d2230"/></g>',
-    ],
+    '<rect class="bd-shape" x="8" y="11" width="32" height="31" rx="15" fill="#22b07d"/>' + BLUSH,
+    [18.5, 29.5],
+    33.5,
+    'smile',
+    '',
+    '',
+    '<g class="bd-pencil"><path d="M35.5 14.5l6.5-6.5 2.2 2.2-6.5 6.5z" fill="#ffd23f"/><path d="M35.5 14.5l-1.2 3.4 3.4-1.2z" fill="#1d2230"/></g>',
   ),
 };
+// WHAT A FACE CAN SHOW. The same list in both modes; js/team/mood.js chooses from it.
+export const MOODS = [
+  'idle',
+  'listening',
+  'thinking',
+  'speaking',
+  'happy',
+  'proud',
+  'curious',
+  'unsure',
+  'worried',
+  'sorry',
+  'focused',
+  'kind',
+  'surprised',
+  'sleepy',
+];
+// set what the face in this avatar shows (el: what buddy(), seatMark() or seatFace() gave, or anything that holds one)
+const figOf = (el) => el && (el.matches && el.matches('svg.bd') ? el : el.querySelector && el.querySelector('svg.bd'));
+// strength: how much of it (1 a little, 2 as drawn, 3 a lot). A face that is flashing a passing feeling keeps it until it has passed.
+export function setMood(el, mood, strength = 2) {
+  const fig = figOf(el);
+  const m = MOODS.includes(mood) ? mood : 'idle';
+  if (!fig) return el;
+  fig.dataset.rests = m;
+  fig.dataset.restsAt = String(strength);
+  if (fig.dataset.flash) return el;
+  if (fig.dataset.mood !== m) fig.dataset.mood = m;
+  if (fig.dataset.strength !== String(strength)) fig.dataset.strength = String(strength);
+  return el;
+}
+// A FEELING THAT PASSES: shown for a moment, then the face goes back to what it was showing (surprise when the person puts the team
+// right, a smile at a thank-you). It never outlasts its moment, and a new one replaces one that is still showing.
+export function flashMood(el, mood, ms = 1600) {
+  const fig = figOf(el);
+  if (!fig || !MOODS.includes(mood)) return el;
+  clearTimeout(fig._flash);
+  fig.dataset.flash = '1';
+  fig.dataset.mood = mood;
+  fig._flash = setTimeout(() => {
+    delete fig.dataset.flash;
+    fig.dataset.mood = fig.dataset.rests || 'idle';
+    fig.dataset.strength = fig.dataset.restsAt || '2';
+  }, ms);
+  return el;
+}
+// WHERE THE EYES GO: 'left', 'right', 'down', or '' for straight ahead (toward whoever is speaking, or the box the person types in)
+export function lookAt(el, where) {
+  const fig = figOf(el);
+  if (fig && (fig.dataset.look || '') !== (where || '')) {
+    if (where) fig.dataset.look = where;
+    else delete fig.dataset.look;
+  }
+  return el;
+}
 // THE SYMBOL ON AN ANSWER CARD (js/views.js cardOf): static markup, drawn here; the motion is in css/app.css
 const iconSvg = (inner) => '<svg viewBox="0 0 48 48" aria-hidden="true">' + inner + '</svg>';
 const CLOUD = (up) =>
@@ -288,9 +424,9 @@ function figure(id) {
   } // the textured body has its cheeks in it
   return svg;
 }
-export function buddy(id) {
+export function buddy(id, mood, strength) {
   const fig = figure(id);
-  return fig ? h('span', { class: 'buddy' }, fig) : seatMark(id);
+  return fig ? setMood(h('span', { class: 'buddy' }, fig), mood, strength) : seatMark(id);
 }
 
 export function store(key) {
