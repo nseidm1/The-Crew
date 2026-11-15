@@ -29,7 +29,10 @@ const PAGES = [
   'css',
   'js',
 ];
-const RUNNER = ['server.mjs', 'myfamilyoffice.sh', 'myfamilyoffice.mjs', 'package.json', 'runner'];
+const RUNNER = ['server.mjs', 'myfamilyoffice.sh', 'myfamilyoffice.ps1', 'myfamilyoffice.mjs', 'runner'];
+// WHAT A GATEWAY WILL NOT SERVE, so it must not be on the list a first install fetches from: any file called package.json (eth.limo
+// answers 502 for the name, on any site; the launcher writes the app's own), and a file whose name starts with a dot.
+const UNSERVED = /(?:^|\/)(?:package(?:-lock)?\.json|\.[^/]+)$/;
 const NOT_PAGES = /^(?:runner\/|server\.mjs$|myfamilyoffice\.mjs$)/; // these run in Node on the customer's machine, not in a browser: the path rule is not about them
 const ABSOLUTE = [
   /(?:src|href)=["']\/(?!\/)/,
@@ -54,7 +57,7 @@ await mkdir(OUT, { recursive: true });
 for (const f of [...PAGES, ...RUNNER])
   await cp(path.join(ROOT, f), path.join(OUT, f), {
     recursive: true,
-    filter: (src) => !/[\\/]runner[\\/]owner\.mjs$/.test(src),
+    filter: (src) => !/[\\/]runner[\\/]owner\.mjs$/.test(src) && !/[\\/]\.[^\\/]+$/.test(src),
   }); // the owner's panel does not ship
 // THE PUBLISHER'S OWN VALUES (.owner/, which git never sees): the plans, the codes, the Client ID and the switches they set go into
 // the bundle in place of the source's neutral ones. With no such folder the bundle is the source as it is. FO_NO_OWNER=1 leaves them out.
@@ -99,6 +102,14 @@ for (const f of files) {
       if (ABSOLUTE.some((re) => re.test(line))) bad.push(rel + ':' + (i + 1) + '  ' + line.trim().slice(0, 100));
     });
 }
+const unserved = list.filter((f) => UNSERVED.test(f.path)).map((f) => f.path);
+if (unserved.length) {
+  console.error(
+    'REFUSED: a gateway will not serve these, and an install would stop at them:\n  ' + unserved.join('\n  '),
+  );
+  await rm(OUT, { recursive: true, force: true });
+  process.exit(1);
+}
 if (bad.length) {
   console.error('REFUSED: root-absolute paths would break the site off its own root:\n  ' + bad.join('\n  '));
   await rm(OUT, { recursive: true, force: true });
@@ -107,6 +118,7 @@ if (bad.length) {
 for (const need of [
   'server.mjs',
   'myfamilyoffice.sh',
+  'myfamilyoffice.ps1',
   'myfamilyoffice.mjs',
   'runner/index.mjs',
   'js/alive.js',

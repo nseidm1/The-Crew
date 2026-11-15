@@ -39,6 +39,8 @@ import {
   SEATS,
   STATED,
   MAKES,
+  sentenceCap,
+  firstSentences,
   STOP,
   UI_WORDS,
   VOICE,
@@ -344,7 +346,12 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
                   '\n\n'
                 : '') +
               ask +
-              ctx.shapeNote(mode),
+              ctx.shapeNote(mode) +
+              (sentenceCap(force) && (mode === 'talk' || mode === 'answer')
+                ? '\n\nA LIMIT THEY SET, which outranks any length given above: at most ' +
+                  sentenceCap(force) +
+                  ' sentences in this reply. Count them before you finish.'
+                : ''),
           },
         ],
         onDelta: (d) => {
@@ -413,6 +420,16 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         .replace(/(^|\s)__([^_\n]+)__(?=\s|[.,;:!?]|$)/g, '$1$2')
         .replace(/^#{1,4}\s+/gm, '')
         .trim() || '[no reply]';
+    // A LIMIT THE PERSON SET ("keep every answer to three sentences at most") is kept, whoever speaks and whatever they were asked:
+    // what runs past it is cut at the limit. Counted as a fault, so the seat is told next time. Code and lists are left alone.
+    const cap = mode === 'talk' || mode === 'answer' ? sentenceCap(force) : 0;
+    if (cap && !/```|^\s*(?:[-*]|\d+[.)])\s/m.test(msg.text)) {
+      const kept = firstSentences(msg.text, cap);
+      if (kept !== msg.text) {
+        ctx.fault(seatId, 'too-long', msg.text);
+        msg.text = kept;
+      }
+    }
     if (mode === 'answer') {
       // a sentence already said in this chat is not said again, and an answer does not end by offering more help. What had to be
       // taken out, and what can be read off the reply itself, is a fault of a kind (team/hindsight.js): counted, never silent
@@ -933,7 +950,13 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         }
         // A MESSAGE THAT STATES WHAT THE WORK MUST DO IS WORK TO DO (Developer). Found on a real team: a ticket's own words, with its
         // "What it must do" list, were read as something to find out; the cause was explained and nothing was changed.
-        if (!isSimple() && route && route.kind !== 'build' && (STATED.test(body) || MAKES.test(body.trim())) && !/\?\s*$/.test(body))
+        if (
+          !isSimple() &&
+          route &&
+          route.kind !== 'build' &&
+          (STATED.test(body) || MAKES.test(body.trim())) &&
+          !/\?\s*$/.test(body)
+        )
           route = { ...route, kind: 'build' };
         // AN EXACT FACT GETS A SECOND OPINION ON A LOCAL MODEL (Simple): see EXACT and apartOn in team/manners.js. The answer is given
         // from memory as before; the fact-checker is asked for the bare fact; and only if the two do not agree is it looked up.

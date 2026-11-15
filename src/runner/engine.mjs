@@ -8,6 +8,7 @@ import { spawn } from 'node:child_process';
 import { access, mkdir, writeFile } from 'node:fs/promises';
 import { ENGINE, SERVED_NAME } from '../js/catalog.js';
 import { sh, bin, engineHome, native, TRANSLATED } from './host.mjs';
+import { brewDo, canOwnBrew, ensureBrew } from './brew.mjs';
 
 const exists = (f) =>
   access(f).then(
@@ -149,7 +150,7 @@ const routeFix = () => ({
   title: 'TensorFold needs one of two things to install',
   text: 'Its own installer checks a signature that the OpenSSL shipped with macOS cannot verify, and the other way in is Homebrew.',
   steps: [
-    'Install Homebrew from brew.sh, then run: brew install openssl@3',
+    'Setup tries to fetch its own copy of Homebrew when there is none. If that could not be done here, install Homebrew from brew.sh, then run: brew install openssl@3',
     'Or download the TensorFold app from tensorfold.dev (Download for Mac).',
     'Come back here and press Try again.',
   ],
@@ -162,9 +163,12 @@ export function installRoute(tools) {
   if (tools.openssl3) return { route: 'signed' };
   if (tools.brew)
     return tools.clt && !tools.clt.installed ? { route: 'none', fix: cltFix(null, false) } : { route: 'brew' };
+  // no Homebrew here: this app fetches its own copy (brew.mjs), which builds on this machine and so needs Apple's build tools too
+  if (canOwnBrew())
+    return tools.clt && !tools.clt.installed ? { route: 'none', fix: cltFix(null, false) } : { route: 'own' };
   return { route: 'none', fix: routeFix() };
 }
-async function installSigned({ onLine, stateDir }) {
+export async function installSigned({ onLine, stateDir }) {
   let script = process.env.FO_INSTALL_SH;
   if (!script) {
     if (process.env.FO_NO_NET === '1') return { ok: false, why: 'the installer could not be fetched (offline)' };
@@ -189,14 +193,17 @@ async function installSigned({ onLine, stateDir }) {
 async function installBrew({ onLine, tools }) {
   if (process.env.FO_NO_NET === '1' && process.env.FO_BIN_BREW === undefined)
     return { ok: false, why: 'this machine is not using the network, so nothing was installed' }; // a test run never reaches the real Homebrew
-  const brew = await bin('brew');
-  if (!brew) return { ok: false, why: 'Homebrew is not on this Mac', fix: routeFix() };
-  const env = { ...process.env, HOMEBREW_NO_ENV_HINTS: '1', HOMEBREW_NO_ANALYTICS: '1' };
-  const tap = await runNative(brew, ['tap', ENGINE.tap], { onLine, env });
+  const got = await ensureBrew({ exec: runNative, onLine });
+  if (!got.ok) return { ok: false, why: got.why, fix: routeFix() };
+  const brew = got.brew;
+  // a copy just fetched knows of no formulae yet: its first update fetches the list. If that fails, the install says why itself.
+  if (got.fetched)
+    await brewDo(brew, ['update', '--force', '--quiet'], { exec: runNative, onLine, timeout: 15 * 60000 });
+  const tap = await brewDo(brew, ['tap', ENGINE.tap], { exec: runNative, onLine });
   if (tap.code !== 0)
     return { ok: false, why: 'brew tap ' + ENGINE.tap + ' failed: ' + tap.tail.slice(-2).join(' / ') };
-  const inst = await runNative(brew, ['install', ENGINE.formula], { onLine, env });
-  if (inst.code === 0) return { ok: true };
+  const inst = await brewDo(brew, ['install', ENGINE.formula], { exec: runNative, onLine, formula: ENGINE.formula });
+  if (inst.code === 0) return { ok: true, recovered: inst.recovered || tap.recovered || '', own: got.own };
   const said = inst.tail.join(' ');
   if (/Command Line Tools|xcode-select|CLT/i.test(said))
     return {
@@ -220,11 +227,11 @@ export async function installEngine({ onLine, tools = {}, stateDir }) {
     signedWhy = r.why || 'no tensorfold command was found afterwards';
     onLine('The signed installer did not finish: ' + signedWhy);
   }
-  if (plan.route === 'brew' || tools.brew) {
+  if (plan.route === 'brew' || plan.route === 'own' || tools.brew) {
     const r = await installBrew({ onLine, tools });
     if (r.ok)
       return (await bin('tensorfold'))
-        ? { ok: true, already: false, route: 'brew' }
+        ? { ok: true, already: false, route: r.own ? 'own' : 'brew', recovered: r.recovered || '' }
         : { ok: false, why: 'Homebrew finished, but no tensorfold command was found afterwards.' };
     return {
       ok: false,
@@ -444,21 +451,58 @@ export async function* chatStream(port, messages, { maxTokens = 220, temperature
     }
   }
 }
-export async function measureSpeed(port) {
+// what the measuring step says while it measures: first that it waits, then what has come and how fast
+export const speedLine = (t) =>
+  t.waited != null
+    ? 'Waiting for its first word: ' + t.waited + ' s. The first answer after a model loads is the slowest.'
+    : t.tokens + ' words so far' + (t.tokPerSec ? ', ' + t.tokPerSec + ' a second' : '');
+// A MEASUREMENT THAT CAN BE WATCHED, AND THAT ENDS. On a processor a large model writes a word or two a second, so the whole reply
+// takes minutes, and a line that said nothing all that time looked stalled (found on a real PC). So: onTick is told how long it has
+// waited for the first word, then how many words there are and how fast they come; once there are enough to say the speed
+// (`enough` of them over `enoughMs`) the reply is cut short there; and a model that writes nothing in `firstMs` is an error that
+// says so. A fast model finishes its reply before any of this applies, and is measured as it always was.
+export async function measureSpeed(
+  port,
+  { onTick = () => {}, firstMs = 8 * 60000, enoughMs = 30000, enough = 24 } = {},
+) {
   const t0 = Date.now();
   let first = 0;
   let pieces = 0;
   let chars = 0;
   let usage = null;
-  for await (const ev of chatStream(port, [{ role: 'user', content: PROMPT }])) {
-    if (ev.text) {
-      if (!first) first = Date.now();
-      pieces++;
-      chars += ev.text.length;
+  let stopped = '';
+  const ctl = new AbortController();
+  const wait = setInterval(() => {
+    if (first) return;
+    onTick({ waited: Math.round((Date.now() - t0) / 1000) });
+    if (Date.now() - t0 > firstMs) {
+      stopped = 'nothing';
+      ctl.abort();
     }
-    if (ev.usage) usage = ev.usage;
+  }, 1000);
+  try {
+    for await (const ev of chatStream(port, [{ role: 'user', content: PROMPT }], { signal: ctl.signal })) {
+      if (ev.text) {
+        if (!first) first = Date.now();
+        pieces++;
+        chars += ev.text.length;
+        const s = (Date.now() - first) / 1000;
+        onTick({ tokens: pieces, tokPerSec: s >= 1 ? Math.round((pieces / s) * 10) / 10 : null });
+        if (pieces >= enough && Date.now() - first >= enoughMs) {
+          stopped = 'enough';
+          ctl.abort();
+          break;
+        }
+      }
+      if (ev.usage) usage = ev.usage;
+    }
+  } catch (e) {
+    if (!stopped) throw e;
+  } finally {
+    clearInterval(wait);
   }
   const end = Date.now();
+  if (stopped === 'nothing') throw new Error('the model wrote nothing in ' + Math.round(firstMs / 60000) + ' minutes');
   if (!first) throw new Error('the model returned no text');
   const tokens = (usage && Number(usage.completion_tokens)) || pieces;
   const secs = Math.max(0.001, (end - first) / 1000);

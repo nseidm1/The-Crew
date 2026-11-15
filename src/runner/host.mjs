@@ -3,7 +3,7 @@
 import os from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
-import { readdir, readFile, access } from 'node:fs/promises';
+import { readdir, readFile, access, statfs } from 'node:fs/promises';
 import { ENGINE, AGENT, STRATA, STRATA_MODELS, LLAMA } from '../js/catalog.js';
 
 export function sh(cmd, args, { timeout = 8000, env } = {}) {
@@ -13,7 +13,7 @@ export function sh(cmd, args, { timeout = 8000, env } = {}) {
     );
   });
 }
-const exists = (f) =>
+export const exists = (f) =>
   access(f).then(
     () => true,
     () => false,
@@ -22,7 +22,7 @@ const exists = (f) =>
 //   an Apple silicon Mac             TensorFold (MLX). On a macOS too old for it: llama.cpp
 //   a Linux machine, x64 or arm64    Strata, when it has the memory for one of Strata's models, and llama.cpp below it. Otherwise llama.cpp alone
 //   an Intel Mac                     llama.cpp
-//   anything else                    none, and the page says so. (Windows has no launcher of its own yet: inside WSL it is a Linux machine.)
+//   anything else                    none, and the page says so. (Windows: llama.cpp, from myfamilyoffice.ps1; inside WSL it is a Linux machine.)
 // A test names the system it pretends to be (FO_PLATFORM).
 export const PLATFORM = process.env.FO_PLATFORM || process.platform;
 export const enginesFor = (platform, arch, { macosOk = true, poolGb = null } = {}) => {
@@ -30,6 +30,7 @@ export const enginesFor = (platform, arch, { macosOk = true, poolGb = null } = {
     return arch === 'arm64' ? (macosOk ? ['tensorfold'] : ['llama']) : arch === 'x64' ? ['llama'] : [];
   if (platform === 'linux' && (arch === 'x64' || arch === 'arm64'))
     return poolGb == null || STRATA_MODELS.some((m) => m.memGb + 6 <= poolGb) ? ['strata', 'llama'] : ['llama'];
+  if (platform === 'win32' && (arch === 'x64' || arch === 'arm64')) return ['llama']; // llama.cpp's own Windows build
   return [];
 };
 export const engineFor = (platform, arch, o) => enginesFor(platform, arch, o)[0] || '';
@@ -53,6 +54,16 @@ export const atLeast = (v, min) => {
 
 // a command on PATH or in the usual install folders (a server started from an app often has a short PATH)
 const BIN_DIRS = ['/opt/homebrew/bin', '/usr/local/bin', path.join(os.homedir(), '.local/bin')];
+// this app's own copy of Homebrew (brew.mjs), for a machine that has none: inside the app's own folder, where a test says, or where
+// the runner said its state is kept
+let BREW_HOME = '';
+export const setBrewHome = (dir) => {
+  BREW_HOME = dir;
+};
+export const brewHome = () =>
+  process.env.FO_BREW_HOME ||
+  BREW_HOME ||
+  path.join(process.env.FO_STATE_DIR || path.join(os.homedir(), '.familyoffice', 'state'), 'homebrew');
 // TensorFold's own installer puts a signed release here, with no compiler involved
 export const engineHome = () => process.env.FO_TENSORFOLD_HOME || path.join(os.homedir(), '.tensorfold');
 export async function which(name) {
@@ -62,8 +73,11 @@ export async function which(name) {
     ...BIN_DIRS,
   ]) {
     if (!dir) continue;
-    const f = path.join(dir, name);
-    if (await exists(f)) return f;
+    // on Windows a command is a .exe (or npm's .cmd)
+    for (const n of process.platform === 'win32' ? [name + '.exe', name + '.cmd', name] : [name]) {
+      const f = path.join(dir, n);
+      if (await exists(f)) return f;
+    }
   }
   return null;
 }
@@ -77,6 +91,9 @@ export async function bin(name) {
 // llama.cpp as an engine (llama.mjs): the "llama" command on the machine (llama serve ...), an older "llama-server", or the pinned
 // build this app unpacked into its own folder. own: true skips the machine's and names only this app's copy.
 export const llamaDir = (stateDir) => path.join(stateDir, 'engines', 'llama-' + LLAMA.tag);
+export const llamaCardDir = (stateDir) => llamaDir(stateDir) + '-vulkan';
+export const ownLlamaIn = async (dir) =>
+  (await fileNamed(dir, 'llama-server')) || (await fileNamed(dir, 'llama-server.exe'));
 async function fileNamed(dir, name, depth = 0) {
   const inside = [];
   for (const e of await readdir(dir, { withFileTypes: true }).catch(() => [])) {
@@ -100,8 +117,11 @@ export async function findLlamaEngine(stateDir, { own = false } = {}) {
     } // a test names the only one there is
   }
   if (!stateDir) return null;
-  const c = await fileNamed(llamaDir(stateDir), 'llama-server');
-  if (c) return { file: c, pre: [], own: true };
+  // this app's own: the build that uses a graphics card, where there is one (llama.mjs keeps that folder only while a card answers), else the processor build
+  for (const dir of [llamaCardDir(stateDir), llamaDir(stateDir)]) {
+    const c = await ownLlamaIn(dir);
+    if (c) return { file: c, pre: [], own: true, card: dir === llamaCardDir(stateDir) };
+  }
   const d = await fileNamed(llamaDir(stateDir), 'llama');
   return d ? { file: d, pre: ['serve'], own: true } : null;
 }
@@ -195,7 +215,7 @@ async function cards() {
         ? process.env.FO_BIN_NVIDIA_SMI
         : null
       : await which('nvidia-smi');
-  if (!smi) return [];
+  if (!smi) return PLATFORM === 'win32' && process.env.FO_BIN_NVIDIA_SMI === undefined ? windowsCards() : [];
   const r = await sh(smi, ['--query-gpu=name,memory.total', '--format=csv,noheader,nounits']);
   return r.out
     .split('\n')
@@ -203,7 +223,42 @@ async function cards() {
     .filter((x) => x.length >= 2 && Number(x[1]) > 0)
     .map(([name, mb]) => ({ name, vramGb: Math.round((Number(mb) / 1024) * 10) / 10 }));
 }
+// Windows' Linux layer, asked on Windows itself: is there one, with a Linux in it? (wsl.exe answers in UTF-16: a NUL after every
+// letter.) A test says FO_WSL: a name, or "none".
+async function wslState() {
+  if (PLATFORM !== 'win32') return null;
+  if (process.env.FO_WSL !== undefined)
+    return process.env.FO_WSL && process.env.FO_WSL !== 'none'
+      ? { ready: true, distro: process.env.FO_WSL }
+      : { ready: false, distro: '' };
+  const r = await sh('wsl.exe', ['-l', '-q'], { timeout: 8000 });
+  const names = String(r.out || '')
+    .replace(/\0/g, '')
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !/^docker-desktop/.test(l));
+  return { ready: r.ok && names.length > 0, distro: names[0] || '' };
+}
+export const inWsl = () =>
+  process.env.FO_IN_WSL !== undefined
+    ? process.env.FO_IN_WSL === '1'
+    : process.platform === 'linux' && (!!process.env.WSL_DISTRO_NAME || /microsoft/i.test(os.release()));
+// a Windows PC's cards by name, whoever made them (nvidia-smi only knows NVIDIA's). Only cards of their own are counted: the
+// graphics built into a processor share its memory and are not what makes a large model usable. Their memory is not read here.
+export const isCard = (name) =>
+  /NVIDIA|GeForce|\bRTX\b|\bGTX\b|Quadro|Radeon (RX|Pro)|\bArc\b/i.test(name) && !/Basic|Remote|Virtual/i.test(name);
+async function windowsCards() {
+  const r = await sh('powershell', ['-NoProfile', '-Command', '(Get-CimInstance Win32_VideoController).Name'], {
+    timeout: 15000,
+  });
+  return String(r.out || '')
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(isCard)
+    .map((name) => ({ name, vramGb: null }));
+}
 export async function measureHost(stateDir) {
+  if (stateDir && !BREW_HOME) setBrewHome(path.join(stateDir, 'homebrew'));
   const mac = PLATFORM === 'darwin';
   const sys = async (k) => (mac ? (await sh('sysctl', ['-n', k])).out : '');
   const [chip, mem, perf, eff, wired, macos, df, vm, tfBin, brew, nodeList, piFound] = await Promise.all([
@@ -216,13 +271,19 @@ export async function measureHost(stateDir) {
     sh('df', ['-k', os.homedir()]).then((r) => r.out),
     mac ? sh('vm_stat', []).then((r) => r.out) : '',
     bin('tensorfold'),
-    bin('brew'),
+    bin('brew').then(async (b) => {
+      const own = path.join(brewHome(), 'bin', 'brew');
+      const may = process.env.FO_BIN_BREW === undefined || process.env.FO_BREW_HOME !== undefined;
+      return b || (may && (await exists(own)) ? own : null);
+    }),
     nodes(stateDir),
     piInstalled(stateDir),
   ]);
   const gb = (bytes) => Math.round((bytes / 2 ** 30) * 10) / 10;
   const dfRow = df.split('\n').pop().trim().split(/\s+/);
-  const freeKb = num(dfRow[3]);
+  // where there is no df (Windows), the file system is asked directly
+  const fsNow = num(dfRow[3]) == null ? await statfs(os.homedir()).catch(() => null) : null;
+  const freeKb = fsNow ? Math.round((fsNow.bavail * fsNow.bsize) / 1024) : num(dfRow[3]);
   // memory free right now: free + inactive + speculative pages (what macOS can hand over without swapping)
   const page = num((/page size of (\d+)/.exec(vm) || [])[1]) || 16384;
   const pages = (k) => num((new RegExp(k + ':\\s+(\\d+)').exec(vm) || [])[1]) || 0;
@@ -238,7 +299,8 @@ export async function measureHost(stateDir) {
   const arm = arch === 'arm64';
   const total = (Number(process.env.FO_MEMORY_GB) || 0) * 2 ** 30 || num(mem) || os.totalmem(); // a test names the memory it pretends to have
   const linux = PLATFORM === 'linux';
-  const gpus = linux ? await cards() : [];
+  const gpus = linux || PLATFORM === 'win32' ? await cards() : []; // on Windows the card is only reported: llama.cpp's build there runs on the processor
+  const wsl = await wslState();
   const vramGb = Math.round(gpus.reduce((n, c) => n + c.vramGb, 0) * 10) / 10;
   const poolGb = Math.round((gb(total) + vramGb) * 10) / 10;
   // the waterfall for this machine as it is now: a macOS too old for TensorFold, or too little memory for any of Strata's models, goes one rung down
@@ -249,7 +311,7 @@ export async function measureHost(stateDir) {
   const eng = engines[0] || '';
   const stBin = engines.includes('strata') ? await bin('strata') : null;
   const stVer = stBin ? await sh(stBin, ['--version']) : null;
-  const lf = engines.includes('llama') ? await findLlamaEngine(stateDir) : null;
+  const lf = engines.includes('llama') || eng === 'tensorfold' ? await findLlamaEngine(stateDir) : null; // an Apple silicon Mac may run a Bonsai model on it
   const lfVer = lf ? await sh(lf.file, ['--version'], { timeout: 10000 }) : null;
   const llama = lf
     ? {
@@ -276,11 +338,18 @@ export async function measureHost(stateDir) {
     chip: chip || os.cpus()[0]?.model || 'Unknown',
     arch,
     translated: arch !== process.arch, // translated: this Node is an Intel build running under Rosetta
-    os: mac ? 'macOS ' + macos : PLATFORM === 'linux' ? 'Linux ' + os.release().split('-')[0] : PLATFORM,
+    os: mac
+      ? 'macOS ' + macos
+      : PLATFORM === 'linux'
+        ? 'Linux ' + os.release().split('-')[0]
+        : PLATFORM === 'win32'
+          ? 'Windows ' + os.release()
+          : PLATFORM,
     engine: eng,
     engines,
     engineName: ENGINE_NAMES[eng] || ENGINE.name,
     gpus,
+    inWsl: inWsl(), // a Linux inside Windows: the person's browser and files are Windows'
     vramGb,
     poolGb, // poolGb: RAM and graphics memory together, which is how Strata counts what a model needs
     memoryGb: gb(total),
@@ -305,6 +374,7 @@ export async function measureHost(stateDir) {
               ? { path: tfBin, version: (tfVer && (verOf(tfVer.out) || []).join('.')) || 'installed' }
               : null,
       brew: brew || null,
+      wsl, // Windows only: { ready, distro }
       node: nodeForPi ? { path: nodeForPi.file, version: nodeForPi.version } : null,
       nodeSeen: nodeList.map((n) => n.version),
       agent: piFound ? { version: piFound.version } : null,

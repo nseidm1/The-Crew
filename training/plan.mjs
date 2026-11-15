@@ -234,7 +234,7 @@ for (const s of list) {
     for (let t = 0; t < 750 && !end && idle < 90; t++) {
       await sleep(2000);
       const now = await p.evaluate(() => {
-        const cards = [...document.querySelectorAll('.plan-card')];
+        const cards = [...document.querySelectorAll('.round-card')];
         const last = cards[cards.length - 1];
         let asking = false;
         try {
@@ -263,13 +263,17 @@ for (const s of list) {
     }
     await sleep(1500);
     const got = await p.evaluate(() => ({
-      cards: [...document.querySelectorAll('.plan-card')].map((c) => ({
+      cards: [...document.querySelectorAll('.round-card')].map((c) => ({
         round: Number(c.dataset.round),
         stage: c.dataset.stage,
         says: ((c.querySelector('.plan-says') || {}).innerText || '').trim(),
         reqs: [...c.querySelectorAll('.plan-reqs li')].map((li) => ({
           state: li.className.replace('is-', ''),
-          text: li.querySelector('.plan-req').firstChild.textContent.trim(),
+          text: [...li.querySelector('.plan-req').childNodes]
+            .filter((n) => n.nodeType === 3)
+            .map((n) => n.textContent)
+            .join(' ')
+            .trim(), // the requirement's own words: not the "Matters most" mark before them, nor the verdict after
           why: ((li.querySelector('em') || {}).innerText || '').trim(),
         })),
       })),
@@ -289,7 +293,7 @@ for (const s of list) {
     row.reqs = last.reqs.map((r) => r.text);
     row.judged = last.reqs.length > 0 && last.reqs.every((r) => r.state === 'met' || r.state === 'unmet');
     await p
-      .locator('.plan-card')
+      .locator('.round-card')
       .last()
       .scrollIntoViewIfNeeded()
       .catch(() => {});

@@ -125,6 +125,35 @@ export const STATED =
 export const MAKES =
   /^(?:(?:ok(?:ay)?|so|right|now)[,.]?\s+)?(?:(?:let'?s|let us|please|i(?:'d| would) like (?:you )?to|i want (?:you )?to|we (?:should|need to)|time to)\s+)?(?:start(?: with| on)?|build|make|create|write|scaffold|set up|code|implement|develop)\s+(?:me\s+|us\s+)?(?:a|an|the|my|our)\s[^?]*\b(?:app|application|site|website|web ?page|tool|script|service|api|game|bot|extension|cli|library|package|dashboard|server|plugin|component|widget|program)\b/i;
 
+// a limit on length the person set, read from the rulings in force (the newest first): "three sentences at most", "no more than 2
+// sentences", "in one sentence". 0 when there is none.
+const NUM = { one: 1, a: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+export const sentenceCap = (rulings) => {
+  for (const r of rulings || []) {
+    const t = String(r.text || '').toLowerCase();
+    const m =
+      t.match(
+        /\b(?:at most|no more than|up to|max(?:imum)?(?: of)?|under|within|to|in)\s+(\d|one|a|two|three|four|five|six)\s+(?:short\s+)?sentences?\b/,
+      ) ||
+      t.match(
+        /\b(\d|one|two|three|four|five|six)\s+(?:short\s+)?sentences?\s+(?:at most|or (?:fewer|less)|max(?:imum)?|tops)\b/,
+      );
+    if (m) return NUM[m[1]] || Number(m[1]) || 0;
+  }
+  return 0;
+};
+export const firstSentences = (text, n) => {
+  const t = String(text);
+  const re = /[.!?]+(?=\s|$)/g;
+  let m;
+  let seen = 0;
+  while ((m = re.exec(t))) {
+    if (/\b(?:e\.g|i\.e|etc|vs|Mr|Mrs|Dr)\.$/i.test(t.slice(0, m.index + 1))) continue;
+    if (++seen === n) return t.slice(0, m.index + m[0].length).trim();
+  }
+  return t;
+};
+
 export const unsaid = (t) =>
   /^\[(?:no reply\]|this reply was interrupted\]|[A-Z][a-z]+ could not reply)/.test(String(t)); // a reply that is only the note saying there was none (an answer may well begin "[1]")
 

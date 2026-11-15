@@ -16,7 +16,7 @@ import { isSimple } from '../mode.js';
 import { seatAs } from './base.js';
 
 export const DOUBTS =
-  /\b(guess(es|ed|ing)?|not sure|unsure|i'?d (check|verify|confirm|double-?check)|i would (check|verify|confirm)|double-?check|just check|(might|may) (not )?(be|have)|may have changed|out of date|can'?t (confirm|be sure)|could ?n'?t (confirm|pull|find|settle)|did ?n'?t (confirm|check|find)|before you rely|until (you|we) (check|know|confirm)|for now|rests on one|only one source|sources? (disagree|differ)|unverified|no way to tell)\b/i;
+  /\b(guess(es|ed|ing)?|not sure|unsure|i'?d (check|verify|confirm|double-?check)|i would (check|verify|confirm)|double-?check|(might|may) (not )?(be|have)|may have changed|out of date|can'?t (confirm|be sure)|could ?n'?t (confirm|pull|find|settle)|did ?n'?t (confirm|check|find)|before you rely|until (you|we) (check|know|confirm)|for now|rests on one|only one source|sources? (disagree|differ)|unverified|no way to tell)\b/i;
 export const CORRECTS =
   /\b(actually|in fact|that'?s not (right|quite right|correct)|that is not (right|correct)|isn'?t (right|correct)|not quite right|one correction|correction:|it'?s the other|wrong (way|one|day|number)|mixed up)\b/i;
 // the fact-checker is ASKED to name a claim it would check after every lookup, so "I'd check" there is its job and not a doubt:
@@ -26,7 +26,14 @@ export const STRONG =
 const THEIRS =
   /\b(our|ours|my|we|us|last night'?s?|this morning'?s?|yesterday'?s?|the (deploy|deployment|outage|incident|build|pipeline|release|server|database|logs?))\b/i;
 
-export const readAdded = (text) => (CORRECTS.test(text) ? 'corrects' : DOUBTS.test(text) ? 'doubts' : 'adds');
+// "Just check" is how the fact-checker opens, whatever follows. It is a doubt only when what follows is about the answer: a piece of
+// it in quotes, a figure, a name that "is" something. "Just check the dog for heavy panting" and "Just check: antibiotics only work
+// on bacteria" are tips for the person, and a tip sets nobody going again. (Found on a real team: a tip was taken for a doubt, the
+// answer was looked up again, and six messages answered one question.)
+export const JUST_CHECK =
+  /\bjust check(?!\s*:)(?=[^.!?]*(?:["\u201c\u2018]\S|\b(?:is|are|was|were|still|that|whether|figure|number|date|time|price|claim|source|address|hours)\b))(?![^.!?]*\bfor\b)/i;
+export const readAdded = (text) =>
+  CORRECTS.test(text) ? 'corrects' : DOUBTS.test(text) || JUST_CHECK.test(text) ? 'doubts' : 'adds';
 
 // what to search for: what was asked, and the names and numbers in the doubt that were not in it
 export const focusOf = (asked, doubt) => {

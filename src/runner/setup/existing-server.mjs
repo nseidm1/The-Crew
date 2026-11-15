@@ -2,7 +2,7 @@
 // tunnel the runner opens and closes). Nothing is installed on that server and it is never stopped.
 import { measureHost } from '../host.mjs';
 import { openTunnel, probe } from '../detect.mjs';
-import { measureSpeed, stopEngine, track } from '../engine.mjs';
+import { measureSpeed, speedLine, stopEngine, track } from '../engine.mjs';
 import { agentCheck, checkLine, ensureAgent, fitFrom } from '../agent.mjs';
 import { AGENT } from '../../js/catalog.js';
 import { nodeFix } from '../node.mjs';
@@ -30,6 +30,10 @@ export function installExistingSetup(runner) {
       startedAt: Date.now(),
     });
     const S = (id) => progress.steps.find((x) => x.id === id);
+    const lineTo = (id) => (line) => {
+      S(id).line = String(line).slice(0, 140);
+      runner.push();
+    };
     const start = (id) => {
       if (runner.cancelled) throw new Error('cancelled');
       const s = S(id);
@@ -93,7 +97,7 @@ export function installExistingSetup(runner) {
 
       start('speed');
       try {
-        progress.result.speed = await measureSpeed(target);
+        progress.result.speed = await measureSpeed(target, { onTick: (t) => lineTo('speed')(speedLine(t)) });
       } catch (e) {
         return fail('speed', 'The model did not answer: ' + String(e.message).slice(0, 160));
       }

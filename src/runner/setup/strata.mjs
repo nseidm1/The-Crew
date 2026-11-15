@@ -1,11 +1,12 @@
 // strata.mjs (setup) - SETTING UP A LOCAL MODEL WITH STRATA, for a machine that is not an Apple silicon Mac.
 import { measureHost } from '../host.mjs';
-import { measureSpeed, stopEngine } from '../engine.mjs';
+import { measureSpeed, speedLine, stopEngine } from '../engine.mjs';
 import { AGENT, LLAMA, STRATA } from '../../js/catalog.js';
 import { installStrata, launchStrata, planStrata, strataVersion } from '../strata.mjs';
 import { agentCheck, checkLine, ensureAgent, fitFrom } from '../agent.mjs';
 import { nodeFix } from '../node.mjs';
 import { STRATA_STEPS } from './steps.mjs';
+import { updateStrata } from '../updates.mjs';
 
 export function installStrataSetup(runner) {
   // A TEAM ON STRATA (a machine that is not an Apple silicon Mac). Strata is installed by its own installer, asked for its plan
@@ -66,6 +67,7 @@ export function installStrataSetup(runner) {
     let step = start('engine');
     const inst = await installStrata({ stateDir: runner.stateDir, onLine: lineTo('engine') });
     if (!inst.ok) return down('engine', inst.why);
+    if (inst.already) await updateStrata({ stateDir: runner.stateDir, onLine: lineTo('engine') }).catch(() => {});
     const ver = await strataVersion();
     progress.result.engine = ver;
     end('engine', STRATA.name + ' ' + ver + (inst.already ? ' was already installed' : ' installed'));
@@ -110,7 +112,7 @@ export function installStrataSetup(runner) {
     const target = { base: launched.base, model: launched.model };
     step = start('speed');
     try {
-      progress.result.speed = await measureSpeed(target);
+      progress.result.speed = await measureSpeed(target, { onTick: (t) => lineTo('speed')(speedLine(t)) });
     } catch (e) {
       return fail('speed', 'The model did not answer: ' + String(e.message).slice(0, 160));
     }

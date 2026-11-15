@@ -768,6 +768,176 @@ await withServer(
   },
 );
 
+// ---------- Homebrew, handled: none on the machine, another one at work, a run that was cut off ----------
+{
+  const { execFileSync } = await import('node:child_process');
+  const { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } = await import('node:fs');
+  const { brewDo, ensureBrew, findBrew, canOwnBrew, brewOutdated } = await import('../../src/runner/brew.mjs');
+  const { run } = await import('../../src/runner/engine.mjs');
+  const fake = path.join(FAKES, 'fake-brew.mjs');
+  chmodSync(fake, 0o755);
+  const bdir = path.join(state, 'brewing');
+  mkdirSync(bdir, { recursive: true });
+  // Homebrew as its own repository hands it out: one folder, with bin/brew in it
+  const src = path.join(bdir, 'Homebrew-brew-abc123');
+  mkdirSync(path.join(src, 'bin'), { recursive: true });
+  writeFileSync(path.join(src, 'bin', 'brew'), '#!/bin/sh\nexec "' + process.execPath + '" "' + fake + '" "$@"\n');
+  chmodSync(path.join(src, 'bin', 'brew'), 0o755);
+  const tarball = path.join(bdir, 'brew.tar.gz');
+  execFileSync('tar', ['-czf', tarball, '-C', bdir, 'Homebrew-brew-abc123']);
+  const broken = path.join(bdir, 'broken.tar.gz');
+  writeFileSync(broken, 'this is not an archive');
+  const withEnv = async (env, fn) => {
+    const was = {};
+    for (const k of Object.keys(env)) {
+      was[k] = process.env[k];
+      if (env[k] === undefined) delete process.env[k];
+      else process.env[k] = env[k];
+    }
+    try {
+      return await fn();
+    } finally {
+      for (const k of Object.keys(env)) {
+        if (was[k] === undefined) delete process.env[k];
+        else process.env[k] = was[k];
+      }
+    }
+  };
+  const log = path.join(bdir, 'calls.log');
+  const once = (n) => path.join(bdir, 'once-' + n);
+  const locked = await withEnv(
+    { FO_FAKE_BREW_FAIL: 'locked', FO_FAKE_BREW_ONCE: once('lock'), FO_FAKE_BREW_LLAMA: path.join(bdir, 'llama-a') },
+    () => brewDo(fake, ['install', 'llama.cpp'], { exec: run, formula: 'llama.cpp', waitMs: 40 }),
+  );
+  check(
+    'another Homebrew at work on the machine is waited for, and the install then goes through',
+    locked.code === 0 && locked.recovered === 'waited' && existsSync(path.join(bdir, 'llama-a')),
+    locked,
+  );
+  const cut = await withEnv(
+    {
+      FO_FAKE_BREW_FAIL: 'cutoff',
+      FO_FAKE_BREW_ONCE: once('cut'),
+      FO_FAKE_BREW_LLAMA: path.join(bdir, 'llama-b'),
+      FO_FAKE_BREW_LOG: log,
+    },
+    () => brewDo(fake, ['install', 'llama.cpp'], { exec: run, formula: 'llama.cpp' }),
+  );
+  check(
+    'a download an earlier run left broken is cleared, and the install is run once more',
+    cut.code === 0 && cut.recovered === 'retried' && /cleanup -s llama\.cpp/.test(readFileSync(log, 'utf8')),
+    [cut, readFileSync(log, 'utf8')],
+  );
+  const tfAt = path.join(bdir, 'tf-linked', 'tensorfold');
+  const linked = await withEnv(
+    {
+      FO_FAKE_BREW_FAIL: 'unlinked',
+      FO_FAKE_BREW_TF: '1',
+      FO_FAKE_TF: path.join(FAKES, 'fake-tensorfold.mjs'),
+      FO_BIN_TENSORFOLD: tfAt,
+    },
+    () =>
+      brewDo(fake, ['install', 'ashhart/tensorfold/tensorfold'], {
+        exec: run,
+        formula: 'ashhart/tensorfold/tensorfold',
+      }),
+  );
+  check(
+    'a formula a cut-off run left installed but not linked is linked',
+    linked.code === 0 && linked.recovered === 'linked' && existsSync(tfAt),
+    linked,
+  );
+  const plain = await brewDo(fake, ['install', 'something-else'], { exec: run, formula: 'something-else' });
+  check(
+    "any other failure is Homebrew's own, said as it said it, with nothing retried",
+    plain.code !== 0 && !plain.recovered && /Command Line Tools/.test(plain.tail.join(' ')),
+    plain,
+  );
+  check(
+    'a formula with a newer version out is told from one that is current',
+    (await withEnv({ FO_FAKE_BREW_OUTDATED: 'llama.cpp' }, () => brewOutdated(fake, 'llama.cpp', { exec: run }))) ===
+      true && (await brewOutdated(fake, 'llama.cpp', { exec: run })) === false,
+  );
+  const home = path.join(bdir, 'own-homebrew');
+  const none = { FO_BIN_BREW: path.join(FAKES, 'missing'), FO_BREW_HOME: undefined };
+  check(
+    'a test that names a Homebrew that is not there, and no folder for a copy, gets none',
+    (await withEnv(none, () => findBrew())) === null && (await withEnv(none, async () => canOwnBrew())) === false,
+  );
+  const lines = [];
+  const first = await withEnv({ ...none, FO_BREW_HOME: home, FO_BREW_TARBALL: broken }, () =>
+    ensureBrew({ exec: run, onLine: (l) => lines.push(l) }),
+  );
+  check(
+    'a fetch of Homebrew that cannot be unpacked says so and leaves nothing behind',
+    first.ok === false && /unpacked/.test(first.why) && !existsSync(home) && !existsSync(home + '.part'),
+    [first, lines],
+  );
+  const got = await withEnv({ ...none, FO_BREW_HOME: home, FO_BREW_TARBALL: tarball }, () =>
+    ensureBrew({ exec: run, onLine: (l) => lines.push(l) }),
+  );
+  const again = await withEnv({ ...none, FO_BREW_HOME: home, FO_BREW_TARBALL: tarball }, () =>
+    ensureBrew({ exec: run, onLine: (l) => lines.push(l) }),
+  );
+  check(
+    "with no Homebrew on the machine, its own files are fetched into this app's folder and that copy is used; the next time it is simply there",
+    got.ok === true &&
+      got.own === true &&
+      got.fetched === true &&
+      got.brew === path.join(home, 'bin', 'brew') &&
+      again.fetched === false &&
+      again.brew === got.brew &&
+      lines.some((l) => /no password/.test(l)),
+    [got, again, lines],
+  );
+  check(
+    'with FO_NO_NET and nothing to fetch it from, the real Homebrew is never reached',
+    (
+      await withEnv(
+        { ...none, FO_BREW_HOME: path.join(bdir, 'never'), FO_BREW_TARBALL: undefined, FO_NO_NET: '1' },
+        () => ensureBrew({ exec: run }),
+      )
+    ).ok === false && !existsSync(path.join(bdir, 'never')),
+  );
+  // the whole way through a setup: no engine, no signature check, no Homebrew
+  const tfOwn = path.join(state, 'tfhome-own');
+  await withServer(
+    {
+      FO_BIN_TENSORFOLD: path.join(tfOwn, 'bin', 'tensorfold'),
+      FO_TENSORFOLD_HOME: tfOwn,
+      FO_OPENSSL3: '',
+      FO_FAKE_TF: path.join(FAKES, 'fake-tensorfold.mjs'),
+      FO_BIN_BREW: path.join(FAKES, 'missing'),
+      FO_BREW_HOME: path.join(bdir, 'setup-homebrew'),
+      FO_BREW_TARBALL: tarball,
+      FO_FAKE_BREW_TF: '1',
+      FO_FAKE_BREW_FAIL: 'locked',
+      FO_FAKE_BREW_ONCE: once('setup'),
+      FO_BREW_WAIT_MS: '40',
+      FO_STATE_DIR: path.join(state, 'own-brew'),
+    },
+    async () => {
+      const models = await (await fetch(base + '/api/models')).json();
+      const plan = models.models[0].plan[0];
+      check(
+        'with no Homebrew, the plan says before anything runs that setup fetches its own copy, with no password',
+        /Fetch Homebrew/.test(plan.what) &&
+          /no password/.test(plan.command) &&
+          !plan.blocked &&
+          /checksum/.test(plan.note),
+        plan,
+      );
+      const v = await setup('qwen35-2b');
+      const s = v.setup || {};
+      check(
+        'and setup fetches it, waits out another Homebrew, installs the engine and runs to the end',
+        s.done === true && !s.error && existsSync(path.join(bdir, 'setup-homebrew', 'bin', 'brew')),
+        s.error || s.steps.slice(0, 2),
+      );
+    },
+  );
+}
+
 // ---------- an Intel Node on an Apple silicon Mac: whatever it starts would run as an Intel program, and the engine refuses that ----------
 {
   const { readFileSync, existsSync } = await import('node:fs');
@@ -2434,7 +2604,8 @@ await withServer({ FO_BIN_CLAUDE: path.join(FAKES, 'missing') }, async () => {
     s.error &&
       s.error.step === 'engine' &&
       s.error.fix.kind === 'claude' &&
-      /claude\.com\/claude-code/.test(s.error.fix.steps[0]) &&
+      /code\.claude\.com\/docs\/en\/setup/.test(s.error.fix.steps[0]) &&
+      /separate program from the Claude desktop app/.test(s.error.fix.steps[0]) &&
       !/terminal|curl|\bCLI\b|command/i.test(JSON.stringify(s.error)) &&
       v.session === null,
     s.error,
@@ -5347,12 +5518,15 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
   const cat = await import(path.join(ROOT, 'js/catalog.js'));
   const { engineFor, enginesFor } = await import(path.join(ROOT, 'runner/host.mjs'));
   check(
-    'the engine is chosen by the machine: TensorFold on an Apple silicon Mac, Strata on Linux, llama.cpp on an Intel Mac, and none on Windows',
+    'the engine is chosen by the machine: TensorFold on an Apple silicon Mac, Strata on Linux, llama.cpp on an Intel Mac and on Windows, and none where no engine has a build',
     engineFor('darwin', 'arm64') === 'tensorfold' &&
       engineFor('linux', 'x64') === 'strata' &&
       engineFor('linux', 'arm64') === 'strata' &&
       engineFor('darwin', 'x64') === 'llama' &&
-      engineFor('win32', 'x64') === '',
+      engineFor('win32', 'x64') === 'llama' &&
+      engineFor('win32', 'arm64') === 'llama' &&
+      engineFor('win32', 'ia32') === '' &&
+      engineFor('freebsd', 'x64') === '',
   );
   check(
     'the waterfall goes one rung down where the first engine cannot run: an old macOS, or a Linux machine with too little memory for Strata',
@@ -5464,7 +5638,7 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
     check(
       "and that sends the machine one rung down: the model page now offers llama.cpp's small models below Strata's, and says why",
       /run by llama\.cpp instead/.test(v.setup.error.why) &&
-        after.models.length === 7 &&
+        after.models.length === 11 &&
         after.models.slice(0, 4).every((m) => m.engine === 'strata') &&
         after.models.slice(4).every((m) => m.engine === 'llama') &&
         !!after.fellBack &&
@@ -5486,18 +5660,425 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
       v.setup.error,
     );
   });
-  await withServer({ FO_STATE_DIR: sdir, FO_PLATFORM: 'win32', FO_MACHINE_ARCH: 'x64' }, async () => {
+  await withServer({ FO_STATE_DIR: sdir, FO_PLATFORM: 'freebsd', FO_MACHINE_ARCH: 'x64' }, async () => {
     const host = await (await fetch(base + '/api/host')).json();
     check(
       'a machine no engine runs on is told so plainly, and pointed at Claude Code',
       host.supported === false &&
         host.engine === '' &&
         host.engines.length === 0 &&
-        /win32 on x64/.test(host.blockers[0]) &&
+        /freebsd on x64/.test(host.blockers[0]) &&
         /Claude Code/.test(host.blockers[0]),
       host.blockers,
     );
   });
+}
+
+// ---------- a Windows machine: llama.cpp is its engine, with llama.cpp's own Windows build (a zip), and Bonsai 2 by its memory ----------
+{
+  const wdir = path.join(state, 'windows');
+  for (const [gbs, want] of [
+    ['16', 'llama-bonsai2-9b'], // no graphics card: the largest is passed over
+    ['8', 'llama-bonsai2-9b'],
+  ])
+    await withServer(
+      {
+        FO_STATE_DIR: wdir + gbs,
+        FO_PLATFORM: 'win32',
+        FO_MACHINE_ARCH: 'x64',
+        FO_MEMORY_GB: gbs,
+        FO_BIN_LLAMA: path.join(wdir, 'none-here'),
+      },
+      async () => {
+        const host = await (await fetch(base + '/api/host')).json();
+        const got = await (await fetch(base + '/api/models')).json();
+        const best = got.models.find((m) => m.recommended) || {};
+        check(
+          'a Windows machine with ' +
+            gbs +
+            ' GB runs on llama.cpp, is planned its own Windows build, and is recommended ' +
+            want,
+          host.supported === true &&
+            host.engine === 'llama' &&
+            /^Windows /.test(host.os) &&
+            got.models.every((m) => m.engine === 'llama') &&
+            /llama-b12359-bin-win-cpu-x64\.zip/.test(got.models[0].plan[0].command) &&
+            best.id === want,
+          [host.engines, host.os, best.id, got.models[0].plan[0]],
+        );
+      },
+    );
+}
+
+// ---------- Windows with an NVIDIA card: the card and the WSL are reported, and setting WSL up is one fixed action ----------
+{
+  const { writeFileSync, chmodSync, mkdirSync } = await import('node:fs');
+  const gdir = path.join(state, 'win-gpu');
+  mkdirSync(gdir, { recursive: true });
+  const smi = path.join(gdir, 'nvidia-smi');
+  writeFileSync(smi, '#!/bin/sh\necho "NVIDIA GeForce RTX 5070, 12288"\n');
+  chmodSync(smi, 0o755);
+  for (const [wsl, ready] of [
+    ['none', false],
+    ['Ubuntu', true],
+  ])
+    await withServer(
+      {
+        FO_STATE_DIR: path.join(gdir, wsl),
+        FO_PLATFORM: 'win32',
+        FO_MACHINE_ARCH: 'x64',
+        FO_MEMORY_GB: '32',
+        FO_BIN_NVIDIA_SMI: smi,
+        FO_WSL: wsl,
+        FO_BIN_LLAMA: path.join(gdir, 'none-here'),
+        FO_SOURCE: 'https://example.test/',
+      },
+      async () => {
+        const host = await (await fetch(base + '/api/host')).json();
+        const fix = await (
+          await fetch(base + '/api/fix', { method: 'POST', headers: J, body: '{"action":"wsl-setup"}' })
+        ).json();
+        const offered = await (await fetch(base + '/api/models')).json();
+        check(
+          'and with a card, the largest model is the one recommended',
+          offered.models.find((m) => m.recommended).id === 'llama-bonsai2-27b',
+          offered.models.map((m) => [m.id, m.recommended]),
+        );
+        check(
+          'a Windows PC with an NVIDIA card and ' +
+            (ready ? 'a WSL' : 'no WSL') +
+            ' says so, still runs on llama.cpp, and setting WSL up is the start script with -SetupWsl',
+          host.engine === 'llama' &&
+            host.gpus.length === 1 &&
+            host.gpus[0].vramGb === 12 &&
+            host.tools.wsl.ready === ready &&
+            host.inWsl === false &&
+            fix.ok === true &&
+            /myfamilyoffice\.ps1 -SetupWsl https:\/\/example\.test\/$/.test(fix.command),
+          [host.gpus, host.tools.wsl, fix],
+        );
+      },
+    );
+  await withServer({ FO_STATE_DIR: path.join(gdir, 'mac') }, async () => {
+    const r = await fetch(base + '/api/fix', { method: 'POST', headers: J, body: '{"action":"wsl-setup"}' });
+    check('on a machine that is not Windows there is no such thing to set up', r.status === 400);
+  });
+}
+
+// ---------- the build of llama.cpp that uses a graphics card: asked of the build itself, kept where a card answers ----------
+{
+  const L = await import('../../src/runner/llama.mjs');
+  const cat = await import(path.join(ROOT, 'js/catalog.js'));
+  const hexOf = (s, n) => typeof s === 'string' && new RegExp('^[0-9a-f]{' + n + '}$').test(s);
+  check(
+    'graphics built into a processor are not counted as a card, and a card of its own is',
+    [
+      'AMD Radeon(TM) Graphics (512 MiB, 400 MiB free)',
+      'AMD Radeon(TM) 780M Graphics',
+      'Intel(R) UHD Graphics 770',
+      'Intel(R) Iris(R) Xe Graphics',
+      'Intel(R) Arc(TM) Graphics',
+    ].every((n) => L.devicesIn('Available devices:\n  Vulkan0: ' + n + '\n').length === 0) &&
+      [
+        'AMD Radeon RX 7600 (8176 MiB, 7900 MiB free)',
+        'Intel(R) Arc(TM) A770 Graphics',
+        'NVIDIA GeForce RTX 5070',
+      ].every((n) => L.devicesIn('Available devices:\n  Vulkan0: ' + n + '\n').length === 1),
+  );
+  check(
+    'the cards a build lists are read by name, and a software stand-in for a card is not one',
+    L.devicesIn(
+      'Available devices:\n  Vulkan0: NVIDIA GeForce RTX 5070 (12288 MiB, 11000 MiB free)\n  Vulkan1: llvmpipe (LLVM 19)\n',
+    ).join('|') === 'NVIDIA GeForce RTX 5070 (12288 MiB, 11000 MiB free)' &&
+      L.devicesIn('Available devices:\n').length === 0 &&
+      L.devicesIn('error: could not load vulkan-1.dll').length === 0,
+  );
+  check(
+    'the card builds are pinned like the others, for Windows and Linux, and a Mac has none (its build uses its graphics already)',
+    Object.values(cat.LLAMA_CARD).every(
+      (b) => b.asset.includes(cat.LLAMA.tag) && /vulkan/.test(b.asset) && b.bytes > 1e6 && hexOf(b.sha256, 64),
+    ) &&
+      cat.llamaCardBuild('win32', 'x64').asset === 'llama-b12359-bin-win-vulkan-x64.zip' &&
+      cat.llamaCardBuild('linux', 'arm64') !== null &&
+      cat.llamaCardBuild('darwin', 'arm64') === null,
+  );
+}
+
+// ---------- an Apple silicon Mac: every TensorFold model is listed, and Bonsai 2 after them, run by llama.cpp ----------
+{
+  await withServer(
+    { FO_STATE_DIR: path.join(state, 'mac-all'), FO_PLATFORM: 'darwin', FO_MACHINE_ARCH: 'arm64', FO_MEMORY_GB: '32' },
+    async () => {
+      const host = await (await fetch(base + '/api/host')).json();
+      const got = await (await fetch(base + '/api/models')).json();
+      const ids = got.models.map((m) => m.id);
+      const bonsai = got.models.filter((m) => m.family === 'Bonsai');
+      check(
+        'on an Apple silicon Mac the list is all of the TensorFold models and then Bonsai 2 in its four sizes, and one of them all is recommended: the best its memory can hold',
+        host.engine === 'tensorfold' &&
+          ids.join() ===
+            'qwen38-27b,nemotron35-30b,lfm25-24b,qwen35-2b,llama-bonsai2-27b,llama-bonsai2-9b,llama-bonsai2-4b,llama-bonsai2-2b' &&
+          bonsai.every((m) => m.engine === 'llama' && m.fits === true && /graphics/.test(m.runs)) &&
+          got.models.filter((m) => m.recommended).length === 1 &&
+          got.models.find((m) => m.recommended).id === 'lfm25-24b', // 32 GB: the two largest need more, this one fits
+        [host.engine, ids, got.models.map((m) => m.recommended)],
+      );
+    },
+  );
+}
+
+// ---------- the same Mac with 16 GB: no large TensorFold model fits, and the 27B Bonsai does, so it is the one chosen ----------
+{
+  await withServer(
+    { FO_STATE_DIR: path.join(state, 'mac-16'), FO_PLATFORM: 'darwin', FO_MACHINE_ARCH: 'arm64', FO_MEMORY_GB: '16' },
+    async () => {
+      const got = await (await fetch(base + '/api/models')).json();
+      const pick = got.models.find((m) => m.recommended) || {};
+      check(
+        'on a 16 GB Mac the model chosen is the 27B Bonsai 2, not the 2B starter that was the only TensorFold model to fit',
+        pick.id === 'llama-bonsai2-27b' && got.models.find((m) => m.id === 'qwen35-2b').fits === true,
+        got.models.map((m) => [m.id, m.fits, m.recommended]),
+      );
+    },
+  );
+}
+
+// ---------- a machine a model would strain: said from a quick pass over it, and overruled by a speed measured on it ----------
+{
+  const cat = await import(path.join(ROOT, 'js/catalog.js'));
+  const laptop = { engine: 'llama', os: 'Windows 10.0.26100', arch: 'x64', memoryGb: 16, cores: 16, gpus: [] };
+  const st = cat.localStrain(laptop, null);
+  check(
+    'a laptop with no graphics card of its own and 16 GB is one a model would strain, and the reasons are about that machine',
+    !!st && /no graphics card/.test(st.why[0]) && st.why.some((w) => /16 GB/.test(w)),
+    st,
+  );
+  check(
+    'a machine with a graphics card, an Apple silicon Mac, a large workstation, and one whose engine is not llama.cpp are not',
+    cat.localStrain({ ...laptop, gpus: [{ name: 'NVIDIA GeForce RTX 5070' }] }, null) === null &&
+      cat.localStrain({ engine: 'llama', os: 'macOS 12.7', arch: 'arm64', memoryGb: 16, cores: 8, gpus: [] }, null) ===
+        null &&
+      cat.localStrain({ ...laptop, memoryGb: 64, cores: 32 }, null) === null &&
+      cat.localStrain({ ...laptop, engine: 'tensorfold' }, null) === null &&
+      cat.localStrain(null, null) === null,
+  );
+  check(
+    'a speed measured on the machine outranks the guess, either way',
+    cat.localStrain(laptop, { measured: { tokPerSec: 14 } }) === null &&
+      cat.localStrain({ ...laptop, memoryGb: 64, cores: 32 }, { measured: { tokPerSec: 1.3 } }).measured === 1.3,
+  );
+}
+
+// ---------- measuring inference on a slow machine: it can be watched, it ends, and a model that writes nothing is an error ----------
+{
+  const http = await import('node:http');
+  const { measureSpeed, speedLine } = await import('../../src/runner/engine.mjs');
+  const cat = await import(path.join(ROOT, 'js/catalog.js'));
+  // a model server that writes one word every 120 ms for as long as it is listened to, or (silent) never writes at all
+  const slow = (silent) =>
+    new Promise((ok) => {
+      const srv = http.createServer((req, res) => {
+        res.writeHead(200, { 'content-type': 'text/event-stream' });
+        if (silent) return;
+        const t = setInterval(
+          () => res.write('data: ' + JSON.stringify({ choices: [{ delta: { content: 'word ' } }] }) + '\n\n'),
+          120,
+        );
+        req.on('close', () => clearInterval(t));
+      });
+      srv.listen(0, '127.0.0.1', () => ok(srv));
+    });
+  const a1 = await slow(false);
+  const ticks = [];
+  const t0 = Date.now();
+  const got = await measureSpeed(
+    { base: 'http://127.0.0.1:' + a1.address().port, model: 'x' },
+    { onTick: (t) => ticks.push(t), enoughMs: 700, enough: 4 },
+  );
+  a1.close();
+  if (a1.closeAllConnections) a1.closeAllConnections();
+  check(
+    'a slow model is measured from its first words and the reply is cut short there, with the line saying how many have come and how fast',
+    got.tokens >= 4 &&
+      got.tokens < 40 &&
+      got.tokPerSec > 3 &&
+      got.tokPerSec < 14 &&
+      Date.now() - t0 < 6000 &&
+      ticks.some((t) => t.tokens >= 4) &&
+      /words so far/.test(speedLine({ tokens: 12, tokPerSec: 1.4 })) &&
+      /Waiting for its first word: 9 s/.test(speedLine({ waited: 9 })),
+    [got, ticks.slice(-2)],
+  );
+  const a2 = await slow(true);
+  const waits = [];
+  let why = '';
+  try {
+    await measureSpeed(
+      { base: 'http://127.0.0.1:' + a2.address().port, model: 'x' },
+      { onTick: (t) => waits.push(t), firstMs: 1500 },
+    );
+  } catch (e) {
+    why = e.message;
+  }
+  a2.close();
+  if (a2.closeAllConnections) a2.closeAllConnections();
+  check(
+    'a model that writes nothing is waited for, with the wait shown, and then said to have written nothing',
+    /wrote nothing/.test(why) && waits.some((t) => t.waited >= 1),
+    [why, waits],
+  );
+  const bonsai = cat.LLAMA_MODELS.filter((m) => m.family === 'Bonsai');
+  check(
+    'Bonsai 2 is served with thinking off and the values its page gives for that, and the other models are served as they were',
+    bonsai.every((m) => m.serve.join(' ').startsWith('--reasoning off --temp 0.7 --top-p 0.8')) &&
+      cat.LLAMA_MODELS.filter((m) => m.family !== 'Bonsai').every((m) => !m.serve),
+    bonsai.map((m) => m.serve.join(' ')),
+  );
+}
+
+// ---------- what a setup finds already installed is brought up to date (runner/updates.mjs) ----------
+{
+  const { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } = await import('node:fs');
+  const U = await import('../../src/runner/updates.mjs');
+  const udir = path.join(state, 'updates');
+  mkdirSync(udir, { recursive: true });
+  const fake = path.join(FAKES, 'fake-brew.mjs');
+  const withEnv = async (env, fn) => {
+    const was = {};
+    for (const k of Object.keys(env)) {
+      was[k] = process.env[k];
+      if (env[k] === undefined) delete process.env[k];
+      else process.env[k] = env[k];
+    }
+    try {
+      return await fn();
+    } finally {
+      for (const k of Object.keys(env)) {
+        if (was[k] === undefined) delete process.env[k];
+        else process.env[k] = was[k];
+      }
+    }
+  };
+  check(
+    'a newer version is told from the same one and from an older one, and something that is not a version is never newer',
+    U.newer('1.2.10', '1.2.9') &&
+      U.newer('v2.0.0', '1.9.9') &&
+      !U.newer('1.2.3', '1.2.3') &&
+      !U.newer('1.2.2', '1.2.3') &&
+      !U.newer('', '1.0.0') &&
+      !U.newer('1.0.0', 'installed'),
+  );
+  check(
+    'each thing is asked about once a day at most',
+    (await U.due(udir, 'thing')) === true &&
+      (await U.due(udir, 'thing')) === false &&
+      (await U.due(udir, 'other')) === true,
+  );
+  const log = path.join(udir, 'brew.log');
+  const said = [];
+  const llamaAt = path.join(udir, 'llama');
+  writeFileSync(llamaAt, 'old');
+  const base0 = { FO_BIN_BREW: fake, FO_BREW_MANAGED: '1', FO_UPDATE_ALWAYS: '1', FO_FAKE_BREW_LOG: log };
+  const up = await withEnv({ ...base0, FO_FAKE_BREW_OUTDATED: 'llama.cpp', FO_FAKE_BREW_LLAMA: llamaAt }, () =>
+    U.updateFormula({
+      stateDir: udir,
+      formula: 'llama.cpp',
+      name: 'llama.cpp',
+      file: llamaAt,
+      onLine: (l) => said.push(l),
+    }),
+  );
+  check(
+    'a llama.cpp that Homebrew installed is upgraded when Homebrew says a newer one is out, and the setup says so',
+    up.did === true &&
+      /upgrade llama\.cpp/.test(readFileSync(log, 'utf8')) &&
+      said.some((l) => /newer llama\.cpp is out/.test(l)),
+    [up, said],
+  );
+  const cur = await withEnv(base0, () =>
+    U.updateFormula({ stateDir: udir, formula: 'llama.cpp', name: 'llama.cpp', file: llamaAt }),
+  );
+  const byHand = await withEnv({ ...base0, FO_BREW_MANAGED: '0', FO_FAKE_BREW_OUTDATED: 'llama.cpp' }, () =>
+    U.updateFormula({ stateDir: udir, formula: 'llama.cpp', name: 'llama.cpp', file: llamaAt }),
+  );
+  check(
+    'one that is current is left alone, and so is one the customer installed by hand',
+    cur.did === false && cur.why === 'current' && byHand.did === false && /not installed by Homebrew/.test(byHand.why),
+    [cur, byHand],
+  );
+  const lines = [];
+  const bad = await withEnv({ ...base0, FO_FAKE_BREW_OUTDATED: 'something-else' }, () =>
+    U.updateFormula({
+      stateDir: udir,
+      formula: 'something-else',
+      name: 'Something',
+      file: llamaAt,
+      onLine: (l) => lines.push(l),
+    }),
+  );
+  check(
+    'an update that fails does not stop anything: it is said, and the version already here is used',
+    bad.did === false &&
+      bad.failed === true &&
+      lines.some((l) => /did not go through.*Carrying on with the version already here/.test(l)),
+    [bad, lines],
+  );
+  // the agent: a stand-in for npm that knows of a newer version and "installs" it
+  const adir = path.join(udir, 'agent-state');
+  const pkgDir = path.join(adir, 'pi/node_modules/@earendil-works/pi-coding-agent');
+  mkdirSync(pkgDir, { recursive: true });
+  writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({ version: '1.0.0', bin: { pi: 'cli.js' } }));
+  const npm = path.join(udir, 'fake-npm.mjs');
+  writeFileSync(
+    npm,
+    "import { writeFileSync } from 'node:fs';\n" +
+      'const a = process.argv.slice(2);\n' +
+      "if (a[0] === 'view') { console.log(process.env.FO_FAKE_NPM_LATEST || '1.0.0'); process.exit(0); }\n" +
+      "if (a[0] === 'install' && process.env.FO_FAKE_NPM_FAILS !== '1') {\n" +
+      "  const v = a[a.length - 1].split('@').pop();\n" +
+      '  writeFileSync(' +
+      JSON.stringify(path.join(pkgDir, 'package.json')) +
+      ", JSON.stringify({ version: v, bin: { pi: 'cli.js' } }));\n" +
+      '  process.exit(0);\n' +
+      '}\n' +
+      "console.error('npm ERR! network'); process.exit(1);\n",
+  );
+  chmodSync(npm, 0o755);
+  const aenv = { FO_NPM_CLI: npm, FO_UPDATE_ALWAYS: '1', FO_PI_CLI: undefined, FO_NO_NET: '1' };
+  const same = await withEnv(aenv, () => U.updateAgent({ stateDir: adir, nodeBin: process.execPath }));
+  const failed = await withEnv({ ...aenv, FO_FAKE_NPM_LATEST: '1.3.0', FO_FAKE_NPM_FAILS: '1' }, () =>
+    U.updateAgent({ stateDir: adir, nodeBin: process.execPath }),
+  );
+  const stillOld = JSON.parse(readFileSync(path.join(pkgDir, 'package.json'), 'utf8')).version;
+  const moved = await withEnv({ ...aenv, FO_FAKE_NPM_LATEST: '1.3.0' }, () =>
+    U.updateAgent({ stateDir: adir, nodeBin: process.execPath }),
+  );
+  check(
+    'the agent is updated when the registry has a newer one, left alone when it is current, and kept as it is when the update fails',
+    same.did === false &&
+      same.why === 'current' &&
+      failed.did === false &&
+      failed.failed === true &&
+      stillOld === '1.0.0' &&
+      moved.did === true &&
+      moved.to === '1.3.0' &&
+      JSON.parse(readFileSync(path.join(pkgDir, 'package.json'), 'utf8')).version === '1.3.0',
+    [same, failed, stillOld, moved],
+  );
+  check(
+    'with FO_NO_NET and no stand-in, nothing is asked of Homebrew, npm or GitHub',
+    (
+      await withEnv({ FO_NO_NET: '1', FO_BIN_BREW: undefined, FO_BREW_MANAGED: '1', FO_UPDATE_ALWAYS: '1' }, () =>
+        U.updateFormula({ stateDir: udir, formula: 'llama.cpp', name: 'llama.cpp', file: llamaAt }),
+      )
+    ).why === 'offline' &&
+      (
+        await withEnv({ FO_NO_NET: '1', FO_NPM_CLI: undefined, FO_PI_CLI: undefined, FO_UPDATE_ALWAYS: '1' }, () =>
+          U.updateAgent({ stateDir: adir, nodeBin: process.execPath }),
+        )
+      ).why === 'offline',
+  );
+  void existsSync;
 }
 
 // ---------- the last engine on the waterfall: llama.cpp. Driven on this machine pretending to be an Intel Mac, against stand-ins: a
@@ -5581,7 +6162,7 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
       return [];
     }
   };
-  const own = path.join(sdir, 'engines', 'llama-b12110', 'build', 'bin', 'llama-server');
+  const own = path.join(sdir, 'engines', 'llama-b12359', 'build', 'bin', 'llama-server');
   const kept = path.join(sdir, 'models', 'llama-qwen35-4b', GGUF);
   const cat = await import(path.join(ROOT, 'js/catalog.js'));
   const hex = (s, n) => new RegExp('^[0-9a-f]{' + n + '}$').test(s);
@@ -5590,18 +6171,34 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
     Object.values(cat.LLAMA.builds).every(
       (b) => b.asset.includes(cat.LLAMA.tag) && b.bytes > 1e6 && hex(b.sha256, 64),
     ) &&
-      cat.LLAMA_MODELS.every((m) => hex(m.rev, 40) && hex(m.sha256, 64) && m.bytes > 1e9 && /\.gguf$/.test(m.file)) &&
-      cat.llamaBuild('darwin', 'x64').asset === 'llama-b12110-bin-macos-x64.tar.gz' &&
-      cat.llamaBuild('win32', 'x64') === null,
+      cat.LLAMA_MODELS.every((m) => hex(m.rev, 40) && hex(m.sha256, 64) && m.bytes > 5e8 && /\.gguf$/.test(m.file)) &&
+      cat.llamaBuild('darwin', 'x64').asset === 'llama-b12359-bin-macos-x64.tar.gz' &&
+      cat.llamaBuild('win32', 'x64').asset === 'llama-b12359-bin-win-cpu-x64.zip' &&
+      cat.llamaBuild('freebsd', 'x64') === null,
+  );
+  check(
+    'Bonsai 2 is offered in all four sizes, in the packing upstream llama.cpp reads, and no llama.cpp this app accepts is too old for it',
+    cat.LLAMA_MODELS.filter((m) => m.family === 'Bonsai')
+      .map((m) => m.params)
+      .join() === '27,9,4,2' &&
+      cat.LLAMA_MODELS.filter((m) => m.family === 'Bonsai').every((m) => /-Q2_0\.gguf$/.test(m.file)) &&
+      cat.LLAMA_MODELS.every((m) => !m.needsBuild || m.needsBuild <= cat.LLAMA.minBuild) &&
+      cat.LLAMA.version === '1.0.0',
+    cat.LLAMA_MODELS.map((m) => [m.id, m.needsBuild || 0]),
   );
   check(
     'a llama.cpp model fits by ordinary memory, with room kept for the system, and the largest that fits is the one recommended',
     cat
       .llamaOptions({ memoryGb: 8 })
       .map((m) => m.fits)
-      .join() === 'false,true,true' &&
-      cat.llamaOptions({ memoryGb: 8 }).find((m) => m.recommended).id === 'llama-qwen35-4b' &&
-      cat.llamaOptions({ memoryGb: 16 }).find((m) => m.recommended).id === 'llama-qwen35-9b' &&
+      .join() === 'false,true,false,true,true,true,true' &&
+      cat.llamaOptions({ memoryGb: 8 }).find((m) => m.recommended).id === 'llama-bonsai2-9b' &&
+      cat.llamaOptions({ memoryGb: 16, gpus: [{ name: 'a card' }] }).find((m) => m.recommended).id ===
+        'llama-bonsai2-27b' &&
+      cat.llamaOptions({ memoryGb: 16 }).find((m) => m.recommended).id === 'llama-bonsai2-9b' &&
+      cat.llamaOptions({ memoryGb: 16 }).find((m) => m.id === 'llama-bonsai2-27b').fits === true &&
+      cat.llamaOptions({ memoryGb: 7 }).find((m) => m.recommended).id === 'llama-bonsai2-4b' &&
+      cat.llamaOptions({ memoryGb: 6 }).find((m) => m.recommended).id === 'llama-qwen35-2b' &&
       !cat.llamaOptions({ memoryGb: 4 }).some((m) => m.fits),
     cat.llamaOptions({ memoryGb: 8 }).map((m) => [m.id, m.fits, m.recommended]),
   );
@@ -5622,11 +6219,11 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
     );
     check(
       "the models offered are the small ones, and the plan names llama.cpp's own pinned build and the model's pinned file before anything runs",
-      got.models.length === 3 &&
-        got.models.every((m) => m.engine === 'llama' && m.sizeGb > 1) &&
+      got.models.length === 7 &&
+        got.models.every((m) => m.engine === 'llama' && m.sizeGb > 0.4) &&
         got.models.filter((m) => m.recommended).length === 1 &&
-        /releases\/download\/b12110\/llama-b12110-bin-macos-x64\.tar\.gz/.test(first.plan[0].command) &&
-        /huggingface\.co\/unsloth\/Qwen3\.5-9B-GGUF\/resolve\/3885219b6810b007914f3a7950a8d1b469d598a5\/Qwen3\.5-9B-Q4_K_M\.gguf/.test(
+        /releases\/download\/b12359\/llama-b12359-bin-macos-x64\.tar\.gz/.test(first.plan[0].command) &&
+        /huggingface\.co\/prism-ml\/Ternary-Bonsai-2-27B-gguf\/resolve\/839bd57023c1558945afea70a74fa83c054f35f9\/Ternary-Bonsai-2-27B-Q2_0\.gguf/.test(
           first.plan[1].command,
         ) &&
         got.fellBack === null &&
@@ -5668,7 +6265,7 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
         ) &&
         existsSync(own) &&
         existsSync(kept) &&
-        !existsSync(path.join(sdir, 'engines', 'llama-b12110', 'release.tar.gz')),
+        !existsSync(path.join(sdir, 'engines', 'llama-b12359', 'release.tar.gz')),
       hub.seen,
     );
     check(
@@ -5820,6 +6417,32 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
       e,
     );
   });
+  // the build that uses a graphics card, through a whole setup: kept where the build lists a card, dropped where it lists none
+  for (const [devices, has] of [
+    ['NVIDIA GeForce RTX 5070 (12288 MiB, 11000 MiB free)', true],
+    ['', false],
+  ]) {
+    fresh();
+    await withServer(lenv({ FO_LLAMA_CARD_RELEASE: REL, FO_FAKE_LLAMA_DEVICES: devices }), async () => {
+      const v = await setup('llama-qwen35-4b');
+      const st = v.setup || {};
+      const eng = (st.steps || []).find((x) => x.id === 'engine') || {};
+      const cardDir = path.join(sdir, 'engines', 'llama-b12359-vulkan');
+      check(
+        has
+          ? 'where the build lists a graphics card, it is the engine, and the setup says which card runs the model'
+          : 'where it lists none, its folder is removed, a note is left so it is not fetched again, and the processor build runs the model',
+        st.done === true &&
+          (has
+            ? existsSync(cardDir) && /graphics card: NVIDIA GeForce RTX 5070/.test(eng.detail)
+            : !existsSync(cardDir) &&
+              existsSync(cardDir + '.none') &&
+              existsSync(path.join(sdir, 'engines', 'llama-b12359')) &&
+              /processor/.test(eng.detail)),
+        [eng.detail, st.error],
+      );
+    });
+  }
   fresh();
   await withServer(
     lenv({
@@ -5832,15 +6455,16 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
     async () => {
       const host = await (await fetch(base + '/api/host')).json();
       const got = await (await fetch(base + '/api/models')).json();
+      // (this server pretends to be Linux; the same question is asked of one pretending to be Windows just below)
       check(
         "a Linux machine with too little memory for any of Strata's models goes straight to llama.cpp, with the build for its own chip",
         host.engine === 'llama' &&
           host.engines.join() === 'llama' &&
           host.memoryGb === 16 &&
-          got.models.length === 3 &&
+          got.models.length === 7 &&
           got.models.every((m) => m.engine === 'llama') &&
-          /llama-b12110-bin-ubuntu-arm64\.tar\.gz/.test(got.models[0].plan[0].command) &&
-          got.models.find((m) => m.recommended).id === 'llama-qwen35-9b',
+          /llama-b12359-bin-ubuntu-arm64\.tar\.gz/.test(got.models[0].plan[0].command) &&
+          got.models.find((m) => m.recommended).id === 'llama-bonsai2-9b',
         [host.engines, host.memoryGb, got.models.map((m) => m.id)],
       );
     },
@@ -6407,7 +7031,7 @@ await withServer({ FO_MACHINE_ARCH: 'arm64' }, async () => {
         const theirs = path.join(hub, 'models--someone--else');
         const gguf = path.join(sdir, 'models', 'llama-qwen35-2b');
         const addon = path.join(sdir, 'addons', 'x');
-        const eng = path.join(sdir, 'engines', 'llama-b12110');
+        const eng = path.join(sdir, 'engines', 'llama-b12359');
         for (const d of [ours, theirs, gguf, addon, eng]) {
           mkdirSync(d, { recursive: true });
           writeFileSync(path.join(d, 'blob'), Buffer.alloc(3 * 2 ** 20, 7));

@@ -244,11 +244,34 @@ const requests = () => {
   await p.locator('#setup').click();
   await p.locator('.todo li').first().waitFor({ timeout: 8000 });
   let steps = 0;
+  // the mark of the step under way must be the SAME element from one look to the next: drawn anew, its turning starts again each time
+  let redrawn = 0;
+  let looks = 0;
   for (let i = 0; i < 200; i++) {
     steps = Math.max(steps, await p.locator('.todo > li').count());
+    const kept = await p.evaluate(() => {
+      const li = document.querySelector('.todo > li.run');
+      if (!li) return null;
+      const mark = li.querySelector(':scope > .mark');
+      const title = li.querySelector('strong').textContent;
+      const same = mark.__for === title;
+      const was = document.__running;
+      mark.__for = title;
+      document.__running = title;
+      return was === title ? same : null; // only where the same step was under way at the last look
+    });
+    if (kept !== null) {
+      looks++;
+      if (!kept) redrawn++;
+    }
     if (await p.locator('#meet').count()) break;
     await sleep(150);
   }
+  check(
+    'setup: the turning mark of the step under way is never drawn again while that step runs',
+    looks > 0 && redrawn === 0,
+    { looks, redrawn },
+  );
   const said = (await p.locator('[data-helper-said]').count())
     ? await flat(p.locator('[data-helper-said]').first())
     : '';

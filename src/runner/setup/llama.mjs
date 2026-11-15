@@ -1,11 +1,12 @@
 // llama.mjs (setup) - SETTING UP A LOCAL MODEL WITH LLAMA.CPP, the last rung of the engine waterfall.
 import { measureHost } from '../host.mjs';
-import { measureSpeed, stopEngine } from '../engine.mjs';
+import { measureSpeed, speedLine, stopEngine } from '../engine.mjs';
 import { ensureLlamaEngine, fetchLlamaModel, haveLlamaModel, serveLlama } from '../llama.mjs';
 import { AGENT, LLAMA, SERVED_NAME } from '../../js/catalog.js';
 import { agentCheck, checkLine, ensureAgent, fitFrom } from '../agent.mjs';
 import { nodeFix } from '../node.mjs';
 import { LLAMA_STEPS } from './steps.mjs';
+import { updateFormula } from '../updates.mjs';
 
 export function installLlamaSetup(runner) {
   // A TEAM ON LLAMA.CPP, the last engine on the waterfall (llama.mjs). The engine is one already on the machine, or its own pinned
@@ -83,9 +84,22 @@ export function installLlamaSetup(runner) {
       gone();
       return fail('engine', eng.why);
     }
+    // a llama.cpp the machine already had, put there by Homebrew, is upgraded when a newer one is out (this app's own copy follows the catalog)
+    if (eng.already && !eng.e.own)
+      await updateFormula({
+        stateDir: runner.stateDir,
+        formula: 'llama.cpp',
+        name: LLAMA.name,
+        file: eng.e.file,
+        onLine: (l) => {
+          step.line = l;
+          runner.push();
+        },
+      }).catch(() => {});
     const ver = eng.ver.text;
     progress.result.engine = ver;
-    machine.tools.llama = { path: eng.e.file, version: ver, own: eng.e.own };
+    machine.tools.llama = { path: eng.e.file, version: ver, own: eng.e.own, card: (eng.gpu || [])[0] || '' };
+    progress.result.card = (eng.gpu || [])[0] || ''; // the graphics card the engine says it can use, if any
     if (machine.engine === 'llama') machine.tools.engine = machine.tools.llama; // the model page's plan no longer lists the engine as something to fetch
     end(
       'engine',
@@ -99,7 +113,12 @@ export function installLlamaSetup(runner) {
           : " fetched, checked against its SHA-256 and unpacked into this app's own folder" +
             (eng.beside
               ? '. The ' + eng.beside + ' already on this machine was too old for these models, and was left as it is'
-              : '')),
+              : '')) +
+        (eng.gpu && eng.gpu.length
+          ? '. It runs the model on this graphics card: ' + eng.gpu[0]
+          : eng.e.own
+            ? ". It runs the model on this machine's processor"
+            : ''),
     );
     const sizeGb = toGb(model.bytes);
     step = start('model', model.name + ', ' + sizeGb + ' GB');
@@ -158,7 +177,7 @@ export function installLlamaSetup(runner) {
     const target = { base: launched.base, model: SERVED_NAME };
     step = start('speed');
     try {
-      progress.result.speed = await measureSpeed(target);
+      progress.result.speed = await measureSpeed(target, { onTick: (t) => lineTo('speed')(speedLine(t)) });
     } catch (e) {
       return fail('speed', 'The model did not answer: ' + String(e.message).slice(0, 160));
     }

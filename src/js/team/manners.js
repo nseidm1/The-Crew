@@ -341,7 +341,24 @@ export const destroysIn = (reply, given) => {
 // in it that is nowhere in what the seat was given, a line number likewise, and a stated cause of the customer's own failure.
 const EVERYWHERE =
   /^(package(-lock)?\.json|tsconfig\.json|playwright\.config\.(ts|js)|jest\.config\.(ts|js)|vite\.config\.(ts|js)|docker-compose\.ya?ml|\.env|requirements\.txt|pyproject\.toml|build\.gradle(\.kts)?|pubspec\.yaml|cargo\.toml|go\.mod)$/i; // files a project of its kind has: naming one describes nobody's code
-const pathsIn = (t) => [...new Set(String(t).match(/\b[\w.-]+(?:\/[\w.-]+)+\.[a-z]{1,5}\b/gi) || [])];
+// the files a reply speaks of as if it knew them. Not: a web address (rfc-editor.org/rfc/rfc9110.html), nor a place it only offers to
+// look or asks to be sent ("or its path, such as /etc/nginx/nginx.conf", "I'd fetch ...", "send me ...").
+const OFFERED =
+  /\b(such as|e\.g\.|for example|for instance|like|usually|typically|often|by default|somewhere else|i'?d (fetch|read|open|look)|i would (fetch|read|open|look)|(send|paste|share|show|point) (me|us)\b|its path|the path)\b/i;
+export const pathsIn = (t) => {
+  const text = String(t);
+  const out = [];
+  for (const m of text.matchAll(/\b[\w.-]+(?:\/[\w.-]+)+\.[a-z]{1,5}\b/gi)) {
+    if (/^(?:www\.)?[\w-]+(?:\.[\w-]+)*\.(?:org|com|net|io|dev|edu|gov|app|co)\//i.test(m[0])) continue;
+    const from = Math.max(text.lastIndexOf('. ', m.index), text.lastIndexOf('? ', m.index), 0);
+    if (OFFERED.test(text.slice(from, m.index))) continue;
+    out.push(m[0]);
+  }
+  return [...new Set(out)];
+};
+// a cause is named: "it failed because", "the cause was". Not "until the cause is confirmed" or "the cause is not known"
+export const NAMES_CAUSE =
+  /\b(failed|broke|crashed|went down) because\b|\bthe (cause|reason|problem|culprit) (was|is)\b(?! (?:not|un\w+|confirmed|known|found|clear|settled|established|still)\b)/i;
 export const unseenIn = (reply, given) => {
   const had = String(given).toLowerCase();
   const out = [];
@@ -357,7 +374,7 @@ export const unseenIn = (reply, given) => {
     if (!had.includes(m[0])) out.push('the time ' + m[0]);
   if (
     /\b(why|what) (did|caused|made|broke|went wrong)\b|\bwhat happened\b/i.test(had.slice(-1200)) &&
-    /\b(failed|broke|crashed|went down) because\b|\bthe (cause|reason|problem|culprit) (was|is)\b/i.test(reply)
+    NAMES_CAUSE.test(reply)
   )
     out.push('a cause it was not shown');
   return [...new Set(out)].slice(0, 4);

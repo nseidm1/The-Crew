@@ -6,7 +6,7 @@ import { connectRunner, noRunner } from './runner-client.js';
 import { hideBar, watchRunner } from './alive.js';
 import { follow } from './glide.js';
 import { APP, ask, look, markRan, ran } from './where.js';
-import { ENGINE, AGENT, MODELS, RECORD } from './catalog.js'; // (the add-on's own entry arrives from the runner, with its state)
+import { ENGINE, AGENT, MODELS, RECORD, localStrain } from './catalog.js'; // (the add-on's own entry arrives from the runner, with its state)
 import { BILLING } from './billing.js';
 import { applyMode, chosenMode, setMode } from './mode.js';
 applyMode();
@@ -377,8 +377,10 @@ async function simple() {
     saved = '';
   }
   const canLocal = () => !!best && (!lic || !lic.enforce || planAllows(lic, 'managed_local'));
+  // a machine a model would strain: Claude is chosen for it, and the computer stays there to be chosen knowingly
+  const strain = got ? localStrain(got.host, best) : null;
   const settle = () => {
-    if (!pressed) simpleMind = canLocal() && saved !== 'claude' ? 'local' : 'claude';
+    if (!pressed) simpleMind = canLocal() && saved !== 'claude' && !(strain && saved !== 'local') ? 'local' : 'claude';
   };
   settle();
   wants = helpersWanted(extras);
@@ -455,14 +457,16 @@ async function simple() {
                       ? 'First a download of about ' + sizeGb + ' GB, once'
                       : 'First a download, once. Its size is said before it starts',
                   'We chose ' + best.name + ' for ' + HERE(),
-                  'It takes its time with an answer',
+                  strain
+                    ? 'It would be slow here, and ' + HERE() + ' would feel busy while it thinks: ' + strain.why[0]
+                    : 'It takes its time with an answer',
                   open || allowed
                     ? null
                     : 'It needs ' + paidName + ': use a code or get ' + paidName + ' in the bar above',
                 ].filter(Boolean)
               : ['Your team can think with Claude instead'],
             !best,
-            !!best && (open || allowed), // marked as the one to take only when the plan lets it start
+            !!best && (open || allowed) && !strain, // marked as the one to take only when the plan lets it start, and the machine is up to it
             open
               ? null
               : h(
@@ -482,7 +486,7 @@ async function simple() {
               'What you ask is sent to Claude',
             ],
             false,
-            !best,
+            !best || !!strain,
             open ? null : h('span', { class: 'plan-mark', id: 'plan-mark-claude' }, 'In every plan'),
           ),
         ),
@@ -728,14 +732,22 @@ function resumeStrip() {
 // On the hosted site: the one command that fetches this app's runner from this same address and starts it on the customer's machine.
 function launchCard() {
   const base = new URL('.', location.href).href;
-  const cmd = 'curl -fsSL ' + base + 'myfamilyoffice.sh | sh -s ' + base; // the address is this page's own: whatever site serves it
-  const code = h(
-    'code',
-    null,
-    h('span', { class: 'nb' }, 'curl -fsSL ' + base + 'myfamilyoffice.sh'),
-    ' | ',
-    h('span', { class: 'nb' }, 'sh -s ' + base),
-  );
+  // the address is this page's own: whatever site serves it. A Windows machine is given the PowerShell command, which does the same.
+  const win = /Windows/i.test(navigator.userAgent);
+  // It runs in the PowerShell window it is pasted into and starts no second one: a PowerShell started with a command that fetches and
+  // runs a script is refused by security software ("Access is denied"). The two parts may wrap inside the box: neither is short.
+  const psSite = "$env:FO_SITE='" + base + "';";
+  const psGet = 'irm ' + base + 'myfamilyoffice.ps1 | iex';
+  const cmd = win ? psSite + ' ' + psGet : 'curl -fsSL ' + base + 'myfamilyoffice.sh | sh -s ' + base;
+  const code = win
+    ? h('code', { id: 'win-cmd' }, h('span', null, psSite), ' ', h('span', null, psGet))
+    : h(
+        'code',
+        null,
+        h('span', { class: 'nb' }, 'curl -fsSL ' + base + 'myfamilyoffice.sh'),
+        ' | ',
+        h('span', { class: 'nb' }, 'sh -s ' + base),
+      );
   const copy = h('button', { class: 'btn primary', type: 'button' }, 'Copy');
   // THE LIVE STATE of what the command started, read from this machine. When the app comes up, THIS page attaches to it and carries on
   // as the app: no second page opens. The page asks the machine only after the command has been copied here once, so a first visit
@@ -991,7 +1003,11 @@ function launchCard() {
   return h(
     'section',
     { class: 'launch', 'aria-labelledby': 'launch-h' },
-    h('h3', { id: 'launch-h' }, 'Paste this one command into Terminal'),
+    h(
+      'h3',
+      { id: 'launch-h' },
+      win ? 'Paste this one command into PowerShell' : 'Paste this one command into Terminal',
+    ),
     /iPhone|iPad|Android/i.test(navigator.userAgent)
       ? h(
           'p',
@@ -999,11 +1015,11 @@ function launchCard() {
           'Your team runs on a computer, not on a phone. Open this page on your computer to start it there.',
         )
       : null,
-    /Windows/i.test(navigator.userAgent)
+    win
       ? h(
           'p',
           { class: 'note', id: 'win-note' },
-          'This command is for a Mac or a Linux machine. On Windows, paste it into a WSL window (Ubuntu), where your PC is a Linux machine. We have not run it that way ourselves yet.',
+          'This is the command for Windows: open PowerShell from the Start menu and paste it there. We have checked each step of it, but have not yet run it from start to finish on a Windows machine of our own.',
         )
       : null,
     h('div', { class: 'cmd' }, code, copy),
@@ -1011,11 +1027,19 @@ function launchCard() {
     h(
       'ul',
       null,
-      h('li', null, 'Paste it into Terminal. Nothing has to be installed first, and it never asks for a password.'),
       h(
         'li',
         null,
-        "If this machine has no Node.js 22, it fetches Node's own build into ~/.familyoffice, for this app only. No Homebrew, and nothing else on the machine is changed.",
+        win
+          ? 'Paste it into PowerShell. Nothing has to be installed first, and it never asks for a password or for administrator rights.'
+          : 'Paste it into Terminal. Nothing has to be installed first, and it never asks for a password.',
+      ),
+      h(
+        'li',
+        null,
+        win
+          ? "If this PC has no Node.js 22, it fetches Node's own build into the .familyoffice folder in your user folder, for this app only. Nothing else on the PC is changed. If the PC already has Windows' Linux layer (WSL), your team runs there instead."
+          : "If this machine has no Node.js 22, it fetches Node's own build into ~/.familyoffice, for this app only. No Homebrew, and nothing else on the machine is changed.",
       ),
       h(
         'li',
@@ -1032,7 +1056,9 @@ function launchCard() {
       'p',
       { class: 'muted small' },
       'Read it first if you like, it is two short files: ',
-      h('a', { href: 'myfamilyoffice.sh' }, 'myfamilyoffice.sh'),
+      win
+        ? h('a', { href: 'myfamilyoffice.ps1' }, 'myfamilyoffice.ps1')
+        : h('a', { href: 'myfamilyoffice.sh' }, 'myfamilyoffice.sh'),
       ' and ',
       h('a', { href: 'myfamilyoffice.mjs' }, 'myfamilyoffice.mjs'),
       '.',
@@ -1792,7 +1818,7 @@ const speedSteps = (m) => {
   const a = m.active || m.params;
   return a <= 3 ? 4 : a <= 10 ? 3 : 2;
 };
-const isSimpleNow = () => chosenMode() === 'simple'; // Developer offers the two large models; a shelved one is not shown there
+const isSimpleNow = () => chosenMode() === 'simple'; // (Developer lists every model the machine's engines can run, and the person chooses)
 const CAN = {
   talk: ['Not suited to it', 'Short, simple answers', 'Good', 'Good'],
   find: ['Not suited to it', 'Simple lookups', 'Good', 'Good'],
@@ -2201,13 +2227,82 @@ function paintModels() {
         ? h(
             'p',
             { class: 'note', id: 'small-engine' },
-            'These are small models. ' +
-              HERE().replace(/^t/, 'T') +
-              ' runs them on its processor with ' +
+            HERE().replace(/^t/, 'T') +
+              ' runs these on its processor with ' +
               (host.engineName || 'llama.cpp') +
-              ', so each answer takes a while. Larger models need an Apple silicon Mac, or a Linux machine with more memory.',
+              ', so each answer takes a while. An Apple silicon Mac, or a Linux machine with a graphics card, runs larger ones faster.',
           )
         : null;
+  // A MACHINE A MODEL WOULD STRAIN (js/catalog.js localStrain): said before anything is fetched, with the way over to Claude Code.
+  // The models stay below it: this discourages, it does not forbid.
+  const strainNote = () => {
+    const st = localStrain(host, list.find((m) => m.recommended) || null);
+    if (!st) return null;
+    return h(
+      'div',
+      { class: 'note', id: 'local-strain' },
+      h(
+        'p',
+        null,
+        'A model on ' +
+          HERE() +
+          ' would be slow, and the machine would be busy while it writes: ' +
+          st.why.join(', ') +
+          '. Claude Code is the better mind for this machine: nothing to download, and it answers at once.',
+      ),
+      h(
+        'div',
+        { class: 'row' },
+        h(
+          'button',
+          { class: 'btn primary', type: 'button', id: 'strain-claude', onclick: () => begin('claude') },
+          'Start with Claude instead',
+        ),
+      ),
+    );
+  };
+  // A WINDOWS PC WITH AN NVIDIA CARD: the engine that uses the card runs under Windows' Linux layer (WSL). It is offered, never done
+  // unasked, because Windows asks for administrator approval and, the first time, a restart.
+  const gpuCard = (host.gpus || [])[0];
+  const wslOffer = () => {
+    if (!/^Windows/.test(host.os || '') || !gpuCard) return null;
+    const ready = !!(host.tools && host.tools.wsl && host.tools.wsl.ready);
+    const said = h('span', { class: 'muted small', role: 'status' });
+    const go = h(
+      'button',
+      { class: 'btn', type: 'button', id: 'wsl-go' },
+      ready ? 'Move my team to WSL' : 'Set up WSL',
+    );
+    go.onclick = async () => {
+      go.disabled = true;
+      try {
+        const r = await runner.fix('wsl-setup');
+        said.textContent = r.ok
+          ? 'A PowerShell window has opened. Follow it there' +
+            (ready ? '.' : ': approve when Windows asks, and restart if it says to.')
+          : 'That could not be started' + (r.said ? ': ' + r.said : '.');
+      } catch (e) {
+        said.textContent = 'That could not be started: ' + e.message;
+      }
+      go.disabled = false;
+    };
+    return h(
+      'div',
+      { class: 'note', id: 'wsl-offer' },
+      h(
+        'p',
+        null,
+        'This PC has a graphics card (' +
+          gpuCard.name +
+          (gpuCard.vramGb ? ', ' + gpuCard.vramGb + ' GB' : '') +
+          "), and these models run on it here. A second engine, with larger models, runs only under Windows' Linux layer (WSL)" +
+          (ready
+            ? ', which this PC already has. Moving your team there sets its model up again.'
+            : '. Setting WSL up asks for administrator approval and, the first time, a restart; your team then starts there by itself, and its model is set up again.'),
+      ),
+      h('div', { class: 'row' }, go, said),
+    );
+  };
   // THE WIDTH OF THE SCREEN IS USED: the models on the left, the chosen one and what setting it up does on the right, so choosing and
   // starting are both in view without scrolling. On a narrow screen the two stack, models first. (The card widens for this step.)
   show(
@@ -2222,6 +2317,8 @@ function paintModels() {
         'Pick the mind your team thinks with. A bigger one thinks harder and answers slower. The lit points are the part of it at work on each word.',
       ),
       waterNote(),
+      strainNote(),
+      wslOffer(),
     ),
     h('div', { class: 'pick' }, rowEl, detail, acts),
     h(
@@ -2526,55 +2623,66 @@ function working() {
       now.textContent = setup.error ? 'It stopped before it was ready.' : setup.done ? 'Ready.' : plainStep(cur, setup);
     ring.classList.toggle('done', !!setup.done);
     ring.classList.toggle('fail', !!setup.error);
-    todo.replaceChildren(
-      ...setup.steps.map((x) =>
-        h(
-          'li',
-          { class: x.state },
-          h('span', { class: 'mark' }),
-          h('strong', null, x.title),
-          h('span', { class: 'd' }, x.detail),
-          x.state === 'run' && x.line ? h('span', { class: 'term' }, x.line) : null,
-          x.id === 'check' && setup.jobs.length
-            ? h(
-                'ul',
-                { class: 'jobs' },
-                setup.jobs.map((j) =>
-                  h(
-                    'li',
-                    null,
-                    h('span', { class: 'dot ' + (j.state === 'run' ? 'is-run' : j.pass ? 'is-green' : 'is-red') }),
-                    j.title +
-                      (j.state === 'done'
-                        ? (j.pass
-                            ? ': passed' +
-                              (HOW[j.how] ? ' ' + HOW[j.how] : '') +
-                              (j.learned ? ', once it had been taught from its own misses' : '')
-                            : ': failed, ' + j.why) +
-                          ' (' +
-                          j.seconds +
-                          ' s, ' +
-                          j.tools +
-                          ' tool calls' +
-                          (j.tries > 1 ? ', ' + j.tries + ' tries' : '') +
-                          (j.again ? ', ' + j.again + ' more while learning' : '') +
-                          ')'
-                        : j.how === 'learning'
-                          ? ': ' + NOW.learning + (j.tries > 1 ? ', try ' + j.tries : '')
-                          : j.tries > 1
-                            ? ': ' +
-                              (NOW[j.how] || 'trying again') +
-                              ', try ' +
-                              j.tries +
-                              (j.last ? ' (' + j.last + ')' : '')
-                            : ': running'),
-                  ),
+    const fresh = setup.steps.map((x) =>
+      h(
+        'li',
+        { class: x.state },
+        h('span', { class: 'mark' }),
+        h('strong', null, x.title),
+        h('span', { class: 'd' }, x.detail),
+        x.state === 'run' && x.line ? h('span', { class: 'term' }, x.line) : null,
+        x.id === 'check' && setup.jobs.length
+          ? h(
+              'ul',
+              { class: 'jobs' },
+              setup.jobs.map((j) =>
+                h(
+                  'li',
+                  null,
+                  h('span', { class: 'dot ' + (j.state === 'run' ? 'is-run' : j.pass ? 'is-green' : 'is-red') }),
+                  j.title +
+                    (j.state === 'done'
+                      ? (j.pass
+                          ? ': passed' +
+                            (HOW[j.how] ? ' ' + HOW[j.how] : '') +
+                            (j.learned ? ', once it had been taught from its own misses' : '')
+                          : ': failed, ' + j.why) +
+                        ' (' +
+                        j.seconds +
+                        ' s, ' +
+                        j.tools +
+                        ' tool calls' +
+                        (j.tries > 1 ? ', ' + j.tries + ' tries' : '') +
+                        (j.again ? ', ' + j.again + ' more while learning' : '') +
+                        ')'
+                      : j.how === 'learning'
+                        ? ': ' + NOW.learning + (j.tries > 1 ? ', try ' + j.tries : '')
+                        : j.tries > 1
+                          ? ': ' +
+                            (NOW[j.how] || 'trying again') +
+                            ', try ' +
+                            j.tries +
+                            (j.last ? ' (' + j.last + ')' : '')
+                          : ': running'),
                 ),
-              )
-            : null,
-        ),
+              ),
+            )
+          : null,
       ),
     );
+    // THE LIST IS CHANGED IN PLACE, never drawn again. A download reports its progress many times a second, and drawing every line
+    // anew each time started the turning mark of the step under way from the beginning each time: it stuttered. A line that has
+    // not changed is left alone; one whose words changed keeps its mark and takes the new words; only a line whose state changed
+    // (waiting, under way, done, failed) is replaced.
+    fresh.forEach((li, i) => {
+      const old = todo.children[i];
+      if (!old) return void todo.append(li);
+      if (old.className !== li.className) return void old.replaceWith(li);
+      if (old.innerHTML === li.innerHTML) return;
+      const mark = old.querySelector(':scope > .mark');
+      old.replaceChildren(mark, ...[...li.childNodes].filter((n) => !(n.classList && n.classList.contains('mark'))));
+    });
+    while (todo.children.length > fresh.length) todo.lastElementChild.remove();
     if (setup.error) {
       title.replaceChildren(simple ? 'It ' : 'Set up ', h('em', null, 'stopped'));
       // RECOVERY FROM THE SCREEN. Continue runs the same setup again and keeps what is already done; a fix is a button, not a command to

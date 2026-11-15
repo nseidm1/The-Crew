@@ -15,7 +15,14 @@ const has = (f) =>
     () => true,
     () => false,
   );
-export const privateNode = (stateDir) => path.join(stateDir, 'node', 'bin', 'node');
+// Node's Windows build keeps node.exe and npm at the top of its folder; everywhere else they are under bin/ and lib/
+const WIN = process.platform === 'win32';
+export const privateNode = (stateDir) =>
+  WIN ? path.join(stateDir, 'node', 'node.exe') : path.join(stateDir, 'node', 'bin', 'node');
+export const privateNpm = (stateDir) =>
+  WIN
+    ? path.join(stateDir, 'node', 'node_modules', 'npm', 'bin', 'npm-cli.js')
+    : path.join(stateDir, 'node', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js');
 
 // the npm-cli.js that goes with a node binary, wherever that install keeps it
 export async function findNpm(nodeBin) {
@@ -30,6 +37,7 @@ export async function findNpm(nodeBin) {
   for (const d of dirs)
     tries.push(
       path.join(d, '../lib/node_modules/npm/bin/npm-cli.js'),
+      path.join(d, 'node_modules/npm/bin/npm-cli.js'), // Windows: beside node.exe
       path.join(d, '../libexec/lib/node_modules/npm/bin/npm-cli.js'),
     ); // the usual place; Homebrew's
   tries.push('/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js', '/usr/local/lib/node_modules/npm/bin/npm-cli.js');
@@ -39,7 +47,8 @@ export async function findNpm(nodeBin) {
 
 // Node's own build, into <stateDir>/node. Resolves { ok, node, npmCli } or { ok: false, why }.
 export async function fetchNode(stateDir, onLine = () => {}) {
-  const os = { darwin: 'darwin', linux: 'linux' }[process.platform];
+  const os = { darwin: 'darwin', linux: 'linux', win32: 'win' }[process.platform];
+  const ext = WIN ? 'zip' : 'tar.gz';
   const arch = { arm64: 'arm64', x64: 'x64' }[await machineArch()]; // the build for the machine's chip, not for whichever Node is asking
   if (!os || !arch)
     return {
@@ -54,7 +63,9 @@ export async function fetchNode(stateDir, onLine = () => {}) {
     const sums = await (await fetch(dist + '/SHASUMS256.txt', { signal: AbortSignal.timeout(30000) })).text();
     const line = sums
       .split('\n')
-      .find((l) => new RegExp(' node-v[0-9.]+-' + os + '-' + arch + '\\.tar\\.gz$').test(l.trim()));
+      .find((l) =>
+        new RegExp(' node-v[0-9.]+-' + os + '-' + arch + '\\.' + ext.replace('.', '\\.') + '$').test(l.trim()),
+      );
     if (!line) return { ok: false, why: "Node's list has no build for " + os + ' ' + arch + '.' };
     const [want, name] = line.trim().split(/\s+/);
     const res = await fetch(dist + '/' + name, { signal: AbortSignal.timeout(10 * 60000) });
@@ -89,9 +100,13 @@ export async function fetchNode(stateDir, onLine = () => {}) {
     await writeFile(path.join(tmp, name), buf);
     onLine('Unpacking ' + name);
     const code = await new Promise((done) => {
-      const c = spawn('tar', ['-xzf', path.join(tmp, name), '-C', path.join(tmp, 'out'), '--strip-components', '1'], {
-        stdio: 'ignore',
-      });
+      const c = spawn(
+        'tar',
+        [WIN ? '-xf' : '-xzf', path.join(tmp, name), '-C', path.join(tmp, 'out'), '--strip-components', '1'],
+        {
+          stdio: 'ignore',
+        },
+      );
       c.on('error', () => done(-1));
       c.on('close', done);
     });
@@ -100,7 +115,7 @@ export async function fetchNode(stateDir, onLine = () => {}) {
     await rename(path.join(tmp, 'out'), dest);
     await rm(tmp, { recursive: true, force: true });
     const node = privateNode(stateDir);
-    const npmCli = path.join(dest, 'lib/node_modules/npm/bin/npm-cli.js');
+    const npmCli = privateNpm(stateDir);
     if (!(await has(node)) || !(await has(npmCli)))
       return { ok: false, why: 'The fetched Node.js is missing its npm.' };
     return { ok: true, node, npmCli, name };

@@ -104,7 +104,7 @@ main() {
     if [ "$os" = darwin ] && [ "$arch" = x64 ] && [ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = 1 ]; then arch=arm64; fi
     dist="${FO_NODE_DIST:-https://nodejs.org/dist/latest-v22.x}"
     tmp="$HOME_DIR/tmp"; rm -rf "$tmp"; mkdir -p "$tmp/node"
-    say "no Node.js 22.19 or newer on this machine, so fetching a private copy from $dist (about 45 MB). Nothing outside $HOME_DIR is changed."
+    [ -n "${UPDATING:-}" ] || say "no Node.js 22.19 or newer on this machine, so fetching a private copy from $dist (about 45 MB). Nothing outside $HOME_DIR is changed."
     curl -fsSL "$dist/SHASUMS256.txt" -o "$tmp/sums" || die "could not reach $dist."
     line="$(grep -E " node-v[0-9.]+-$os-$arch\.tar\.gz\$" "$tmp/sums" | head -n 1)"
     [ -n "$line" ] || die "Node's list has no build for $os $arch."
@@ -115,6 +115,8 @@ main() {
     tar -xzf "$tmp/$name" -C "$tmp/node" --strip-components 1 || die "the Node.js download could not be unpacked."
     "$tmp/node/bin/node" -v >/dev/null 2>&1 || { rm -rf "$tmp"; die "the fetched Node.js does not run on this machine."; }
     rm -rf "$PRIV"; mv "$tmp/node" "$PRIV"; rm -rf "$tmp"
+    # which build this is, by the name on Node's list: what a later look for a newer one is compared with
+    printf '%s\n' "$name" | sed -n 's/^node-\(v[0-9.]*\)-.*/\1/p' > "$PRIV/.fetched"
     say "Node.js $("$PRIV/bin/node" -v) is in $PRIV, for this app only."
   }
 
@@ -131,7 +133,18 @@ main() {
       done
     done
   fi
-  if [ -z "$NODE" ]; then install_node; NODE="$PRIV/bin/node"; fi
+  if [ -z "$NODE" ]; then install_node; NODE="$PRIV/bin/node"
+  # THE PRIVATE COPY IS KEPT CURRENT. When the Node.js in use is the one this script fetched, it looks for a newer 22.x and fetches
+  # that the same way, checksum and all. A Node.js the machine already had is never touched. A check or a fetch that fails changes
+  # nothing: the copy already here is used. (FO_NO_NODE_UPDATE=1 skips the look.)
+  elif [ "$NODE" = "$PRIV/bin/node" ] && [ "${FO_NO_NODE_UPDATE:-}" != "1" ]; then
+    newest="$(curl -fsSL --max-time 8 "${FO_NODE_DIST:-https://nodejs.org/dist/latest-v22.x}/SHASUMS256.txt" 2>/dev/null | sed -n 's/.* node-\(v[0-9.]*\)-.*/\1/p' | head -n 1)"
+    have="$(cat "$PRIV/.fetched" 2>/dev/null || true)"; [ -n "$have" ] || have="$("$NODE" -v 2>/dev/null || true)"
+    if [ -n "$newest" ] && [ -n "$have" ] && [ "$newest" != "$have" ]; then
+      say "a newer Node.js is out ($newest; this app's own copy is $have). Updating that copy."
+      ( UPDATING=1; install_node ) || say "the update did not go through. Carrying on with $have."
+    fi
+  fi
 
   if [ -n "$SITE" ]; then
     if curl -fsSL "${SITE}myfamilyoffice.mjs" -o "$HOME_DIR/myfamilyoffice.mjs.part"; then mv "$HOME_DIR/myfamilyoffice.mjs.part" "$HOME_DIR/myfamilyoffice.mjs"; exec "$NODE" "$HOME_DIR/myfamilyoffice.mjs" "$SITE"; fi

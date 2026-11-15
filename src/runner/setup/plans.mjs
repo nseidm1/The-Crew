@@ -1,7 +1,7 @@
 // plans.mjs - WHAT A SETUP WOULD INSTALL, said before anything is installed: each thing, the command that puts it there, where it
 // comes from, and what stops it on this machine. The Start page lists exactly this above the button that does it.
 import { installRoute } from '../engine.mjs';
-import { AGENT, ENGINE, LLAMA, STRATA, llamaBuild } from '../../js/catalog.js';
+import { AGENT, ENGINE, LLAMA, STRATA, llamaBuild, llamaCardBuild } from '../../js/catalog.js';
 import { PLATFORM } from '../host.mjs';
 
 export function planFor(model, machine, sized) {
@@ -28,6 +28,19 @@ export function planFor(model, machine, sized) {
           ? ' (' + machine.tools.clt.version + ' here)'
           : ', and macOS has no record of which version is here') +
         '. Setup checks, and shows you what to do if they are too old.',
+    });
+  if (way.route === 'own')
+    plan.push({
+      what: 'Fetch Homebrew, then install ' + ENGINE.name,
+      command:
+        "Homebrew's own files into this app's folder (no password, and nothing else on this machine is changed), then: brew tap " +
+        ENGINE.tap +
+        ' && brew install ' +
+        ENGINE.formula,
+      from: 'github.com/Homebrew/brew, then ' + ENGINE.site,
+      note:
+        'There is no Homebrew on this machine, so setup uses a copy of its own. A Homebrew in its own folder builds what it installs here, which takes longer' +
+        " and needs Apple's Command Line Tools. Homebrew publishes no checksum for its files: they come over https from its own repository.",
     });
   if (way.route === 'none')
     plan.push({
@@ -128,7 +141,14 @@ export const llamaPlan = (model, machine) => {
               LLAMA.tag +
               ' for this machine, kept only if its SHA-256 begins ' +
               b.sha256.slice(0, 12) +
-              ", and unpacked into this app's own folder. Nothing else on the machine changes, and it asks for no password.",
+              ", and unpacked into this app's own folder. Nothing else on the machine changes, and it asks for no password." +
+              (llamaCardBuild(PLATFORM, machine.arch)
+                ? ' Where this machine has a graphics card, the build that uses it (' +
+                  llamaCardBuild(PLATFORM, machine.arch).asset +
+                  ', ' +
+                  Math.round(llamaCardBuild(PLATFORM, machine.arch).bytes / 2 ** 20) +
+                  ' MB) is fetched first and kept if the card answers; this one is fetched only if it does not.'
+                : ''),
           },
         ]),
     ...(model.cached

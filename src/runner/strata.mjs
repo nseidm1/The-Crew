@@ -47,8 +47,9 @@ export async function strataVersion() {
   return (/(\d+\.\d+\.\d+)/.exec(r.out + ' ' + r.err) || [])[1] || 'installed';
 }
 
-export async function installStrata({ stateDir, onLine }) {
-  if (await bin('strata')) return { ok: true, already: true };
+// force: run the installer though Strata is here already (an update: updates.mjs)
+export async function installStrata({ stateDir, onLine, force = false }) {
+  if (!force && (await bin('strata'))) return { ok: true, already: true };
   let script = process.env.FO_STRATA_INSTALL_SH;
   if (!script) {
     if (process.env.FO_NO_NET === '1')

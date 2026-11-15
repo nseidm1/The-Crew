@@ -36,7 +36,7 @@ const SUITES = {
     'browser/under-a-reply',
     'browser/crawl',
   ],
-  landing: ['landing/landing-page', 'landing/alignment', 'landing/film-smoothness'],
+  landing: ['landing/landing-page', 'landing/alignment', 'landing/film-smoothness', 'landing/start-command'],
 };
 const LANDING_PORT = 5281; // the landing checks read pages from a server; this one is started for them and stopped after
 const asked = process.argv.slice(2);

@@ -16,6 +16,7 @@ import {
   STRATA_MODELS,
   LLAMA,
   LLAMA_MODELS,
+  MAC_ORDER,
   optionsFor,
   fitOf,
   strataFit,
@@ -26,7 +27,7 @@ import {
 import { haveLlamaModel } from './llama.mjs';
 import { stopStrata, strataVersion as strataThere } from './strata.mjs';
 import { createEyes } from './eyes.mjs';
-import { measureHost, sh } from './host.mjs';
+import { measureHost, setBrewHome, sh } from './host.mjs';
 import { createLicense, machineId, messageFor } from './license.mjs';
 import { createGithub } from './github.mjs';
 import { BILLING, tierWith } from '../js/billing.js';
@@ -102,6 +103,7 @@ export function createRunner({ root, port }) {
   // what the parts of this module share: each part (see runner/) reads what it needs from here and puts here what the others use of it
   const runner = {};
   const stateDir = process.env.FO_STATE_DIR || path.join(root, '.runner');
+  setBrewHome(path.join(stateDir, 'homebrew'));
   const file = path.join(stateDir, 'state.json');
   runner.disk = { sizes: {}, measured: {}, fit: {}, jira: {}, work: {}, session: null, engine: null, connectors: [] };
   runner.host = null;
@@ -255,6 +257,11 @@ export function createRunner({ root, port }) {
     await save();
     return out;
   }
+  // the one recommended on a machine that can run both kinds: the first in MAC_ORDER that its memory can hold
+  const bestFirst = (all) => {
+    const pick = MAC_ORDER.map((id) => all.find((m) => m.id === id)).find((m) => m && m.fits);
+    return all.map((m) => ({ ...m, recommended: !!pick && m.id === pick.id }));
+  };
   async function models() {
     if (!runner.host) runner.host = await measureHost(stateDir);
     // THE WATERFALL, AS THE PAGE SEES IT. Strata's models are offered where Strata is the engine. llama.cpp's small ones are offered
@@ -290,15 +297,37 @@ export function createRunner({ root, port }) {
       };
     }
     const sz = await sizes();
+    // BONSAI 2 ON AN APPLE SILICON MAC: listed after TensorFold's own models. llama.cpp runs it (its Mac build uses the Mac's own
+    // graphics), so choosing it chooses that engine with it. Which one is recommended is settled over both kinds together (MAC_ORDER).
+    const have = {};
+    for (const m of LLAMA_MODELS) if (m.family === 'Bonsai') have[m.id] = await haveLlamaModel(stateDir, m);
+    const bonsai = llamaOptions(runner.host, runner.disk.measured, have)
+      .filter((m) => m.family === 'Bonsai')
+      .map((m) => ({
+        ...m,
+        badge: m.params >= 27 ? 'Large, in little memory' : m.params >= 9 ? 'Small and light' : m.badge,
+        runs: "Run by llama.cpp on this Mac's own graphics. It is a large model packed small, so it leaves most of the Mac's memory free. It does not read pictures in this setup.",
+        plain:
+          'A ' +
+          m.params +
+          'B model in a ' +
+          m.sizeGb +
+          ' GB file: far less memory than a model its size usually takes. We have not run it ourselves yet, so nothing here says how well it works.',
+        plan: llamaPlan(m, runner.host),
+        running: !!(runner.disk.engine && runner.disk.engine.id === m.id),
+      }));
     return {
       host: runner.host,
       all: process.env.FO_ALL_MODELS === '1',
-      models: optionsFor(runner.host, sz, runner.disk.measured).map((m) => ({
-        ...m,
-        plan: planFor(m, runner.host, sz[m.id]),
-        running: !!(runner.disk.engine && runner.disk.engine.model === m.id),
-        proofs: (runner.disk.proofs || {})[m.id] || null,
-      })),
+      models: bestFirst([
+        ...optionsFor(runner.host, sz, runner.disk.measured).map((m) => ({
+          ...m,
+          plan: planFor(m, runner.host, sz[m.id]),
+          running: !!(runner.disk.engine && runner.disk.engine.model === m.id),
+          proofs: (runner.disk.proofs || {})[m.id] || null,
+        })),
+        ...bonsai,
+      ]),
     }; // proofs: { runs, proven, rounds } on this machine, counted as the team works
   }
 
@@ -478,9 +507,11 @@ export function createRunner({ root, port }) {
   arm(bootGrace, 'nobody opened the app');
   const startCmd = (
     process.env.FO_LAUNCHED === '1'
-      ? 'sh ' + path.join(root, 'myfamilyoffice.sh')
+      ? process.platform === 'win32'
+        ? 'powershell -ExecutionPolicy Bypass -File "' + path.join(root, 'myfamilyoffice.ps1') + '"'
+        : 'sh ' + path.join(root, 'myfamilyoffice.sh')
       : 'node ' + path.join(root, 'server.mjs')
-  ).replace(process.env.HOME || '\0', '~');
+  ).replace(process.platform === 'win32' ? '\0' : process.env.HOME || '\0', '~');
 
   // THE SITE THIS APP CAME FROM may reach it across origins, so the page the command was copied from carries on as the app instead of
   // a second page opening. Only that site (the launcher records it): the customer already ran that site's script on this machine, so it
@@ -885,7 +916,9 @@ export function createRunner({ root, port }) {
         if (await needs(res, 'managed_local', 'Setting up a local model for you')) return;
         if (busy) return json(res, 409, { error: 'a setup is already running' });
         if (!runner.host) runner.host = await measureHost(stateDir);
-        if (runner.host.engines && runner.host.engines.length && !runner.host.engines.includes(eng))
+        // (a Bonsai model on an Apple silicon Mac brings llama.cpp with it: see models())
+        const bonsaiOnMac = eng === 'llama' && model.family === 'Bonsai' && runner.host.engine === 'tensorfold';
+        if (runner.host.engines && runner.host.engines.length && !runner.host.engines.includes(eng) && !bonsaiOnMac)
           return json(res, 400, {
             error: model.name + ' is run by ' + ENGINE_NAMES[eng] + ', which is not the engine for this machine',
           });
@@ -938,6 +971,36 @@ export function createRunner({ root, port }) {
           if (!cb) return json(res, 200, { ok: false, said: 'Claude Code is not installed' });
           const r = claudeLogin(cb, { dry: process.env.FO_NO_NET === '1', onChange: push });
           return json(res, 200, { ok: r.started, said: r.why || r.note || '', url: r.url || null });
+        }
+        if (b.action === 'wsl-setup') {
+          // WSL, set up because the person asked (the model page offers it on a PC with an NVIDIA card). The start script does it, in a
+          // window of its own so Windows' request for administrator approval and what follows can be seen. Nothing here is elevated.
+          if (process.platform !== 'win32' && process.env.FO_PLATFORM !== 'win32')
+            return json(res, 400, { error: 'this is not a Windows machine' });
+          const ps1 = path.join(root, 'myfamilyoffice.ps1');
+          const args = [
+            '-ExecutionPolicy',
+            'Bypass',
+            '-NoExit',
+            '-File',
+            ps1,
+            '-SetupWsl',
+            process.env.FO_SOURCE || '',
+          ];
+          if (process.env.FO_NO_NET === '1')
+            return json(res, 200, { ok: true, dry: true, command: 'powershell ' + args.join(' ') });
+          try {
+            runSpawn('cmd', ['/c', 'start', '', 'powershell', ...args], { stdio: 'ignore', detached: true }).on(
+              'error',
+              () => {},
+            );
+            return json(res, 200, {
+              ok: true,
+              said: 'A PowerShell window has opened. Windows will ask for approval there.',
+            });
+          } catch (e) {
+            return json(res, 200, { ok: false, said: String((e && e.message) || e).slice(0, 160) });
+          }
         }
         if (!FIX) return json(res, 400, { error: 'no such fix' });
         if (process.env.FO_NO_NET === '1') return json(res, 200, { ok: true, dry: true }); // tests never open a window

@@ -5,9 +5,9 @@
   "engine": "claude",
   "mode": "developer"
  },
- "at": "2026-11-15T01:08:25.832Z",
- "minutes": 2.1,
- "good": 23,
+ "at": "2026-11-15T11:11:33.094Z",
+ "minutes": 2.2,
+ "good": 21,
  "of": 23,
  "checks": [
   {
@@ -28,7 +28,7 @@
   },
   {
    "id": "engineer / register: brief (at most 130 words from the first to answer)",
-   "ok": true
+   "ok": false
   },
   {
    "id": "engineer / turns: nobody opens with praise for the question",
@@ -76,7 +76,7 @@
   },
   {
    "id": "says-so / kind: nothing is made up: no button or page it was not shown",
-   "ok": true
+   "ok": false
   },
   {
    "id": "says-so / kind: the term they asked about is explained in plain words",
@@ -105,22 +105,31 @@
  ],
  "rows": [
   {
-   "at": "2026-11-15T01:07:29.292Z",
+   "at": "2026-11-15T11:10:42.306Z",
    "mode": "developer",
    "person": "engineer",
    "say": "Our CI is flaky: the checkout e2e test in tests/checkout.spec.ts times out one run in five on the staging pipeline. Where would you look first?",
-   "seconds": 13,
+   "seconds": 23,
    "level": "seasoned",
    "replies": [
-    "Steward: Start with the Playwright trace (`trace: 'retain-on-failure'`, or `--trace on`) from a failing staging run and a passing one, and diff them. Find the first step where they diverge: usually a network call that resolves in a different order, a cart or session left over from another test, or a payment or stub endpoint on staging that sometimes answers slowly. Don't raise the timeout or add a `waitForTimeout`. That hides the race and the one-in-five rate stays. I haven't seen `tests/checkout.spec.ts` or any run logs. I'd also check whether the failing runs share a worker, a shard or a time of day. Please post the failing trace's last action and the error line."
+    "Steward: Compare a failing run's trace with a passing one and find the first step where they diverge. That step names the race or the shared state. I haven't seen your repo or logs, so what follows is what I'd check, not a finding. If this is Playwright, set `trace: 'on-first-retry'` or `'retain-on-failure'` in `playwright.config.ts`. Then run the spec 20 or more times on the staging runner: `npx playwright test tests/checkout.spec.ts --repeat-each=20 --trace=on`. One in five from a handful of runs is only a first impression, so you need the failure rate before you change anything. Candidates to check in the diverging step: - An un-awaited network response, such as payment or cart calls. - Test data shared with parallel workers or a previous run. - A staging dependency that is slow or rate-limited. Don't raise the timeout. It would hide the fault and wouldn't fix it. SEEN tests/checkout.spec.ts (named, not opened) NOT SEEN repo",
+    "Operations: Steward's trace diff finds the step. It won't say whether the runner caused it. Check CPU and memory limits and worker count on the staging runner. Then rerun with `--workers=1`. If the failures stop, it's resources or shared state."
    ],
-   "chime": null,
+   "chime": {
+    "raw": "[{\"seat\":\"operations\",\"point\":\"Check the staging runner itself: CPU/memory limits, worker count, and shared test environment or database state. An underpowered runner causes timeouts in the e2e step.\"}]",
+    "picked": [
+     "operations"
+    ],
+    "said": [
+     "operations: spoke"
+    ]
+   },
    "checks": {
     "kind: an engineer is not explained the basics": true,
     "kind: and gets no pep talk": true,
     "kind: the answer is exact: a file, a command or a term of the trade": true,
     "turns: no greeting and no sign-off in a team channel": true,
-    "register: brief (at most 130 words from the first to answer)": true,
+    "register: brief (at most 130 words from the first to answer)": false,
     "turns: nobody opens with praise for the question": true,
     "register: nothing the team was told is said back": true,
     "room: nobody says again a sentence already said in this chat": true,
@@ -128,16 +137,25 @@
    }
   },
   {
-   "at": "2026-11-15T01:07:45.287Z",
+   "at": "2026-11-15T11:11:08.067Z",
    "mode": "developer",
    "person": "beginner",
    "say": "I have never made a website before. Is it hard to make one for my bakery, with our opening hours and a few photos?",
-   "seconds": 13,
+   "seconds": 23,
    "level": "new",
    "replies": [
-    "Overseer: No, a page with your opening hours and a few photos is one of the easier things to make, and you don't need to have built anything before. It's a single page with your bakery's name, a short welcome, the hours, and the photos. It's also an easy place to start, because you can change it afterwards: if you move your hours or swap a photo, it's a small edit. I haven't seen your photos or your hours yet, so I can't say how it will look. One cost to know about: putting it online usually means a domain name (your web address), which typically costs a small yearly fee. I haven't checked current prices. First, send me the opening hours as you'd put them on your shop door, and pick three or four photos you like. Then we'll show you the page on your screen."
+    "Overseer: No, a simple bakery site is not hard, and you don't need to have built one before. Opening hours and a few photos make up most of what a small shop needs. It would be one page: your name, a line about the bakery, the hours, the photos, and your address or phone number. Two things to know. Photos from a phone are large, so they need shrinking or the page loads slowly. I haven't seen yours yet, so I can't say whether they need it. Your hours also have to be updated by hand when they change, for example at holidays. First step: tell me which days you're open and what times, and send two or three photos. Then we can show you what the page will look like. NOT SEEN s yet, two",
+    "Steward: Overseer's hours question needs one more step: please check the address, phone number and hours yourself before we publish. Wrong holiday hours send customers to a closed door. Also, if you describe any product as nut-free or gluten-free, tell us first so we can check it."
    ],
-   "chime": null,
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Business site needs a verified address, phone and hours; wrong holiday hours cost customers. Also check allergen claims before publishing any product wording.\"},{\"seat\":\"ask\",\"point\":\"Photos sell bakeries: natural light, close-up of bread or cakes, and the shopfront so people recognise it when they arrive.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
    "checks": {
     "kind: a beginner is not buried in the words of the trade (none used)": true,
     "kind: and is told what happens next": true,
@@ -149,20 +167,27 @@
    }
   },
   {
-   "at": "2026-11-15T01:08:24.265Z",
+   "at": "2026-11-15T11:11:31.506Z",
    "mode": "developer",
    "person": "says-so",
    "say": "I am not a developer, a friend set up the repo for me. What does \"deploy\" actually mean for my site?",
-   "seconds": 36,
+   "seconds": 20,
    "level": "new",
    "replies": [
-    "Operations: \"Deploy\" means putting your site on the internet so other people can see it. Think of it like printing a finished page and pinning it to a public noticeboard. Until you deploy, your site only exists in your friend's setup, and only you can see it. When you deploy, a copy goes to a web host, which is a computer that stays on all day and shows your site to visitors. After a deploy, a change can take a minute or two to show up. That's normal. You can usually deploy again if you change your mind. I haven't looked at your files, so I can't say where your site is set up to go or what it costs. Hosting is sometimes free for small sites. Do you want me to look at what your friend set up and tell you where it would be published?",
-    "Operations: \"Deploy\" means putting your site's files on a computer that is always connected to the internet, so anyone can visit it. Until you deploy, the site exists only on your friend's setup. The search results describe hosting as the service that keeps your files online. Deploying is the act of getting them there. Many beginner-friendly services, such as Netlify and Vercel, can do the upload for you once they are connected to your site's files. Several of the pages say free plans exist for small sites. I haven't read your files. I don't know which service your friend picked, whether your site is already live, or what it would cost you. The guides don't settle those questions either. Your friend may be able to tell you. I can look through your repo, which is the folder your friend set up, for signs of the intended host. Sources: - simplystatic.com - scrimba.com - deployhq.com",
-    "Steward: The claim I'd check is \"until you deploy, the site exists only on your friend's setup.\" We don't know that yet, because your site may already be live. I haven't checked. I'd look in your folder for a web address or host name, then open that address in a browser to see if the site loads."
+    "Operations: \"Deploy\" means taking the version of your site that lives in the repo, which is a folder of your site's files that your friend set up, and putting it on the internet where visitors can see it. Until you deploy, your changes sit privately on your computer, a bit like a draft in a notebook. Deploying is the step that publishes it. It usually takes a minute or two. Whether it costs anything depends on the hosting service your friend chose, and I haven't seen which one that is. Many have a free level for small sites. Next step: ask your friend which service hosts your site. Once you know that, I can tell you what to expect when you press the deploy button. NOT SEEN which one that is",
+    "Steward: Before you deploy, ask your friend to check that nothing private is in the repo: passwords, keys, personal details. Deploying makes everything in it public. Also read the host's pricing and small print first."
    ],
-   "chime": null,
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Deploying publishes to the public. Check nothing private (passwords, keys, personal data) is in the repo, and check the host's pricing and small print first.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
    "checks": {
-    "kind: nothing is made up: no button or page it was not shown": true,
+    "kind: nothing is made up: no button or page it was not shown": false,
     "kind: the term they asked about is explained in plain words": true,
     "kind: and no other word of the trade is dropped on them unexplained (at most one besides the two they used)": true,
     "turns: nobody opens with praise for the question": true,

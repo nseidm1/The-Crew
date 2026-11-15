@@ -8,6 +8,7 @@
 // answer and the agent check meet something that answers as a model does. Every call is appended to $FO_FAKE_DIR/fake-llama-engine.jsonl.
 //   FO_FAKE_LLAMA_VERSION=<text>   what --version says (default: a build new enough)
 //   FO_FAKE_LLAMA_DIES=1           the server stops at once, in llama.cpp's own words for a file it cannot read
+//   llama-server --list-devices    lists the cards in FO_FAKE_LLAMA_DEVICES (one a line), as llama.cpp lists them; none by default
 import { appendFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -24,6 +25,14 @@ try {
 }
 if (args.includes('--version')) {
   console.log(process.env.FO_FAKE_LLAMA_VERSION || 'version: 12110 (stand-in)');
+  process.exit(0);
+}
+if (args.includes('--list-devices')) {
+  console.log('Available devices:');
+  String(process.env.FO_FAKE_LLAMA_DEVICES || '')
+    .split('\n')
+    .filter(Boolean)
+    .forEach((d, i) => console.log('  Vulkan' + i + ': ' + d));
   process.exit(0);
 }
 if (!val('-m') || !val('--port')) {

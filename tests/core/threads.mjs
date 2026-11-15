@@ -73,6 +73,46 @@ check(
   ],
 );
 check(
+  'a tip that opens "Just check" is not a doubt about the answer; a figure or a name it questions is',
+  readAdded('Just check the dog for heavy panting, drooling or vomiting. If you see any, cool them down.') === 'adds' &&
+    readAdded('Just check: antibiotics only work on bacterial infections, so never use them for a cold.') === 'adds' &&
+    readAdded('Just check the "about 19°F in 10 minutes" figure. Heating depends on sun and car colour.') ===
+      'doubts' &&
+    readAdded('Just check Westfork is the Regal you mean.') === 'doubts',
+  [readAdded('Just check the dog for heavy panting.'), readAdded('Just check Westfork is the Regal you mean.')],
+);
+{
+  const { sentenceCap, firstSentences } = await import('../../src/js/team/base.js');
+  check(
+    'a sentence limit the person set is read from the rulings in force, and a reply is cut at it',
+    sentenceCap([{ text: 'Keep every answer to three sentences at most.' }]) === 3 &&
+      sentenceCap([{ text: 'Call them Dana.' }]) === 0 &&
+      sentenceCap([{ text: 'Answer in no more than 2 sentences.' }]) === 2 &&
+      firstSentences('It boils at 100.5 degrees, e.g. at sea level. Two! Three? Four. Five.', 3) ===
+        'It boils at 100.5 degrees, e.g. at sea level. Two! Three?' &&
+      firstSentences('One. Two.', 3) === 'One. Two.',
+    [
+      sentenceCap([{ text: 'Keep every answer to three sentences at most.' }]),
+      firstSentences('One. Two. Three. Four.', 3),
+    ],
+  );
+}
+{
+  const { unseenIn, pathsIn, NAMES_CAUSE } = await import('../../src/js/team/manners.js');
+  check(
+    'a place the team offers to look, and a web address it would read, is not a file it claims to have seen; a file it speaks of is',
+    pathsIn(
+      'Send me the file, or its path if it lives somewhere else, such as /etc/nginx/nginx.conf or a conf.d directory.',
+    ).length === 0 &&
+      pathsIn("I'd fetch rfc-editor.org/rfc/rfc9110.html and read it directly.").length === 0 &&
+      unseenIn('The third block in conf/sites/shop.conf proxies to the API.', 'What does the third server block do?')
+        .length === 1 &&
+      !NAMES_CAUSE.test('Until the cause is confirmed, I would treat the last change as unproven.') &&
+      NAMES_CAUSE.test('The cause was a missing migration.'),
+    [pathsIn('such as /etc/nginx/nginx.conf'), pathsIn('The block in conf/sites/shop.conf proxies.')],
+  );
+}
+check(
   'what is searched for is what was asked, with the names and numbers of the doubt that were not in it',
   focusOf(
     'what is showing at the Regal today?',

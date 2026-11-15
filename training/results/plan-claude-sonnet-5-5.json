@@ -2,13 +2,13 @@
  "label": "claude-sonnet-5-5",
  "mode": "developer",
  "what": "plan and loop",
- "at": "2026-11-14T18:47:45.660Z",
+ "at": "2026-11-15T11:43:33.101Z",
  "machine": "Apple M2 Ultra, 64 GB",
- "minutes": 5,
- "note": "after the code was formatted, divided into parts and renamed",
+ "minutes": 2,
+ "note": "",
  "total": {
-  "runs": 2,
-  "landedRight": 2,
+  "runs": 1,
+  "landedRight": 1,
   "falseGreen": 0,
   "heldRight": 0,
   "heldBack": 0
@@ -17,14 +17,14 @@
   {
    "id": "js-basket",
    "outcome": "landed-right",
-   "seconds": 139,
+   "seconds": 141,
    "rounds": 1,
    "requirements": [
-    "lineTotal in basket.mjs returns the line's price times its quantity, so two mugs at 12.50 give a line total of 25.00.",
-    "A line with no quantity counts as a quantity of one in lineTotal.",
-    "basketTotal returns the sum of the lineTotal of every line.",
-    "An empty basket totals 0 in basketTotal.",
-    "Prices are in cents, so lineTotal and basketTotal take and return whole cents."
+    "lineTotal in basket.mjs returns the line's price times its quantity, so two mugs at 1250 cents give 2500.",
+    "lineTotal treats a line with no quantity as a quantity of one, so a line priced 1250 with no quantity gives 1250.",
+    "basketTotal returns 0 for an empty basket.",
+    "basketTotal returns the sum of the lineTotal of every line, so a basket of two mugs at 1250 cents and one item at 300 cents totals 2800.",
+    "Prices and totals stay in cents."
    ],
    "judged": true,
    "oracle": {
@@ -32,27 +32,6 @@
     "said": "# pass 4 / # fail 0"
    },
    "says": "Landed after 1 round: the branch feature/basket-total-ignores-how-many is in your folder. It is not on main yet: merge it when you are ready.",
-   "errors": []
-  },
-  {
-   "id": "js-retry",
-   "outcome": "landed-right",
-   "seconds": 144,
-   "rounds": 1,
-   "requirements": [
-    "withRetry(fn, times) in retry.mjs calls fn until one call succeeds and gives back what that call gave.",
-    "withRetry makes at most times calls to fn in all.",
-    "After a call succeeds, withRetry does not call fn again.",
-    "When every call fails, withRetry throws the error of the last call.",
-    "When times is 1, withRetry makes one call to fn and does not retry.",
-    "When the stock service drops a request, the failed request is tried again and the page does not show an error at once."
-   ],
-   "judged": true,
-   "oracle": {
-    "pass": true,
-    "said": "# pass 4 / # fail 0"
-   },
-   "says": "Landed after 1 round: the branch bugfix/failed-request-not-tried-again is in your folder. It is not on main yet: merge it when you are ready.",
    "errors": []
   }
  ]

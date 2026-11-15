@@ -10,7 +10,7 @@ import os from 'node:os';
 import { AGENT, SERVED_NAME } from '../js/catalog.js';
 import { piInstalled } from './host.mjs';
 import { CONTEXT, run } from './engine.mjs';
-import { fetchNode, findNpm, nodeFix, privateNode } from './node.mjs';
+import { fetchNode, findNpm, nodeFix, privateNode, privateNpm } from './node.mjs';
 
 // EVERY NODE.JS THIS MACHINE HAS, in the order they are worth trying: this app's own copy, the one the runner itself is running on,
 // the ones the caller knows of, then whatever version managers and Homebrew have installed, newest first.
@@ -108,6 +108,12 @@ export async function ensureAgent(stateDir, nodeBin, { onLine = () => {}, fetch:
   let have = test ? { cli: test, version: 'test double' } : await piInstalled(stateDir);
   let installer = null;
   const already = !!have;
+  // already here: the registry is asked, once a day at most, whether a newer one is out. A failed update leaves the one here.
+  if (already && !test) {
+    const { updateAgent } = await import('./updates.mjs');
+    const up = await updateAgent({ stateDir, nodeBin, onLine }).catch(() => ({}));
+    if (up.did) have = (await piInstalled(stateDir)) || have;
+  }
   if (!have) {
     const prefix = path.join(stateDir, 'pi');
     await mkdir(prefix, { recursive: true });
@@ -121,7 +127,7 @@ export async function ensureAgent(stateDir, nodeBin, { onLine = () => {}, fetch:
       )
     ) {
       nodeBin = own;
-      npmCli = path.join(stateDir, 'node/lib/node_modules/npm/bin/npm-cli.js');
+      npmCli = privateNpm(stateDir);
     } else if (nodeBin) npmCli = await findNpm(nodeBin);
     if (!nodeBin || !npmCli) {
       const what = nodeBin

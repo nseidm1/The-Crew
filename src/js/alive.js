@@ -95,11 +95,19 @@ export async function watchRunner({ fresh = false } = {}) {
             first.version +
             ') than this site (' +
             v +
-            '). Run this in Terminal: it replaces the old one, and this page carries on.',
-          'curl -fsSL ' +
-            new URL('.', location.href).href +
-            'myfamilyoffice.sh | sh -s ' +
-            new URL('.', location.href).href,
+            '). Run this in ' +
+            (/Windows/i.test(navigator.userAgent) ? 'PowerShell' : 'Terminal') +
+            ': it replaces the old one, and this page carries on.',
+          /Windows/i.test(navigator.userAgent)
+            ? "$env:FO_SITE='" +
+                new URL('.', location.href).href +
+                "'; irm " +
+                new URL('.', location.href).href +
+                'myfamilyoffice.ps1 | iex'
+            : 'curl -fsSL ' +
+                new URL('.', location.href).href +
+                'myfamilyoffice.sh | sh -s ' +
+                new URL('.', location.href).href,
           null,
           'old-app',
         );

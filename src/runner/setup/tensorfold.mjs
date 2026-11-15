@@ -8,6 +8,7 @@ import {
   installRoute,
   isCached,
   measureSpeed,
+  speedLine,
   pullModel,
   serveModel,
   sizeOf,
@@ -17,6 +18,7 @@ import { AGENT, ENGINE, SERVED_NAME } from '../../js/catalog.js';
 import { agentCheck, checkLine, ensureAgent, fitFrom } from '../agent.mjs';
 import { nodeFix } from '../node.mjs';
 import { STEPS } from './steps.mjs';
+import { updateEngine } from '../updates.mjs';
 
 export function installTensorfoldSetup(runner) {
   // addon: the add-on that reads pictures, when the customer ticked it on the model page. Its four steps (eyes.mjs) are the last steps
@@ -109,6 +111,8 @@ export function installTensorfoldSetup(runner) {
       step = start('engine');
       const eng = await installEngine({ onLine: lineTo('engine'), tools: machine.tools, stateDir: runner.stateDir });
       if (!eng.ok) return fail('engine', eng.why, eng.fix);
+      // already here: brought up to date the way it was installed. A failed update is said and the one here is used.
+      if (eng.already) await updateEngine({ stateDir: runner.stateDir, onLine: lineTo('engine') }).catch(() => {});
       ver = await engineVersion();
       progress.result.engine = ver;
       end(
@@ -160,7 +164,7 @@ export function installTensorfoldSetup(runner) {
 
       step = start('speed');
       try {
-        progress.result.speed = await measureSpeed(srv.port);
+        progress.result.speed = await measureSpeed(srv.port, { onTick: (t) => lineTo('speed')(speedLine(t)) });
       } catch (e) {
         return fail('speed', 'The model did not answer: ' + String(e.message).slice(0, 160));
       }
@@ -249,7 +253,7 @@ export function installTensorfoldSetup(runner) {
           SERVED_NAME +
           ", without the engine's drafts: with them its replies broke down on this machine";
       try {
-        progress.result.speed = await measureSpeed(srv.port);
+        progress.result.speed = await measureSpeed(srv.port, { onTick: (t) => lineTo('speed')(speedLine(t)) });
         stepOf('speed').detail =
           progress.result.speed.tokPerSec +
           ' tokens a second, first token in ' +

@@ -127,15 +127,20 @@ const free = (port) =>
     s.once('error', () => ok(false));
     s.listen(port, '127.0.0.1', () => s.close(() => ok(true)));
   });
+// inside Windows' Linux layer the person's browser is the Windows one: explorer.exe opens an address in it
+const IN_WSL = process.platform === 'linux' && (!!process.env.WSL_DISTRO_NAME || /microsoft/i.test(os.release()));
+const opener = (url) =>
+  process.platform === 'darwin'
+    ? ['open', [url]]
+    : process.platform === 'win32'
+      ? ['cmd', ['/c', 'start', '', url]]
+      : IN_WSL
+        ? ['explorer.exe', [url]]
+        : ['xdg-open', [url]];
 function show(url) {
   say('your team is at ' + url);
   if (process.env.FO_NO_OPEN === '1') return;
-  const [cmd, args] =
-    process.platform === 'darwin'
-      ? ['open', [url]]
-      : process.platform === 'win32'
-        ? ['cmd', ['/c', 'start', '', url]]
-        : ['xdg-open', [url]];
+  const [cmd, args] = opener(url);
   try {
     spawn(cmd, args, { stdio: 'ignore', detached: true })
       .on('error', () => say('open that address in your browser'))
@@ -256,6 +261,10 @@ if (base) {
     say('could not reach ' + base + ' (' + ((e && e.message) || e) + '). Starting the copy already on this machine.');
   }
 }
+// the app's .js files are modules, and Node is told so by a package.json beside them. It is written here and not fetched: the
+// gateway the site is served through answers 502 for any file of that name.
+await mkdir(APP, { recursive: true });
+await writeFile(path.join(APP, 'package.json'), '{ "private": true, "type": "module" }\n');
 step = 'starting the app';
 await new Promise((ok) => {
   front.close(ok);
@@ -308,12 +317,7 @@ if (base && (await attached(Number(process.env.FO_ATTACH_MS) || 8000))) {
 } else if (own && String((await read(ATTACHED)) || '') === base) {
   say('opening ' + base + 'start.html');
   if (process.env.FO_NO_OPEN !== '1') {
-    const [cmd, args] =
-      process.platform === 'darwin'
-        ? ['open', [base + 'start.html']]
-        : process.platform === 'win32'
-          ? ['cmd', ['/c', 'start', '', base + 'start.html']]
-          : ['xdg-open', [base + 'start.html']];
+    const [cmd, args] = opener(base + 'start.html');
     try {
       spawn(cmd, args, { stdio: 'ignore', detached: true })
         .on('error', () => {})

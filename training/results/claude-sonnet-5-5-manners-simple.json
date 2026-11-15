@@ -5,9 +5,9 @@
   "engine": "claude",
   "mode": "simple"
  },
- "at": "2026-11-15T01:06:21.552Z",
- "minutes": 3.9,
- "good": 52,
+ "at": "2026-11-15T11:09:22.193Z",
+ "minutes": 5.1,
+ "good": 51,
  "of": 52,
  "checks": [
   {
@@ -176,7 +176,7 @@
   },
   {
    "id": "room / room: at most three people speak",
-   "ok": true
+   "ok": false
   },
   {
    "id": "room / room: a second voice joins, with something of its own",
@@ -221,25 +221,26 @@
  ],
  "rows": [
   {
-   "at": "2026-11-15T01:03:33.443Z",
+   "at": "2026-11-15T11:05:21.875Z",
    "mode": "simple",
    "person": "casual",
    "say": "hey whats a good pasta for tonight",
    "seconds": 25,
    "level": "",
    "replies": [
-    "Sam: Hey! Go with a simple garlic and olive oil spaghetti, or aglio e olio if you want to sound fancy. It's about 15 minutes, uses stuff you probably have already, and it's really good. Add chili flakes and a handful of parsley if you've got them. Salt the pasta water well and save a splash of it to toss everything together.",
-    "Alex: Slice the garlic thin and keep the heat low. Pull it the second it goes golden, because once it browns it turns bitter. Pour in a ladle of pasta water early to cool the pan down if it speeds up.",
-    "Robin: Just check that nobody eating has a garlic or gluten allergy, since this dish is mostly garlic and wheat. And wash your hands after handling the chili flakes, because they really sting if they touch your eyes."
+    "Sam: Hey! Go with a simple garlic and olive oil spaghetti, or aglio e olio if you want the fancy name. It takes about 15 minutes and uses stuff you probably have already. Cook the garlic gently in the oil so it goes golden, not brown, because burnt garlic turns bitter. Add chili flakes and a splash of pasta water. From memory Check this",
+    "Alex: Salt the water until it tastes like mild sea water, and scoop out a mug before you drain. Toss the spaghetti in the pan with a splash of that water and the oil turns silky instead of greasy.",
+    "Robin: Just check who's at the table for allergies, and go easy on the chili flakes if kids are eating. Also, make the garlic oil fresh and cook it right away. Don't keep leftover garlic oil."
    ],
    "chime": {
-    "raw": "[{\"seat\":\"operations\",\"point\":\"Don't let the garlic brown past golden or it turns bitter; slice it thin and cook it gently in the oil.\"},{\"seat\":\"steward\",\"point\":\"Check nobody eating has a gluten or garlic allergy; chili flakes also hurt if they touch eyes.\"}]",
+    "raw": "[{\"seat\":\"operations\",\"point\":\"Salt the pasta water well and save a mug of it; the starchy water makes the oil cling as a silky sauce.\"},{\"seat\":\"steward\",\"point\":\"Check nobody at the table has allergies, and keep chili light if kids are eating; garlic oil shouldn't be stored, only cooked fresh.\"}]",
     "picked": [
      "operations",
      "steward"
     ],
     "said": [
-     "operations: spoke"
+     "operations: spoke",
+     "steward: spoke"
     ]
    },
    "checks": {
@@ -255,25 +256,26 @@
    }
   },
   {
-   "at": "2026-11-15T01:03:57.315Z",
+   "at": "2026-11-15T11:05:47.151Z",
    "mode": "simple",
    "person": "casual",
    "say": "and what wine goes with it",
-   "seconds": 24,
+   "seconds": 25,
    "level": "",
    "replies": [
-    "Sam: A dry white like Pinot Grigio or Vermentino. Something crisp with good acidity cuts through the olive oil and handles the garlic without fighting it. If you'd rather have red, go light, like a chilled Pinot Noir. Skip anything oaky or heavy.",
-    "Robin: Just check that nobody having wine is driving, pregnant or on medication that doesn't mix with alcohol. Put water on the table too, plus something non-alcoholic, so nobody feels stuck with wine.",
-    "Alex: Chill the white to about 8–10°C, so 2–3 hours in the fridge or 20 minutes in ice water. If you're going red, pull it out of the fridge for 15 minutes so it's cool, not icy."
+    "Sam: A dry white is the easy win: Pinot Grigio, Vermentino, or a crisp Sauvignon Blanc. They're light and zippy, so they cut through the garlic and olive oil without bossing the dish around. Serve it well chilled. If you're a red person, go for something light like a Chianti, but skip anything big and oaky.",
+    "Robin: Just check, if anyone's pregnant, driving or on medication, skip the wine or keep it small. And if the dish has shellfish, a few wines can clash, so go easy there.",
+    "Alex: Chill the white about 2 hours in the fridge. In a rush, ice water with a big handful of salt does it in 20 minutes. Pull the red out for a bit too, slightly cool is perfect."
    ],
    "chime": {
-    "raw": "[{\"seat\":\"steward\",\"point\":\"Alcohol warning: check anyone drinking isn't driving, pregnant or on medication, and have water and a non-alcoholic option on the table.\"},{\"seat\":\"operations\",\"point\":\"Serve the white well chilled, about 8–10°C; take the red out of the fridge briefly so it's cool, not icy.\"}]",
+    "raw": "[{\"seat\":\"steward\",\"point\":\"If anyone's pregnant, driving or on medication, skip or limit the wine. Also, shellfish or garlic-heavy dishes can clash with some wines.\"},{\"seat\":\"operations\",\"point\":\"Chill the white about 2 hours in the fridge, or 20 minutes in ice water with salt. Pour the red slightly cool.\"}]",
     "picked": [
      "steward",
      "operations"
     ],
     "said": [
-     "steward: spoke"
+     "steward: spoke",
+     "operations: spoke"
     ]
    },
    "checks": {
@@ -285,17 +287,17 @@
    }
   },
   {
-   "at": "2026-11-15T01:04:05.392Z",
+   "at": "2026-11-15T11:05:55.244Z",
    "mode": "simple",
    "person": "casual",
    "say": "thanks!",
    "seconds": 8,
    "level": "",
    "replies": [
-    "Sam: Enjoy tonight's dinner. Have a good one!"
+    "Sam: Enjoy the pasta tonight, and the wine too!"
    ],
    "chime": {
-    "raw": "[{\"seat\":\"steward\",\"point\":\"Alcohol warning: check anyone drinking isn't driving, pregnant or on medication, and have water and a non-alcoholic option on the table.\"},{\"seat\":\"operations\",\"point\":\"Serve the white well chilled, about 8–10°C; take the red out of the fridge briefly so it's cool, not icy.\"}]",
+    "raw": "[{\"seat\":\"steward\",\"point\":\"If anyone's pregnant, driving or on medication, skip or limit the wine. Also, shellfish or garlic-heavy dishes can clash with some wines.\"},{\"seat\":\"operations\",\"point\":\"Chill the white about 2 hours in the fridge, or 20 minutes in ice water with salt. Pour the red slightly cool.\"}]",
     "picked": [
      "steward",
      "operations"
@@ -314,25 +316,28 @@
    }
   },
   {
-   "at": "2026-11-15T01:04:34.511Z",
+   "at": "2026-11-15T11:07:04.844Z",
    "mode": "simple",
    "person": "formal",
    "say": "Good afternoon. I would like to organise a small dinner for twelve colleagues near the theatre district in Manchester next month; could you please advise on how to choose a venue?",
-   "seconds": 26,
+   "seconds": 67,
    "level": "",
    "replies": [
-    "Sam: Good afternoon. For twelve people, I would choose in this order. First, ring or email the restaurant's group-bookings team and ask for a set menu. A fixed menu with a pre-order keeps the evening to time, and it stops the kitchen being overwhelmed by a table of twelve. Then, check three things: that they have a private room or a reserved area, that they can seat twelve together at one table, and that they will agree a time limit and a per-head price. After that, ask about dietary needs and step-free access before you commit. Book as early as you can, since theatre-district tables fill quickly. Many places ask for a deposit for large parties, so confirm the cancellation terms in writing. Next, shortlist three restaurants and compare their menus and prices. ! Careful: Theatre-district tables fill quickly, so book as early as you can. Confirm cancellation terms in writing because of deposits. Booking dinner for twelve Steps in order Ring or email the group-bookings team and ask for a set menu Check for a private room or reserved area Check they can seat all twelve together at one table Agree a time limit and a per-head price Ask about dietary needs and step-free access before committin",
-    "Robin: Just check that the deposit and cancellation terms are in writing, and ask whether a booking fee or service charge is added on top of the per-head price. It can quietly raise the total.",
-    "Alex: Check the venue is a short walk or tram ride from the theatre, and ask for the kitchen's last-order time before curtain. A late start for the kitchen could leave twelve colleagues rushing their main course."
+    "Sam: Good afternoon. For twelve people near the theatre district, I would choose in this order. First, settle the date and a rough budget per head, then book early, since next month is the festive season and Manchester fills quickly. Then check these points: - Ask for a private room or a reserved section, so you can hear one another. - Confirm they take groups of twelve, and whether they require a set menu or a deposit. - Send the menu in advance and ask about dietary needs. - Look at the location: a walk of ten minutes or less from the theatre district suits colleagues arriving from work. - Check step-free access. After that, shortlist three venues and phone each one to compare. Next, I can ask Alex to draw up that shortlist. Next, Alex can draw up the shortlist of three venues. Booking a table for twelve Manchester, theatre district, festive season Settle the date and a rough budget per head Book early: next month is festive season, Manchester fills quickly Ask for a private room or reserved section, so you can hear one another Confirm they take groups of twelve, and ask about set menu or deposit Send the menu in advance and ask about dietary needs Choose a spot within ten minutes' wa",
+    "Robin: Just check that the deposit and cancellation terms come to you in writing, and that you have written confirmation of the booking, headcount and price before you pay anything. It protects you if plans change.",
+    "Alex: Check the tram and train routes home from the theatre district before you choose, since the last services are what colleagues will rely on. Book your table around theatre start times, as restaurants are busiest then.",
+    "Sam: Good catch, Robin. Let me look that up properly and get you an updated answer.",
+    "Alex: Robin is right: get the deposit, cancellation terms, booking, headcount and price in writing before you pay anything. Venues' own terms show what to ask for. Ask for the deposit amount, whether it is refundable, the cancellation deadline, the final-numbers deadline, and how to cancel. Ask whether the deposit can go towards the bill or be moved to another date. Keep the confirmation and the receipt. Under UK consumer law, a venue may not be able to keep a whole deposit if the sum is disproportionate, but company bookings may be treated differently. Sources: - sprintlaw.co.uk - surfoffice.com - restaurant.opentable.co.uk I could not settle whether consumer protections cover a booking made on behalf of colleagues. Citizens Advice or a solicitor could confirm that. ! Careful: Company bookings may be treated differently from consumer ones, so a venue might keep the whole deposit. Unsure if consumer protections cover a booking for colleagues; Citizens Advice or a solicitor could confirm. From memory Check this Before paying a venue deposit Get it in writing Ask these before you pay anything Ask the deposit amount and whether it is refundable Ask the cancellation deadline and how to cance",
+    "Robin: Good afternoon. Just check the claim that a venue may not keep a whole deposit under UK consumer law. The sources are a law-firm blog and trade sites, and company bookings may differ. I would confirm it with Citizens Advice, and read each venue's written terms.",
+    "Sam: First fix the date and the headcount of twelve, then set a per-head budget. After that, shortlist three venues near the theatre district. Book early, and check the theatre start times so nobody rushes."
    ],
    "chime": {
-    "raw": "[{\"seat\":\"steward\",\"point\":\"Check the deposit and cancellation terms in writing, and watch for 'booking fee' or service charge added on top of the per-head price.\"},{\"seat\":\"operations\",\"point\":\"Check the venue is a short walk or tram ride from the theatre, and get the kitchen's last-order time before curtain.\"}]",
+    "raw": "[{\"seat\":\"overseer\",\"point\":\"Pick the venue in order: confirm a date and a headcount of twelve, set a budget, then shortlist three places near the theatre district. Book early, and check the theatre start times.\"},{\"seat\":\"master\",\"point\":\"Ask each venue for a fixed set menu with a price per head, so the cost is clear and nobody is surprised.\"}]",
     "picked": [
-     "steward",
-     "operations"
+     "overseer"
     ],
     "said": [
-     "steward: spoke"
+     "overseer: spoke"
     ]
    },
    "checks": {
@@ -346,18 +351,18 @@
    }
   },
   {
-   "at": "2026-11-15T01:05:05.247Z",
+   "at": "2026-11-15T11:07:35.112Z",
    "mode": "simple",
    "person": "heavy",
    "say": "My dad passed away last week and I have to say a few words at the funeral. I don't know where to start.",
-   "seconds": 28,
+   "seconds": 27,
    "level": "",
    "replies": [
-    "Sam: I'm so sorry about your dad. You don't have to write a speech, just a few true things. First, jot down three or four memories of him without worrying about wording: something he often said, something he did for others, a moment that makes you smile. Then pick the one or two that feel most like him. Those are your speech. After that, shape it simply: who he was to you, one short story, and a closing line of thanks or goodbye. Two or three minutes is plenty. If you'd like, send me those memories and we'll shape them into words together. If you'd like, send the memories and we'll shape them into words together. Writing a short speech for your dad A few true things is enough Jot down three or four memories of him, without worrying about wording. Include something he often said, something he did for others, a moment that makes you smil Pick the one or two that feel most like him. Those are your speech. Shape it: who he was to you, one short story, a closing line of thanks or goodbye. If you'd like, send the memories and we'll shape them into words together.",
-    "Pat: Sam's three parts are the whole shape: open by saying who he was to you, tell one short story, then close with a line of thanks. Plain words are enough, and reading from a page is completely fine."
+    "Sam: I'm so sorry about your dad. Here's a simple way in. First, don't try to write the speech yet. Just jot down a few things, in any order: a story about him that people would recognize, something he always said or did, and what you'll miss most. Messy notes are fine. Then pick one story and let it carry the speech. Open with who you are to him, tell the story, and end with one line about what he gave you or what you'll hold onto. A few minutes is plenty. Reading it from paper is completely fine. What's one memory of him that came to mind first?",
+    "Pat: Whenever you're ready, send me your notes, however messy. I'll shape them into a plain speech of about three minutes, and it helps to read it aloud once to hear how it sounds."
    ],
    "chime": {
-    "raw": "[{\"seat\":\"master\",\"point\":\"Offer a simple shape for the words: a warm opening, one short story, a closing line. Plain, sincere wording beats polish, and reading from paper is fine.\"}]",
+    "raw": "[{\"seat\":\"master\",\"point\":\"Offer to shape their notes into a short, plain speech. Suggest reading it aloud once, and keeping it to about 3 minutes.\"}]",
     "picked": [
      "master"
     ],
@@ -376,22 +381,20 @@
    }
   },
   {
-   "at": "2026-11-15T01:05:35.978Z",
+   "at": "2026-11-15T11:08:01.381Z",
    "mode": "simple",
    "person": "hurry",
    "say": "quick - how long do I boil an egg for a soft yolk? running late",
-   "seconds": 28,
+   "seconds": 24,
    "level": "",
    "replies": [
-    "Sam: Boil it 6 to 6½ minutes from when the water's already bubbling, then straight into cold water so it stops cooking. Gently lower it in with a spoon so the shell doesn't crack. 6 gives you a runny yolk, 6½ is jammy. Lowering the egg gently with a spoon keeps the shell from cracking. Soft-boiled egg timing 6–6½ min from bubbling water 6 minutes Runny yolk 6½ minutes Jammy yolk Start timing Water already bubbling After boiling Straight into cold water Lowering in Gently, with a spoon Lowering the egg gently with a spoon keeps the shell from cracking.",
-    "Robin: Just a heads-up: if any of these are for kids, someone pregnant, elderly or unwell, cook the egg all the way through. Runny yolks carry a small salmonella risk, so skip the 6 minutes for them.",
-    "Alex: Fridge-cold egg? Go the full 6½. Room-temp ones cook faster, so trim it a bit. That timing's for large eggs, so add 30 seconds if they're extra large."
+    "Sam: About 6 to 6.5 minutes. Get the water boiling first, then lower the egg in gently, straight from the fridge. Pop it in cold water right after so it stops cooking. Peel it under the tap. Go, you've got this. From memory Check this Soft-boiled egg 6 to 6.5 min egg straight from the fridge Get the water boiling first. Lower the egg in gently, straight from the fridge. Cook for about 6 to 6.5 minutes. Pop it in cold water right after, so it stops cooking. Peel it under the tap.",
+    "Robin: Just check your egg size: 6 minutes suits medium, large ones need closer to 7. Also, lower it in with a spoon so the shell doesn't crack."
    ],
    "chime": {
-    "raw": "[{\"seat\":\"steward\",\"point\":\"Cook eggs fully if serving children, pregnant people, elderly or unwell; runny yolks carry a small salmonella risk.\"},{\"seat\":\"operations\",\"point\":\"Egg straight from the fridge needs the full 6½; room-temperature eggs cook faster. Large eggs assumed, so add 30 seconds for extra large.\"}]",
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Egg cracks or burns can happen: lower it gently with a spoon. Also, 6 minutes suits medium eggs; large ones may need 7.\"}]",
     "picked": [
-     "steward",
-     "operations"
+     "steward"
     ],
     "said": [
      "steward: spoke"
@@ -407,29 +410,33 @@
    }
   },
   {
-   "at": "2026-11-15T01:06:03.813Z",
+   "at": "2026-11-15T11:09:05.972Z",
    "mode": "simple",
    "person": "room",
    "say": "Is it safe to leave my dog in the car for ten minutes while I pop into a shop on a warm day?",
-   "seconds": 25,
+   "seconds": 62,
    "level": "",
    "replies": [
-    "Sam: No, it isn't safe. Even ten minutes on a warm day can be dangerous. A car heats up fast. On a day that feels merely warm, the inside can climb 10 to 15°C in ten minutes, and cracking a window barely helps. Dogs cool down mainly by panting, so they overheat much quicker than we do. That can mean heatstroke, brain damage or death. Here's what I'd do, in order. First, take the dog in with you if the shop allows it, since many do. Then, if it doesn't, shop another time or go with someone who can wait outside with the dog. Last resort: tie the dog up in the shade only if it's genuinely cool out. If you see a dog in distress in a hot car, call the emergency services. ! Careful: Even ten minutes on a warm day can be dangerous: heatstroke, brain damage or death. Dog in a warm car? Not safe, even ten minutes First: take the dog in with you if the shop allows it. Then: if not, shop another time or go with someone who waits outside. Last resort: tie the dog up in shade, only if it's genuinely cool out. Dog in distress in a hot car? Call the emergency services. NOT SO GOOD Inside can climb 10 to 15°C in ten minutes Cracking a window barely helps Dogs cool by panting, so they overheat faster th",
-    "Robin: Just check the dog's signs, since heatstroke can hide at first: heavy panting, drooling, wobbling, vomiting. If you see them, get the dog into shade, cool (not icy) water, and call a vet straight away."
+    "Sam: No, it isn't safe. Even ten minutes is risky on a warm day. A car heats up fast. On a day that feels mild outside, the inside can pass 40°C in about ten minutes. Cracking a window barely helps. Dogs cool down by panting, and in a hot car that stops working. Heatstroke can set in quickly and can kill, or cause lasting harm. Short-nosed breeds, puppies, older dogs and thick-coated dogs are at the most risk. First, if you can, take the dog in with you or choose a dog-friendly shop. Then, if neither works, run the errand another time, or go with someone who can wait outside with the dog. Next, if you ever see a dog in distress in a car, call the local emergency or animal-welfare number. ! Careful: Heatstroke can set in quickly and can kill or cause lasting harm. Short-nosed breeds, puppies, older dogs and thick-coated dogs are most at risk. From memory Check this Dog in a parked car? Not safe, even ten minutes Take the dog in with you, or choose a dog-friendly shop. Otherwise, run the errand another time. Or go with someone who can wait outside with the dog. If you see a dog in distress in a car, call the local emergency or animal-welfare number. NOT SO GOOD Inside a car can pass 40°C ",
+    "Robin: Just check the local rules: in many places, leaving a dog in a hot car is illegal. If your dog ever pants heavily, drools or collapses, cool it down gradually, not with ice water, and call a vet.",
+    "Sam: Good catch, Robin. Let me look that up properly and get you an updated answer.",
+    "Alex: No, it isn't safe, and Robin is right that it's often illegal too. It depends on where you live. Cars heat about 19°F (roughly 10°C) in ten minutes. Cracked windows barely help. Many US states have hot-car laws, and some also punish it under general animal cruelty rules. If your dog shows heatstroke, use cool water, not ice, and get to a vet. Sources: abc7news.com jalopnik.com aldf.org akc.org I couldn't settle your local law, because it varies by state and the counts differ between sources. Tell me where you live and I'll check. ! Careful: If your dog shows heatstroke, use cool water, not ice, and get to a vet. Local law varies by state and sources differ on counts; tell me where you live and I'll check. From memory Check this Dog in a hot car? No, not safe Often illegal too, depends on where you live Heat rise About 19°F (roughly 10°C) in ten minutes Cracked windows Barely help US laws Many states have hot-car laws Other charges Some punish it as animal cruelty ! Careful: If your dog shows heatstroke, use cool water, not ice, and get to a vet. Local law varies by state and sources differ on counts; tell me where you live and I'll check.",
+    "Robin: Just check the \"19°F in ten minutes\" figure. It's the claim I'd least take on trust. Many sources say cars warm faster, and it varies with sun and outside temperature. I'd open the abc7news page and compare it with a second source, like the AKC page or a vet or university study.",
+    "Jamie: A car on a warm day turns into a glass oven, and dogs can't sweat it off. Heavy panting, drooling or wobbling means trouble fast. Easiest fix: bring them along, or pick a shop that welcomes dogs."
    ],
    "chime": {
-    "raw": "[{\"seat\":\"steward\",\"point\":\"Add the warning signs of heatstroke (heavy panting, drooling, wobbling, vomiting) and first aid: move the dog to shade, cool water, call a vet.\"}]",
+    "raw": "[{\"seat\":\"ask\",\"point\":\"Dogs can suffer heatstroke fast. Warning signs: heavy panting, drooling, wobbling. Easy fix: bring the dog along, or shop where dogs are welcome.\"},{\"seat\":\"overseer\",\"point\":\"Plan around it: shop with a friend who waits outside with the dog, use drive-through or pickup, or run errands when it's cool.\"}]",
     "picked": [
-     "steward"
+     "ask"
     ],
     "said": [
-     "steward: spoke"
+     "ask: spoke"
     ]
    },
    "checks": {
     "room: nobody repeats a teammate (no two replies share most of their words)": true,
     "room: nobody opens by praising a teammate": true,
-    "room: at most three people speak": true,
+    "room: at most three people speak": false,
     "room: a second voice joins, with something of its own": true,
     "room: the warning is given plainly": true,
     "turns: nobody opens with praise for the question": true,
@@ -438,22 +445,22 @@
    }
   },
   {
-   "at": "2026-11-15T01:06:19.973Z",
+   "at": "2026-11-15T11:09:20.628Z",
    "mode": "simple",
    "person": "room",
    "say": "Robin, is ten minutes really enough to hurt a dog?",
-   "seconds": 16,
+   "seconds": 15,
    "level": "",
    "replies": [
-    "Robin: Yes, it really can be. Just check one thing: \"warm\" outside is a poor guide, because the inside of a car can climb 10°C or more in ten minutes, and that's with a window open a crack. Dogs cool themselves mostly by panting, which stops working well in hot, still air. Some dogs get into trouble faster than others: flat-faced breeds like pugs and bulldogs, puppies, older dogs, thick-coated dogs, and dogs with heart or breathing problems. Most dogs would probably be fine for ten minutes on a mild day, but you can't tell in advance which ones won't be. Shop queues also tend to run longer than planned. ! Careful: \"Warm\" outside is a poor guide: the inside of a car heats fast, and some dogs get into trouble much faster than others. Dog in a warm car for ten minutes? Car heat Can climb 10°C or more in ten minutes Open window A crack doesn't stop it How dogs cool Mostly panting, poor in hot, still air Higher risk Flat-faced breeds (pugs, bulldogs), puppies, older dogs Also at risk Thick-coated dogs, dogs with heart or breathing problems Most dogs Probably fine ten minutes on a mild day GOOD Most dogs would probably be fine for ten minutes on a mild day NOT SO GOOD You can't tell in advance "
+    "Robin: Just check this against what the vets say: yes, ten minutes can be enough to hurt a dog, and sometimes much less. On a warm day the inside of a car can climb 10°C or more in the first ten minutes, and most of that rise comes early. A dog can't sweat, so it relies on panting, and hot air makes that useless. Dogs with short noses, puppies, older dogs and heavy coats are hit hardest. It won't hurt every dog every time, but you can't tell beforehand which time it will. Heatstroke can do lasting damage. Take the dog with you, or leave it at home. ! Careful: Heat can hurt a dog in under ten minutes. Take the dog with you, or leave it at home. From memory Check this Dog in a warm car for ten minutes? Yes, it can hurt Sometimes much less than ten minutes Heat rise 10°C or more in the first ten minutes Why it's risky Dogs can't sweat; hot air makes panting useless Most at risk Short noses, puppies, older dogs, heavy coats Every time? No, but you can't tell which time it will be NOT SO GOOD Heatstroke can do lasting damage ! Careful: Heat can hurt a dog in under ten minutes. Take the dog with you, or leave it at home."
    ],
    "chime": {
-    "raw": "[{\"seat\":\"steward\",\"point\":\"Add the warning signs of heatstroke (heavy panting, drooling, wobbling, vomiting) and first aid: move the dog to shade, cool water, call a vet.\"}]",
+    "raw": "[{\"seat\":\"ask\",\"point\":\"Dogs can suffer heatstroke fast. Warning signs: heavy panting, drooling, wobbling. Easy fix: bring the dog along, or shop where dogs are welcome.\"},{\"seat\":\"overseer\",\"point\":\"Plan around it: shop with a friend who waits outside with the dog, use drive-through or pickup, or run errands when it's cool.\"}]",
     "picked": [
-     "steward"
+     "ask"
     ],
     "said": [
-     "steward: spoke"
+     "ask: spoke"
     ]
    },
    "checks": {

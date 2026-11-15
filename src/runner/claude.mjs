@@ -11,22 +11,33 @@ import { bin, sh } from './host.mjs';
 import { run, track } from './engine.mjs';
 
 // Anthropic's own installer, run only when Claude Code is not on the machine. It puts Claude Code in the customer's home folder.
-export const CLAUDE_INSTALL = 'curl -fsSL https://claude.ai/install.sh | bash';
+// On Windows it is their PowerShell installer: it needs no administrator rights and puts claude.exe in the person's own folder.
+const WIN = process.platform === 'win32';
+export const CLAUDE_INSTALL = WIN
+  ? 'irm https://claude.ai/install.ps1 | iex'
+  : 'curl -fsSL https://claude.ai/install.sh | bash';
+export const CLAUDE_DOCS = 'https://code.claude.com/docs/en/setup';
 export async function installClaude({ onLine, stateDir }) {
   let script = process.env.FO_CLAUDE_INSTALL_SH;
   if (!script) {
     if (process.env.FO_NO_NET === '1') return { ok: false, why: 'the installer could not be fetched (offline)' };
     try {
-      const res = await fetch('https://claude.ai/install.sh');
+      const res = await fetch(WIN ? 'https://claude.ai/install.ps1' : 'https://claude.ai/install.sh');
       if (!res.ok) throw new Error('status ' + res.status);
-      script = path.join(stateDir, 'claude-install.sh');
+      script = path.join(stateDir, WIN ? 'claude-install.ps1' : 'claude-install.sh');
       await mkdir(stateDir, { recursive: true });
       await writeFile(script, await res.text());
     } catch (err) {
       return { ok: false, why: 'the installer could not be fetched: ' + String(err.message).slice(0, 80) };
     }
   }
-  const r = await run('/bin/bash', [script], { onLine, timeout: 10 * 60000 });
+  // the installer is a file on this machine by now, run by the system's own shell for it
+  const r = /\.ps1$/i.test(script)
+    ? await run('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script], {
+        onLine,
+        timeout: 10 * 60000,
+      })
+    : await run('/bin/bash', [script], { onLine, timeout: 10 * 60000 });
   return r.code === 0 ? { ok: true } : { ok: false, why: r.tail.slice(-2).join(' / ') };
 }
 
@@ -40,7 +51,13 @@ export async function findClaude() {
   const b = await bin('claude');
   if (b) return b;
   if (process.env.FO_BIN_CLAUDE !== undefined) return null;
-  for (const c of [path.join(os.homedir(), '.claude/local/claude'), path.join(os.homedir(), '.local/bin/claude')])
+  // where Anthropic's installers put it (a server started before the install does not have it on its PATH yet)
+  for (const c of [
+    path.join(os.homedir(), '.claude/local/claude'),
+    path.join(os.homedir(), '.local/bin/claude'),
+    path.join(os.homedir(), '.local', 'bin', 'claude.exe'),
+    path.join(os.homedir(), '.claude', 'local', 'claude.exe'),
+  ])
     if (await exists(c)) return c;
   return null;
 }
@@ -91,11 +108,12 @@ export const claudeFix = (kind, said) =>
         title: 'Claude Code is not installed on this machine',
         text: 'This option runs your team on Claude Code. It is not on this machine, and it could not be installed for you just now.',
         steps: [
-          'Get Claude Code from claude.com/claude-code and install it.',
+          // (a card never gives a person something to type: it sends them to Anthropic's own page, which has the steps for their system)
+          'Open code.claude.com/docs/en/setup and install Claude Code from there. It is a separate program from the Claude desktop app, and the desktop app alone is not enough for a team.',
           'Come back here and press Try again. We find it, and start its sign-in for you if it needs one.',
         ],
         actions: [],
-        link: { href: 'https://claude.com/claude-code', label: 'Get Claude Code' },
+        link: { href: CLAUDE_DOCS, label: "Anthropic's install page for Claude Code" },
       }
     : kind === 'signin'
       ? {

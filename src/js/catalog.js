@@ -478,39 +478,75 @@ export function strataOptions(host, measured = {}) {
 // LLAMA.CPP: THE LAST ENGINE ON THE WATERFALL. TensorFold needs an Apple silicon Mac with a current macOS; Strata needs a Linux machine
 // with a lot of memory. Whatever is left (an Intel Mac, a Linux machine with little memory or no graphics card, an Apple silicon Mac on
 // an old macOS) runs a SMALL model on llama.cpp (github.com/ggml-org/llama.cpp, MIT), on its processor.
-// The engine is llama.cpp's own build for the machine, from its GitHub release at a PINNED tag (b12110, the build its v0.9.0 names),
-// kept only if its SHA-256 is the one here. Sizes and SHA-256 are as GitHub's release listed them on 2026-11-12. A "llama" command
+// The engine is llama.cpp's own build for the machine, from its GitHub release at a PINNED tag (b12359, the build its v1.0.0 names),
+// kept only if its SHA-256 is the one here. Sizes and SHA-256 are as GitHub's release listed them on 2026-11-15. A "llama" command
 // that is already on the machine and new enough (min, minBuild) is used instead, and nothing is fetched.
 export const LLAMA = {
   name: 'llama.cpp',
   site: 'https://github.com/ggml-org/llama.cpp',
   min: [0, 8, 0],
   minBuild: 11960,
-  tag: 'b12110',
+  version: '1.0.0', // the release this build is: v1.0.0 names b12359 as the build that carries its files
+  tag: 'b12359',
   builds: {
     'darwin-x64': {
-      asset: 'llama-b12110-bin-macos-x64.tar.gz',
-      bytes: 12388601,
-      sha256: 'c8094268b6bf62f4998f0e45656fd9f5e2d4afb6b1cd0044d761db64be1dd47d',
+      asset: 'llama-b12359-bin-macos-x64.tar.gz',
+      bytes: 12661621,
+      sha256: '25320d529077ef5a3d16e7b5da26438f221d88c8c0930a32b0c79457f5eede56',
     },
     'darwin-arm64': {
-      asset: 'llama-b12110-bin-macos-arm64.tar.gz',
-      bytes: 16650691,
-      sha256: '4f5b8de12e0b9516658ca6a5764c6ffb3d7c659c3dd538556b1413c7b4050662',
+      asset: 'llama-b12359-bin-macos-arm64.tar.gz',
+      bytes: 16907811,
+      sha256: '82b00abc740160e1b9980e6cc79c117345fa34af058c80e6c0a69aa8ddccde75',
     },
     'linux-x64': {
-      asset: 'llama-b12110-bin-ubuntu-x64.tar.gz',
-      bytes: 23051958,
-      sha256: '368227edcc229be5f9bed16a2223d79b5e41d0ac2e19bcf5825e82291c060e55',
+      asset: 'llama-b12359-bin-ubuntu-x64.tar.gz',
+      bytes: 23311084,
+      sha256: '0bc1f091e8916102b6d8f2cf944233a620e90a0f856c72d0ce41150c65c2e72e',
     },
     'linux-arm64': {
-      asset: 'llama-b12110-bin-ubuntu-arm64.tar.gz',
-      bytes: 18723578,
-      sha256: '4758b51335e37b4346251f2687d64841ff1c07ecb27fc46323945bb2ec9c44d2',
+      asset: 'llama-b12359-bin-ubuntu-arm64.tar.gz',
+      bytes: 18949862,
+      sha256: 'dc7aa17a67884619b7223870aca9fd6addbc01717713b04a714add1c31137359',
+    },
+    'win32-x64': {
+      asset: 'llama-b12359-bin-win-cpu-x64.zip',
+      bytes: 25097509,
+      sha256: '837c1655e87df3b66989f4be33a792a1399c785bf259038dc75c900096683e69',
+    },
+    'win32-arm64': {
+      asset: 'llama-b12359-bin-win-cpu-arm64.zip',
+      bytes: 13455326,
+      sha256: 'd27564c754478d2832789dfcebfc5ace018e36a224c41d810b7cbc1ba8243ec0',
     },
   },
 };
 export const llamaBuild = (platform, arch) => LLAMA.builds[platform + '-' + arch] || null;
+// THE BUILDS THAT USE A GRAPHICS CARD, through Vulkan: one small download that works with NVIDIA, AMD and Intel cards and needs no
+// runtime fetched beside it. (A Mac's build already uses its graphics through Metal.) Same release, same day's sizes and SHA-256.
+export const LLAMA_CARD = {
+  'win32-x64': {
+    asset: 'llama-b12359-bin-win-vulkan-x64.zip',
+    bytes: 38090643,
+    sha256: 'e8d18c6e4210cca87e7307c2ea78363ac8d158e4e1397358ec96ab70b53a0d5e',
+  },
+  'win32-arm64': {
+    asset: 'llama-b12359-bin-win-vulkan-arm64.zip',
+    bytes: 26027698,
+    sha256: '62cd50089cffdd825524a91c5a8819041eb75d8e2beacd6eca68194dba50574f',
+  },
+  'linux-x64': {
+    asset: 'llama-b12359-bin-ubuntu-vulkan-x64.tar.gz',
+    bytes: 36153377,
+    sha256: '19b60f00395a3f4954e46a5037695bc1d843404fc9d3124f82a612ecd8fbe9f0',
+  },
+  'linux-arm64': {
+    asset: 'llama-b12359-bin-ubuntu-vulkan-arm64.tar.gz',
+    bytes: 29435221,
+    sha256: '3f8ae812a58ac92e5a596ca9fbc988f52854d147c5a7fe1264dddc90c1d085b4',
+  },
+};
+export const llamaCardBuild = (platform, arch) => LLAMA_CARD[platform + '-' + arch] || null;
 // The models: one GGUF file each, from Hugging Face at a PINNED revision, with the size and SHA-256 its page listed on 2026-11-12.
 // memGb is OUR ESTIMATE, not a measurement: the file, plus about 2 GB of working room for the context it is served with.
 const ON_CPU = {
@@ -519,7 +555,73 @@ const ON_CPU = {
   license: 'Apache-2.0',
   runs: "Run by llama.cpp on this machine's processor, with no graphics card needed, so it answers slowly next to a model on a graphics card. It does not read pictures in this setup.",
 };
+// BONSAI 2 (PrismML, Apache-2.0): a large model packed into very little memory, so a machine that could only hold a small model
+// can hold a 27B one. Its Q2_0 packing is the one upstream llama.cpp reads, from build b11556; the other packings need PrismML's
+// own build of llama.cpp, which this app does not use. The sampling values are the ones its page gives for answering without thinking.
+// All four sizes are listed, for the person to choose from. The two smallest are light enough for any machine and reason less
+// well; which of all these is recommended where is a quick pass over the machine until the training scripts have measured them.
+const BONSAI = {
+  ...ON_CPU,
+  engine: 'llama',
+  family: 'Bonsai',
+  quant: 'PrismML Q2_0',
+  needsBuild: 11556,
+  // THINKING IS OFF. Its page says a simple question can use 3,000 words of thinking before the answer; on a processor, at a word or
+  // two a second, that is half an hour for one reply. These are the values its page gives for answering without it.
+  serve: [
+    '--reasoning',
+    'off',
+    '--temp',
+    '0.7',
+    '--top-p',
+    '0.8',
+    '--top-k',
+    '20',
+    '--min-p',
+    '0',
+    '--presence-penalty',
+    '1.5',
+  ],
+  runs: 'Run by llama.cpp on this machine. It is a large model packed small, so it fits where a model of its size usually does not. It does not read pictures in this setup.',
+};
 export const LLAMA_MODELS = [
+  {
+    ...BONSAI,
+    id: 'llama-bonsai2-27b',
+    name: 'Bonsai 2 27B',
+    wantsCard: true, // on a processor alone it wrote 1.3 words a second on a real PC: recommended only where a graphics card can run it
+    size: 'Large',
+    params: 27,
+    active: 27,
+    memGb: 9.1,
+    pace: 'thorough',
+    badge: 'Largest that fits here',
+    repo: 'prism-ml/Ternary-Bonsai-2-27B-gguf',
+    rev: '839bd57023c1558945afea70a74fa83c054f35f9',
+    file: 'Ternary-Bonsai-2-27B-Q2_0.gguf',
+    bytes: 7626008928,
+    sha256: '4f99aed01b8a877e153f9aa6569a4440fe17c59701cc0953e36d7f460549e70e',
+    plain:
+      'A 27B model in a 7 GB file. The most capable model a machine like this one can hold. It needs a graphics card to answer at a usable speed: on a processor alone it is very slow.',
+  },
+  {
+    ...BONSAI,
+    id: 'llama-bonsai2-9b',
+    name: 'Bonsai 2 9B',
+    size: 'Medium',
+    params: 9,
+    active: 9,
+    memGb: 4.4,
+    pace: 'steady',
+    badge: 'For 8 GB of memory',
+    repo: 'prism-ml/Ternary-Bonsai-2-9B-gguf',
+    rev: '82265ccc78ddaac4700286a35e9badcc32376dd9',
+    file: 'Ternary-Bonsai-2-9B-Q2_0.gguf',
+    bytes: 2556640128,
+    sha256: '1f884aa56aacd2bbbb2e4b7abaead2b1102b74a9c75a23fc33dab916813a384d',
+    plain:
+      'A 9B model in a 2.4 GB file: it fits a machine with 8 GB of memory, where a model its size usually does not. We have not run it ourselves yet.',
+  },
   {
     ...ON_CPU,
     id: 'llama-qwen35-9b',
@@ -531,14 +633,14 @@ export const LLAMA_MODELS = [
     quant: 'Unsloth Q4_K_M',
     memGb: 7.5,
     pace: 'thorough',
-    badge: 'Best answers here',
+    badge: 'A conventional 9B',
     repo: 'unsloth/Qwen3.5-9B-GGUF',
     rev: '3885219b6810b007914f3a7950a8d1b469d598a5',
     file: 'Qwen3.5-9B-Q4_K_M.gguf',
     bytes: 5680522464,
     sha256: '03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8',
     plain:
-      'The largest model a machine like this one can run. It gives the best answers of the three and is the slowest: expect to wait for each one.',
+      'A conventional 9B model, for a machine with room for it. Thorough and slow: expect to wait for each answer.',
   },
   {
     ...ON_CPU,
@@ -561,6 +663,24 @@ export const LLAMA_MODELS = [
       'Half the size: it answers about twice as fast and knows less. A fair choice for a machine with 8 GB of memory.',
   },
   {
+    ...BONSAI,
+    id: 'llama-bonsai2-4b',
+    name: 'Bonsai 2 4B',
+    size: 'Small',
+    params: 4,
+    active: 4,
+    memGb: 3.1,
+    pace: 'quick',
+    badge: 'Light',
+    repo: 'prism-ml/Ternary-Bonsai-2-4B-gguf',
+    rev: '50ebba61be85e5be07e8083db468ace0fc1bac43',
+    file: 'Ternary-Bonsai-2-4B-Q2_0.gguf',
+    bytes: 1212103520,
+    sha256: '64a5183b44921bdb5ac4a6f5f92007821d6ebe5c66997d3c147fd214ab9433d4',
+    plain:
+      'A 4B model in a 1.1 GB file. Quick and light on the machine; it reasons less well than the larger ones. We have not run it ourselves yet.',
+  },
+  {
     ...ON_CPU,
     id: 'llama-qwen35-2b',
     engine: 'llama',
@@ -578,14 +698,65 @@ export const LLAMA_MODELS = [
     bytes: 1280835840,
     sha256: 'aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223',
     plain:
-      'The smallest. It is the quickest of the three and good for talking a thing through; do not expect it to change code on its own.',
+      'The smallest. It is the quickest here and good for talking a thing through; do not expect it to change code on its own.',
   },
+  {
+    ...BONSAI,
+    id: 'llama-bonsai2-2b',
+    name: 'Bonsai 2 2B',
+    size: 'Small',
+    params: 2,
+    active: 2,
+    memGb: 2.5,
+    pace: 'quick',
+    badge: 'Lightest',
+    repo: 'prism-ml/Ternary-Bonsai-2-2B-gguf',
+    rev: 'a6032a5089ac27e96be3a80c7b42d1ad0bd89887',
+    file: 'Ternary-Bonsai-2-2B-Q2_0.gguf',
+    bytes: 546689504,
+    sha256: 'c2893fa6f951daee8b7263d5f49b455e57989ef56417a22125b03566dc560650',
+    plain:
+      'A 2B model in a half-gigabyte file: the lightest here. Good for talking a thing through, not for changing code. We have not run it ourselves yet.',
+  },
+];
+// AN APPLE SILICON MAC CAN RUN BOTH KINDS: TensorFold's models and, through llama.cpp, Bonsai 2. The model chosen for a Mac is the
+// first of these that its memory can hold. The order is a quick pass: the large ones we have run first, then Bonsai 2 from large
+// to small (a 27B that fits in 16 GB comes before a 2B starter), with the smallest last. The training scripts will replace it.
+export const MAC_ORDER = [
+  'qwen38-27b',
+  'nemotron35-30b',
+  'lfm25-24b',
+  'llama-bonsai2-27b',
+  'llama-bonsai2-9b',
+  'llama-bonsai2-4b',
+  'qwen35-2b',
+  'llama-bonsai2-2b',
 ];
 // Does one fit? It runs in ordinary memory (the build is the processor one, so graphics memory is not counted), with 3 GB kept for the
 // system and everything else.
 export function llamaFit(m, host) {
   const room = Math.round(host.memoryGb * 10) / 10;
   return { needGb: m.memGb, roomGb: room, leftGb: Math.round((room - m.memGb) * 10) / 10, fits: m.memGb + 3 <= room };
+}
+// WOULD A MODEL ON THIS MACHINE STRAIN IT? A quick pass over what the machine is, made before anything is fetched. A model run
+// on a processor alone takes every core for as long as it writes, so a machine with no graphics card of its own, and not a great
+// deal of memory or cores to spare, is slow to answer and slow at everything else while it does. (An Apple silicon Mac, a machine
+// with a graphics card, and one Strata can run are not this.) A speed measured on the machine itself outranks the guess.
+//   -> null (no strain) | { why: [what it is about this machine], measured: words a second, when one was measured }
+export const STRAIN = { memoryGb: 32, cores: 12, tokPerSec: 6 };
+export function localStrain(host, best) {
+  if (!host || host.engine !== 'llama') return null;
+  if ((host.gpus || []).length > 0) return null;
+  if (/^macOS/.test(host.os || '') && host.arch === 'arm64') return null; // its build runs on its graphics
+  const speed = best && best.measured && Number(best.measured.tokPerSec);
+  if (speed)
+    return speed < STRAIN.tokPerSec
+      ? { why: ['it wrote ' + speed + ' words a second when it was measured here'], measured: speed }
+      : null;
+  const why = ['it has no graphics card of its own, so the model runs on its processor'];
+  if ((host.memoryGb || 0) < STRAIN.memoryGb) why.push(host.memoryGb + ' GB of memory');
+  if ((host.cores || 0) < STRAIN.cores) why.push((host.cores || 'few') + ' processor threads');
+  return why.length > 1 ? { why, measured: null } : null;
 }
 // have: which models' files are already on this machine, by id
 export function llamaOptions(host, measured = {}, have = {}) {
@@ -597,6 +768,9 @@ export function llamaOptions(host, measured = {}, have = {}) {
     measured: measured[m.id] || null,
     cached: !!have[m.id],
   }));
-  const best = list.find((m) => m.fits);
+  // the largest that fits, and that this machine can run at a usable speed: a model that wants a graphics card is passed over where
+  // there is none (it stays on the list, to be chosen knowingly)
+  const card = (host.gpus || []).length > 0;
+  const best = list.find((m) => m.fits && (card || !m.wantsCard)) || list.find((m) => m.fits);
   return list.map((m) => ({ ...m, recommended: !!best && m.id === best.id }));
 }

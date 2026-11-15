@@ -5,53 +5,235 @@
   "mode": "simple",
   "engine": "claude"
  },
- "at": "2026-11-14T05:53:06.864Z",
+ "at": "2026-11-15T11:38:25.791Z",
  "machine": "Apple M2 Ultra, 64 GB",
  "rounds": 1,
- "minutes": 2,
+ "minutes": 14,
  "note": "",
  "total": {
-  "runs": 3,
-  "good": 3,
-  "falseClaims": 0
+  "runs": 19,
+  "good": 16,
+  "falseClaims": 1
  },
  "byKind": {
   "times": {
+   "runs": 3,
+   "good": 3
+  },
+  "question": {
    "runs": 2,
    "good": 2
   },
-  "question": {
+  "tickets": {
+   "runs": 2,
+   "good": 2
+  },
+  "reservation": {
+   "runs": 2,
+   "good": 1
+  },
+  "booking": {
+   "runs": 2,
+   "good": 2
+  },
+  "appointment": {
    "runs": 1,
+   "good": 1
+  },
+  "writing": {
+   "runs": 4,
+   "good": 3
+  },
+  "how-to": {
+   "runs": 1,
+   "good": 1
+  },
+  "planning": {
+   "runs": 2,
    "good": 1
   }
  },
- "byCheck": {},
+ "byCheck": {
+  "names": 1,
+  "no-false-claim": 1,
+  "short": 1
+ },
  "scenarios": [
   {
    "id": "weather-today",
    "round": 1,
    "pass": true,
-   "seconds": 36,
-   "words": 164,
-   "links": 4,
+   "seconds": 62,
+   "words": 224,
+   "links": 5,
    "misses": []
   },
   {
    "id": "bunny-celery",
    "round": 1,
    "pass": true,
-   "seconds": 23,
-   "words": 138,
+   "seconds": 16,
+   "words": 96,
    "links": 0,
+   "misses": []
+  },
+  {
+   "id": "movie-tonight",
+   "round": 1,
+   "pass": true,
+   "seconds": 38,
+   "words": 163,
+   "links": 11,
+   "misses": []
+  },
+  {
+   "id": "table-for-four",
+   "round": 1,
+   "pass": false,
+   "seconds": 46,
+   "words": 178,
+   "links": 7,
+   "misses": [
+    "names: it never mentions Chicago"
+   ]
+  },
+  {
+   "id": "book-a-table",
+   "round": 1,
+   "pass": true,
+   "seconds": 27,
+   "words": 159,
+   "links": 0,
+   "misses": []
+  },
+  {
+   "id": "hotel-lisbon",
+   "round": 1,
+   "pass": true,
+   "seconds": 39,
+   "words": 202,
+   "links": 7,
+   "misses": []
+  },
+  {
+   "id": "concert-tickets",
+   "round": 1,
+   "pass": true,
+   "seconds": 44,
+   "words": 290,
+   "links": 5,
+   "misses": []
+  },
+  {
+   "id": "last-train",
+   "round": 1,
+   "pass": true,
+   "seconds": 36,
+   "words": 163,
+   "links": 3,
+   "misses": []
+  },
+  {
+   "id": "dentist",
+   "round": 1,
+   "pass": true,
+   "seconds": 25,
+   "words": 116,
+   "links": 0,
+   "misses": []
+  },
+  {
+   "id": "hotel-email",
+   "round": 1,
+   "pass": true,
+   "seconds": 24,
+   "words": 389,
+   "links": 0,
+   "misses": []
+  },
+  {
+   "id": "return-shoes",
+   "round": 1,
+   "pass": true,
+   "seconds": 38,
+   "words": 218,
+   "links": 5,
+   "misses": []
+  },
+  {
+   "id": "flight-change",
+   "round": 1,
+   "pass": true,
+   "seconds": 72,
+   "words": 157,
+   "links": 3,
    "misses": []
   },
   {
    "id": "museum-hours",
    "round": 1,
    "pass": true,
-   "seconds": 40,
-   "words": 164,
-   "links": 4,
+   "seconds": 38,
+   "words": 159,
+   "links": 2,
+   "misses": []
+  },
+  {
+   "id": "birthday-dinner",
+   "round": 1,
+   "pass": false,
+   "seconds": 29,
+   "words": 188,
+   "links": 0,
+   "misses": [
+    "no-false-claim: it says it did it: \"booking confirmed\""
+   ]
+  },
+  {
+   "id": "weekend-limits",
+   "round": 1,
+   "pass": true,
+   "seconds": 75,
+   "words": 341,
+   "links": 6,
+   "misses": []
+  },
+  {
+   "id": "wrong-premise",
+   "round": 1,
+   "pass": true,
+   "seconds": 32,
+   "words": 136,
+   "links": 1,
+   "misses": []
+  },
+  {
+   "id": "in-spanish",
+   "round": 1,
+   "pass": true,
+   "seconds": 27,
+   "words": 205,
+   "links": 0,
+   "misses": []
+  },
+  {
+   "id": "landlord-letter",
+   "round": 1,
+   "pass": false,
+   "seconds": 32,
+   "words": 745,
+   "links": 0,
+   "misses": [
+    "short: 745 words, over 720"
+   ]
+  },
+  {
+   "id": "change-of-mind",
+   "round": 1,
+   "pass": true,
+   "seconds": 51,
+   "words": 433,
+   "links": 0,
    "misses": []
   }
  ]

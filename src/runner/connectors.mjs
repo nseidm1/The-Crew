@@ -5,6 +5,7 @@
 //                                         opens that page in the customer's browser and hands the same address to the page as a link
 // Adding one changes the customer's Claude Code configuration, so it happens only when they press Connect. The provider's sign-in is
 // always the customer, in their own browser.
+import os from 'node:os';
 import { spawn } from 'node:child_process';
 import { sh } from './host.mjs';
 import { run, track } from './engine.mjs';
@@ -80,7 +81,9 @@ function openPage(url) {
       ? ['open', [url]]
       : process.platform === 'win32'
         ? ['cmd', ['/c', 'start', '', url]]
-        : ['xdg-open', [url]];
+        : process.platform === 'linux' && (process.env.WSL_DISTRO_NAME || /microsoft/i.test(os.release()))
+          ? ['explorer.exe', [url]] // inside WSL: the person's Windows browser
+          : ['xdg-open', [url]];
   try {
     const ch = spawn(cmd, args, { stdio: 'ignore', detached: true });
     ch.on('error', () => {});

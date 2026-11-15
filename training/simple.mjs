@@ -46,7 +46,11 @@ const JUDGES = {
   'points-the-way': (r) =>
     WAY.test(r.text) || r.links.length ? '' : 'it does not say where or how the customer does it',
   'has-link': (r) => (r.links.length || /\bhttps?:\/\/\S+/.test(r.text) ? '' : 'there is no link to open'),
-  asks: (r) => (/\?/.test(r.text) ? '' : 'it does not ask for what is missing'),
+  // "tell me where you'd like to eat, what day and how many" asks, with no question mark in it
+  asks: (r) =>
+    /\?|\b(tell|let) (me|us)(?: know)? (where|what|when|which|how|who)\b/i.test(r.text)
+      ? ''
+      : 'it does not ask for what is missing',
   'no-search': (r) => (r.searched ? 'it went and searched when nothing needed looking up' : ''),
   plain: (r) => (JARGON.test(r.text) ? 'a developer word: "' + JARGON.exec(r.text)[0] + '"' : ''),
   short: (r, s) => (r.words > (s.words || 260) + 80 ? r.words + ' words, over ' + ((s.words || 260) + 80) : ''), // 80 more than the answer's own: room for the two who may chime in

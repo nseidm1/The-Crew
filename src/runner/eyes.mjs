@@ -29,6 +29,7 @@ import { chmod, mkdir, open, readFile, readdir, rename, rm, stat, writeFile } fr
 import { ADDONS, addonBytes, addonFit } from '../js/catalog.js';
 import { atLeast, bin, native, sh, which, TRANSLATED } from './host.mjs';
 import { alive, runNative } from './engine.mjs';
+import { brewDo, canOwnBrew, ensureBrew } from './brew.mjs';
 import { guard } from './talk.mjs';
 import { findBrowser, shotPage } from './shot.mjs';
 
@@ -194,7 +195,7 @@ const noBrew = (a, old) => ({
     needs(a) +
     '. Homebrew installs it with one command, and there is no Homebrew here.',
   steps: [
-    'Install Homebrew from brew.sh, then press Try again: the rest is done for you.',
+    'Its own copy of Homebrew could not be fetched here. Install Homebrew from brew.sh, then press Try again: the rest is done for you.',
     'Or download ' +
       a.engine.name +
       ' from its releases page and put its "llama" command on your PATH, then press Try again.',
@@ -208,16 +209,20 @@ async function ensureLlama(addon, { onLine, onChild }) {
   if (engine && enough(addon, ver) !== false) return { ok: true, e: engine, ver, already: true };
   if (offline('FO_BIN_BREW') && process.env.FO_BIN_BREW === undefined)
     return { ok: false, why: 'this machine is not using the network, so ' + addon.engine.name + ' was not installed' }; // a test run never reaches the real Homebrew
-  const brew = await bin('brew');
-  if (!brew) {
+  const got = await ensureBrew({ exec: runNative, onLine });
+  if (!got.ok) {
     const fix = noBrew(addon, had);
-    return { ok: false, why: fix.title, fix };
+    return { ok: false, why: fix.title + ' (' + got.why + ')', fix };
   }
-  const brewRun = await runNative(brew, [had ? 'upgrade' : 'install', addon.engine.formula], {
+  const brew = got.brew;
+  if (got.fetched)
+    await brewDo(brew, ['update', '--force', '--quiet'], { exec: runNative, onLine, timeout: 15 * 60000 });
+  const brewRun = await brewDo(brew, [had ? 'upgrade' : 'install', addon.engine.formula], {
+    exec: runNative,
     onLine,
     onChild,
+    formula: addon.engine.formula,
     timeout: 20 * 60000,
-    env: { ...process.env, HOMEBREW_NO_ENV_HINTS: '1', HOMEBREW_NO_ANALYTICS: '1' },
   });
   engine = await findLlama();
   if (!engine)
@@ -910,7 +915,13 @@ export function createEyes({ stateDir, disk, save, push }) {
               note: old
                 ? 'The one here is ' + (lver.text || 'an older build') + '; this model needs ' + needs(addon) + '.'
                 : '',
-              blocked: brew ? '' : 'needs Homebrew (brew.sh), or ' + addon.engine.name + ' installed by hand',
+              blocked:
+                brew || canOwnBrew() ? '' : 'needs Homebrew (brew.sh), or ' + addon.engine.name + ' installed by hand',
+              ...(!brew && canOwnBrew() && !old
+                ? {
+                    note: "There is no Homebrew on this machine: its own files are fetched into this app's folder first (no password), and it builds here, which takes longer.",
+                  }
+                : {}),
             });
         }
         if (missing.length)
