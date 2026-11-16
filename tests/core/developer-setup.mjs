@@ -107,11 +107,19 @@ const teamOn = (world) => {
 {
   const world = { page: true };
   const t = teamOn(world);
-  const s1 = await t.go('I want to make an app for my bakery');
+  // (since 2026-11-16 someone new describing an app is talked with first, and the team works when they say to start: training/discuss.mjs)
+  const s0 = await t.go('I want to make an app for my bakery');
+  const talkedFirst =
+    !t.cards('folder').length &&
+    t.told.some((x) => /THEY ARE THINKING AN IDEA THROUGH/.test(x)) &&
+    !t.did.some((d) => /^task/.test(d));
+  const s1 = await t.go("Okay, let's start building it");
   const card = t.cards('folder')[0];
   check(
-    "someone new asks for an app with nowhere to build it: the Overseer's message has a folder to choose, in plain words, and nothing was built",
-    !!card &&
+    "someone new describes an app with nowhere to build it: the team talks it over first; when they say to start, the Overseer's message has a folder to choose, in plain words, and nothing was built",
+    talkedFirst &&
+      (s0.dev || {}).level === 'new' &&
+      !!card &&
       card.by === 'overseer' &&
       card.setup.state === 'open' &&
       /Press the button and choose one/.test(card.text) &&

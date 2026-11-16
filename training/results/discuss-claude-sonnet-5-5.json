@@ -1,0 +1,426 @@
+{
+  "at": "2026-11-16T14:52:28.189Z",
+  "trainer": "discuss",
+  "label": "claude-sonnet-5-5",
+  "all": {
+    "passed": 6,
+    "of": 6
+  },
+  "taught": {
+    "passed": 4,
+    "of": 4
+  },
+  "heldOut": {
+    "passed": 2,
+    "of": 2
+  },
+  "checks": {
+    "talks": {
+      "passed": 4,
+      "of": 4
+    },
+    "platform": {
+      "passed": 5,
+      "of": 5
+    },
+    "one": {
+      "passed": 6,
+      "of": 6
+    },
+    "plain": {
+      "passed": 4,
+      "of": 4
+    },
+    "builds": {
+      "passed": 3,
+      "of": 3
+    },
+    "no-redundant": {
+      "passed": 1,
+      "of": 1
+    }
+  },
+  "runs": [
+    {
+      "at": "2026-11-16T14:45:50.959Z",
+      "label": "claude-sonnet-5-5",
+      "id": "amateur-simple",
+      "mode": "simple",
+      "level": "new",
+      "held": false,
+      "verdict": {
+        "talks": true,
+        "platform": true,
+        "one": true,
+        "plain": true
+      },
+      "pass": true,
+      "turns": [
+        {
+          "want": "talk",
+          "say": "Hi! My friend and I have been dreaming up an app idea and I'd love to talk it through with you.",
+          "replies": [
+            "Hi! An app you and a friend dreamed up together is a good place to start, since ideas tend to get sharper when two people bounce them around. I'd love to hear it. One thing worth keeping in the back of your mind as you talk: the strongest app ideas usually come down to one clear thing a person does in the first minute. Will this run on phones (iPhone, Android, or both), on a computer, or as a website?",
+            "Just one thing before you share it around: keep the details private for now, don't post them publicly or sign anything with your friend yet, and agree between you who owns what.",
+            "Good catch, Robin. Let me look that up properly and get you an updated answer.",
+            "Hi! Robin's advice holds up: keep the details private for now, and get who owns what down in writing before you build anything together. An app idea on its own usually can't be protected by copyright or patent. Copyright covers how an idea is expressed, such as code and designs, and not the idea itself. So a signed agreement with your friend and an NDA with anyone else you tell are what protect you. Try dated notes too. Skip signing anything rushed, though. Have a lawyer look over the final papers. Sources: copyrightalliance.org blog.promise.legal newly.app I couldn't settle which rules apply where you live. I only read search summaries, not the full pages, and many of the sources are law firms or app developers. ! Careful: Skip signing anything rushed. Have a lawyer look over the final papers. Which rules apply where you live is unsettled; sources were search summaries, mostly law firms or app developers.",
+            "Just check the claim that an NDA protects an app idea. Early-stage ideas are often hard to enforce that way, and people frequently won't sign one. I'd verify it with the Copyright Alliance page, and ask a local lawyer, since it depends on where they live.",
+            "First, let's get a one-page starting sheet down: the idea in a few lines, who does what, and the first three steps. Tell me the idea in a sentence or two, and I'll draft it for you and your friend."
+          ],
+          "who": [
+            "Sam",
+            "Robin",
+            "Sam",
+            "Alex",
+            "Robin",
+            "Sam"
+          ],
+          "text": "Hi! An app you and a friend dreamed up together is a good place to start, since ideas tend to get sharper when two people bounce them around. I'd love to hear it. One thing worth keeping in the back of your mind as you talk: the strongest app ideas usually come down to one clear thing a person does in the first minute. Will this run on phones (iPhone, Android, or both), on a computer, or as a website?\nJust one thing before you share it around: keep the details private for now, don't post them publicly or sign anything with your friend yet, and agree between you who owns what.\nGood catch, Robin. Let me look that up properly and get you an updated answer.\nHi! Robin's advice holds up: keep the details private for now, and get who owns what down in writing before you build anything together. An app idea on its own usually can't be protected by copyright or patent. Copyright covers how an idea is expressed, such as code and designs, and not the idea itself. So a signed agreement with your friend and an NDA with anyone else you tell are what protect you. Try dated notes too. Skip signing anything rushed, though. Have a lawyer look over the final papers. Sources: copyrightalliance.org blog.promise.legal newly.app I couldn't settle which rules apply where you live. I only read search summaries, not the full pages, and many of the sources are law firms or app developers. ! Careful: Skip signing anything rushed. Have a lawyer look over the final papers. Which rules apply where you live is unsettled; sources were search summaries, mostly law firms or app developers.\nJust check the claim that an NDA protects an app idea. Early-stage ideas are often hard to enforce that way, and people frequently won't sign one. I'd verify it with the Copyright Alliance page, and ask a local lawyer, since it depends on where they live.\nFirst, let's get a one-page starting sheet down: the idea in a few lines, who does what, and the first three steps. Tell me the idea in a sentence or two, and I'll draft it for you and your friend.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Sam is answering… | Sam is seeing who has something to add… | Robin is writing… | Alex is searching the web… | Alex is drawing it… | Robin is checking the claims… | Alex is seeing who has something to add… | Sam is writing… | Sam is getting to know you…",
+          "seconds": 69
+        },
+        {
+          "want": "talk",
+          "say": "I want to make an app where parents can swap the clothes their kids have outgrown with other families nearby.",
+          "replies": [
+            "Kids outgrow clothes so fast, and most of it is barely worn. Keeping it local also makes it feel like a neighborhood thing, not a shop. The part I'd think about most is that swaps rarely line up. One family has a bag of size 4 boys' clothes, and the family next door needs size 6 girls'. A straight one-for-one trade could leave a lot of people waiting, so how the app handles that will shape how it feels. Do you picture direct trades between two families, or a shared pool where people give and take as they go?",
+            "Just check the safety side before it's built. Used car seats, cribs and drawstring hoodies shouldn't be passed on, and recalled items need flagging. Also, meet in public places, never show home addresses.",
+            "Try points per item: give clothes, earn credits, spend them on anything. That fixes the size 4 boys' versus size 6 girls' mismatch. Skip the full build at first. Grab a no-code tool like Glide or Airtable and test it with ten local families."
+          ],
+          "who": [
+            "Sam",
+            "Robin",
+            "Alex"
+          ],
+          "text": "Kids outgrow clothes so fast, and most of it is barely worn. Keeping it local also makes it feel like a neighborhood thing, not a shop. The part I'd think about most is that swaps rarely line up. One family has a bag of size 4 boys' clothes, and the family next door needs size 6 girls'. A straight one-for-one trade could leave a lot of people waiting, so how the app handles that will shape how it feels. Do you picture direct trades between two families, or a shared pool where people give and take as they go?\nJust check the safety side before it's built. Used car seats, cribs and drawstring hoodies shouldn't be passed on, and recalled items need flagging. Also, meet in public places, never show home addresses.\nTry points per item: give clothes, earn credits, spend them on anything. That fixes the size 4 boys' versus size 6 girls' mismatch. Skip the full build at first. Grab a no-code tool like Glide or Airtable and test it with ten local families.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Sam is reading that… | Sam is answering… | Sam is seeing who has something to add… | Robin is writing… | Alex is writing…",
+          "seconds": 33
+        },
+        {
+          "want": "talk",
+          "say": "What do you think? Would people actually use something like that? I'm not a tech person at all.",
+          "replies": [
+            "I think people would, yes. Parents already pass clothes along in group chats, so the habit is there. What you'd be adding is making it easier and keeping it close to home. One thing worth thinking about is that people will only open the app if there's something good in it when they do. A few families with clothes in the right sizes, close by, will matter more than any clever feature. Being a non-tech person isn't a problem for that, since it's mostly about the neighbors. Do you already know a few families nearby who'd try it?",
+            "One thing to check before launch: kids' clothes can be recalled, like drawstring hoodies or sleepwear, so add a recall reminder. Keep exact home addresses hidden until families choose to meet, and keep children's names and photos out.",
+            "Start with no app at all. Make a neighborhood group chat or a simple shared form, and see if families really swap clothes. Skip building until it's busy. If it works, you'll know what to build."
+          ],
+          "who": [
+            "Sam",
+            "Robin",
+            "Alex"
+          ],
+          "text": "I think people would, yes. Parents already pass clothes along in group chats, so the habit is there. What you'd be adding is making it easier and keeping it close to home. One thing worth thinking about is that people will only open the app if there's something good in it when they do. A few families with clothes in the right sizes, close by, will matter more than any clever feature. Being a non-tech person isn't a problem for that, since it's mostly about the neighbors. Do you already know a few families nearby who'd try it?\nOne thing to check before launch: kids' clothes can be recalled, like drawstring hoodies or sleepwear, so add a recall reminder. Keep exact home addresses hidden until families choose to meet, and keep children's names and photos out.\nStart with no app at all. Make a neighborhood group chat or a simple shared form, and see if families really swap clothes. Skip building until it's busy. If it works, you'll know what to build.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Sam is answering… | Sam is seeing who has something to add… | Robin is writing… | Alex is writing… | Sam is getting to know you…",
+          "seconds": 25
+        }
+      ]
+    },
+    {
+      "at": "2026-11-16T14:47:51.482Z",
+      "label": "claude-sonnet-5-5",
+      "id": "amateur-developer",
+      "mode": "developer",
+      "level": "new",
+      "held": false,
+      "verdict": {
+        "talks": true,
+        "platform": true,
+        "one": true,
+        "plain": true,
+        "builds": true
+      },
+      "pass": true,
+      "turns": [
+        {
+          "want": "talk",
+          "say": "I've never built anything before, but I have an idea for an app and wanted to chat about it first.",
+          "replies": [
+            "Good news: starting with an idea is exactly how every app begins, and chatting first is a smart move. I'm already curious what the eye will land on first when someone opens yours. Whatever it is, the best apps do one thing clearly before they try to do ten. I haven't heard the idea yet, so that's just a hunch. Do you picture it on phones (iPhone, Android, or both), on a computer, or as a website?"
+          ],
+          "who": [
+            "Ask"
+          ],
+          "text": "Good news: starting with an idea is exactly how every app begins, and chatting first is a smart move. I'm already curious what the eye will land on first when someone opens yours. Whatever it is, the best apps do one thing clearly before they try to do ten. I haven't heard the idea yet, so that's just a hunch. Do you picture it on phones (iPhone, Android, or both), on a computer, or as a website?",
+          "worked": false,
+          "cards": 0,
+          "busy": "Ask is answering… | Ask is seeing who has something to add… | Overseer is keeping what it learned about you…",
+          "seconds": 20
+        },
+        {
+          "want": "talk",
+          "say": "Make an app that reminds people to water their plants, with a little picture of each plant and how thirsty it is.",
+          "replies": [
+            "I like this because the screen nearly draws itself. I picture a grid of plant cards, each with its own photo. A perky leaf means happy, and a droopy leaf means thirsty. The eye would land on whichever plant is drooping most, which is exactly what you'd want it to find. One thing worth thinking about is that people forget to open apps, so the reminder that pops up on the phone matters more than the picture. The pictures are what make people love it, but the nudge is what keeps the plants alive. When you picture a plant getting thirsty, does the app work that out from the kind of plant, or does the person tell it each time they water?",
+            "Whichever way Ask goes, the app can't guess watering intervals from species without a cited source. A wrong default can drown a plant. Toxicity to cats and dogs needs the same sourcing, because that warning can't be wrong.",
+            "The Steward is right to ask. Checking it now.",
+            "The Steward is right on both counts, and I'd change my design because of it. Watering: I read search summaries only, not the full pages. They agree that no species has one fixed interval. Light, pot size, season and the potting mix all change how fast soil dries. UConn Extension and a UC Master Gardener page both say this. So the app shouldn't guess a date from the species. I'd use the person's own watering taps to learn a rhythm, and I'd have the reminder ask \"check the soil?\" rather than \"water now.\" Pet safety: The ASPCA keeps a searchable plant list for dogs and cats. It says the list isn't complete and that you should check the exact plant name. That means the app could link to the ASPCA entry for a plant, and it should say \"not listed\" when a plant isn't there. Not settled: I couldn't open the UConn PDF itself. I also haven't checked how often the ASPCA updates its list, or whether the app may reuse its data and not just link to it. Sources: - aspca.org - soiltesting-cahnr.media.uconn.edu - ccfruitandnuts.ucanr.edu",
+            "Ask hasn't settled one claim: whether the app may show the ASPCA's pet-safety information, or only link to it. I haven't checked this. I'd read the ASPCA's terms of use page and, if it's unclear, ask them in writing. Until then, the app only links.",
+            "Ask's \"check the soil?\" is right. One warning: show \"not listed\" as \"not in the ASPCA list, check the exact name.\" Never use a green tick or the word \"safe.\" Absence from an incomplete list is not safety."
+          ],
+          "who": [
+            "Ask",
+            "Steward",
+            "Ask",
+            "Ask",
+            "Steward",
+            "Master"
+          ],
+          "text": "I like this because the screen nearly draws itself. I picture a grid of plant cards, each with its own photo. A perky leaf means happy, and a droopy leaf means thirsty. The eye would land on whichever plant is drooping most, which is exactly what you'd want it to find. One thing worth thinking about is that people forget to open apps, so the reminder that pops up on the phone matters more than the picture. The pictures are what make people love it, but the nudge is what keeps the plants alive. When you picture a plant getting thirsty, does the app work that out from the kind of plant, or does the person tell it each time they water?\nWhichever way Ask goes, the app can't guess watering intervals from species without a cited source. A wrong default can drown a plant. Toxicity to cats and dogs needs the same sourcing, because that warning can't be wrong.\nThe Steward is right to ask. Checking it now.\nThe Steward is right on both counts, and I'd change my design because of it. Watering: I read search summaries only, not the full pages. They agree that no species has one fixed interval. Light, pot size, season and the potting mix all change how fast soil dries. UConn Extension and a UC Master Gardener page both say this. So the app shouldn't guess a date from the species. I'd use the person's own watering taps to learn a rhythm, and I'd have the reminder ask \"check the soil?\" rather than \"water now.\" Pet safety: The ASPCA keeps a searchable plant list for dogs and cats. It says the list isn't complete and that you should check the exact plant name. That means the app could link to the ASPCA entry for a plant, and it should say \"not listed\" when a plant isn't there. Not settled: I couldn't open the UConn PDF itself. I also haven't checked how often the ASPCA updates its list, or whether the app may reuse its data and not just link to it. Sources: - aspca.org - soiltesting-cahnr.media.uconn.edu - ccfruitandnuts.ucanr.edu\nAsk hasn't settled one claim: whether the app may show the ASPCA's pet-safety information, or only link to it. I haven't checked this. I'd read the ASPCA's terms of use page and, if it's unclear, ask them in writing. Until then, the app only links.\nAsk's \"check the soil?\" is right. One warning: show \"not listed\" as \"not in the ASPCA list, check the exact name.\" Never use a green tick or the word \"safe.\" Absence from an incomplete list is not safety.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Ask is answering… | Ask is seeing who has something to add… | Steward is writing… | Ask is searching the web… | Steward is checking the claims… | Master is writing…",
+          "seconds": 55
+        },
+        {
+          "want": "talk",
+          "say": "Do you think that would be hard? I keep going back and forth on what it should look like.",
+          "replies": [
+            "Less hard than you'd expect. A plant app is a friendly first project: a list of plants, a photo for each, and a reminder. Going back and forth on the look is normal, and it usually settles once you see something real on a screen. What I like is that the droopy-leaf idea explains itself without any words. One thing worth thinking about is that a simple first version, with just photos and a nudge, will teach you more than a fancy one. I haven't seen your sketches, so I can't say which look suits it. What are the two looks you keep switching between? NOT SEEN sketches",
+            "Before I judge \"hard\": this message never said plant app. Is that the project? If it's diagnosing sick leaves from photos, I'd want a pet-toxicity warning in it, since a wrong \"safe\" is costly."
+          ],
+          "who": [
+            "Overseer",
+            "Steward"
+          ],
+          "text": "Less hard than you'd expect. A plant app is a friendly first project: a list of plants, a photo for each, and a reminder. Going back and forth on the look is normal, and it usually settles once you see something real on a screen. What I like is that the droopy-leaf idea explains itself without any words. One thing worth thinking about is that a simple first version, with just photos and a nudge, will teach you more than a fancy one. I haven't seen your sketches, so I can't say which look suits it. What are the two looks you keep switching between? NOT SEEN sketches\nBefore I judge \"hard\": this message never said plant app. Is that the project? If it's diagnosing sick leaves from photos, I'd want a pet-toxicity warning in it, since a wrong \"safe\" is costly.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Overseer is answering… | Overseer is seeing who has something to add… | Steward is writing…",
+          "seconds": 20
+        },
+        {
+          "want": "build",
+          "say": "Okay, I think I'm ready now. Let's start building it!",
+          "replies": [
+            "Before we build, 3 questions: 1. What should it run on: phones (iPhone, Android, or both), a computer (Mac or Windows), or a website anyone can open? 2. How does a plant's thirst get set: a watering interval the person enters per plant, or something the app works out from the plant type? 3. Where does each plant's picture come from, a photo the person takes or a picture the app picks from a list? Answer in one message, or say \"go\" to build it as it is written."
+          ],
+          "who": [
+            "Overseer"
+          ],
+          "text": "Before we build, 3 questions: 1. What should it run on: phones (iPhone, Android, or both), a computer (Mac or Windows), or a website anyone can open? 2. How does a plant's thirst get set: a watering interval the person enters per plant, or something the app works out from the plant type? 3. Where does each plant's picture come from, a photo the person takes or a picture the app picks from a list? Answer in one message, or say \"go\" to build it as it is written.",
+          "worked": true,
+          "cards": 0,
+          "busy": "Overseer is reading the request… | Steward is weighing the questions… | Overseer is keeping what it learned about you…",
+          "seconds": 23
+        }
+      ]
+    },
+    {
+      "at": "2026-11-16T14:49:00.984Z",
+      "label": "claude-sonnet-5-5",
+      "id": "amateur-developer-2",
+      "mode": "developer",
+      "level": "new",
+      "held": true,
+      "verdict": {
+        "talks": true,
+        "platform": true,
+        "one": true,
+        "plain": true
+      },
+      "pass": true,
+      "turns": [
+        {
+          "want": "talk",
+          "say": "So I'm a total beginner, but my book club keeps losing track of who's reading what. Could there be an app for that?",
+          "replies": [
+            "Yes, and it's a good one. A shared list of who's reading what, and how far along they are, would save the group a lot of scrolling back through messages. What I like is that it's small and has one clear job. One thing worth thinking about is that it only helps if everyone actually updates it, so the simpler it is to use, the better it will work. Do you picture this on phones (iPhone, Android, or both), on a computer, or as a website?",
+            "Cover thumbnails make it feel like a bookshelf, not a spreadsheet. Next to each name, put one big progress bar they can drag with a thumb. That's the whole update. I haven't drawn anything yet."
+          ],
+          "who": [
+            "Overseer",
+            "Ask"
+          ],
+          "text": "Yes, and it's a good one. A shared list of who's reading what, and how far along they are, would save the group a lot of scrolling back through messages. What I like is that it's small and has one clear job. One thing worth thinking about is that it only helps if everyone actually updates it, so the simpler it is to use, the better it will work. Do you picture this on phones (iPhone, Android, or both), on a computer, or as a website?\nCover thumbnails make it feel like a bookshelf, not a spreadsheet. Next to each name, put one big progress bar they can drag with a thumb. That's the whole update. I haven't drawn anything yet.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Overseer is answering… | Overseer is seeing who has something to add… | Ask is writing… | Overseer is keeping what it learned about you…",
+          "seconds": 24
+        },
+        {
+          "want": "talk",
+          "say": "Something where everyone sees the book of the month, votes on the next one, and leaves little notes. I'm just thinking out loud.",
+          "replies": [
+            "Picture the home screen: the book of the month, big cover on top, with a \"Vote next\" card peeking in below it. Sticky-note-style comments feel right for the little notes. One thing worth thinking about is that three jobs on one screen can crowd each other, so the cover should win. I haven't drawn anything yet. Do you picture the notes attached to the book, or to each person?",
+            "Before anyone builds votes, we need three rules written down: one vote per person, who counts as a member, and when voting closes. Without them, a tie or a double vote becomes an argument, and nothing exists to check the result against."
+          ],
+          "who": [
+            "Ask",
+            "Steward"
+          ],
+          "text": "Picture the home screen: the book of the month, big cover on top, with a \"Vote next\" card peeking in below it. Sticky-note-style comments feel right for the little notes. One thing worth thinking about is that three jobs on one screen can crowd each other, so the cover should win. I haven't drawn anything yet. Do you picture the notes attached to the book, or to each person?\nBefore anyone builds votes, we need three rules written down: one vote per person, who counts as a member, and when voting closes. Without them, a tie or a double vote becomes an argument, and nothing exists to check the result against.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Ask is answering… | Ask is seeing who has something to add… | Steward is writing… | Overseer is keeping what it learned about you…",
+          "seconds": 25
+        },
+        {
+          "want": "talk",
+          "say": "Is that the kind of thing you could help with someday?",
+          "replies": [
+            "Yes, this is the kind of thing I can help with, whenever you're ready. I like that the idea is already taking shape: a bookshelf feel, a book of the month, votes, little notes. One thing worth thinking about is that the voting rules Steward mentioned are really your club's own habits, so they're yours to decide. When you picture your club actually using this, who's the person most likely to forget to update it?",
+            "Picture the shelf first: a row of coloured spines, with the book of the month pulled forward and showing its cover. Comments sit as small paper notes tucked beside it. I haven't built or tested any of this. It's only how I'd start."
+          ],
+          "who": [
+            "Overseer",
+            "Ask"
+          ],
+          "text": "Yes, this is the kind of thing I can help with, whenever you're ready. I like that the idea is already taking shape: a bookshelf feel, a book of the month, votes, little notes. One thing worth thinking about is that the voting rules Steward mentioned are really your club's own habits, so they're yours to decide. When you picture your club actually using this, who's the person most likely to forget to update it?\nPicture the shelf first: a row of coloured spines, with the book of the month pulled forward and showing its cover. Comments sit as small paper notes tucked beside it. I haven't built or tested any of this. It's only how I'd start.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Overseer is answering… | Overseer is seeing who has something to add… | Ask is writing…",
+          "seconds": 17
+        }
+      ]
+    },
+    {
+      "at": "2026-11-16T14:51:23.473Z",
+      "label": "claude-sonnet-5-5",
+      "id": "amateur-simple-2",
+      "mode": "simple",
+      "level": "new",
+      "held": true,
+      "verdict": {
+        "talks": true,
+        "platform": true,
+        "one": true,
+        "plain": true
+      },
+      "pass": true,
+      "turns": [
+        {
+          "want": "talk",
+          "say": "Build me an app for my bakery? I'm not sure yet what it should do, maybe orders, maybe just the menu. What do you all think?",
+          "replies": [
+            "Honestly, starting small is a good instinct. A bakery app can be as simple as a pretty menu with hours and a map, and it can grow into orders later without a redo. Orders are the part to think about. They mean taking payments, tracking pickups, and someone checking the queue every day. A menu people actually enjoy opening is a solid first step. Should this run on phones (iPhone, Android, or both), on a computer, or as a website?",
+            "Just check the rules where you are before listing anything. Allergen labelling on the menu and card-fee small print for online payments both vary by place, so confirm them first. Sam's \"start with the menu\" is the safer route.",
+            "A menu lives or dies on its photos. Sam's menu-first plan works best with bright, close-up shots of your real bakes, like a croissant so flaky you can almost hear it crack. Photos will sell more than any feature.",
+            "Good catch, Robin. Let me look that up properly and get you an updated answer.",
+            "Yes, Robin is right: allergen rules and card-fee rules both depend on where you are, but neither changes Sam's menu-first plan. Menu first keeps you out of most of it. If you add online orders later, the UK Food Standards Agency says allergen information must be available before the customer buys and again when the food arrives. Card surcharges are limited by state law and card-brand rules, and disclosure is required wherever they're allowed. Sources: food.gov.uk cieh.org staxpayments.com elavon.com I couldn't settle your exact local rules, because I don't know your country or state.",
+            "Just check which country you're in before relying on the UK Food Standards Agency line. It only applies in the UK, and the card-surcharge point reads like US rules. Ask where the bakery is, then read that country's own food-safety authority page, not a general guide."
+          ],
+          "who": [
+            "Sam",
+            "Robin",
+            "Jamie",
+            "Sam",
+            "Alex",
+            "Robin"
+          ],
+          "text": "Honestly, starting small is a good instinct. A bakery app can be as simple as a pretty menu with hours and a map, and it can grow into orders later without a redo. Orders are the part to think about. They mean taking payments, tracking pickups, and someone checking the queue every day. A menu people actually enjoy opening is a solid first step. Should this run on phones (iPhone, Android, or both), on a computer, or as a website?\nJust check the rules where you are before listing anything. Allergen labelling on the menu and card-fee small print for online payments both vary by place, so confirm them first. Sam's \"start with the menu\" is the safer route.\nA menu lives or dies on its photos. Sam's menu-first plan works best with bright, close-up shots of your real bakes, like a croissant so flaky you can almost hear it crack. Photos will sell more than any feature.\nGood catch, Robin. Let me look that up properly and get you an updated answer.\nYes, Robin is right: allergen rules and card-fee rules both depend on where you are, but neither changes Sam's menu-first plan. Menu first keeps you out of most of it. If you add online orders later, the UK Food Standards Agency says allergen information must be available before the customer buys and again when the food arrives. Card surcharges are limited by state law and card-brand rules, and disclosure is required wherever they're allowed. Sources: food.gov.uk cieh.org staxpayments.com elavon.com I couldn't settle your exact local rules, because I don't know your country or state.\nJust check which country you're in before relying on the UK Food Standards Agency line. It only applies in the UK, and the card-surcharge point reads like US rules. Ask where the bakery is, then read that country's own food-safety authority page, not a general guide.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Sam is answering… | Sam is seeing who has something to add… | Robin is writing… | Jamie is writing… | Alex is searching the web… | Alex is drawing it… | Robin is checking the claims… | Alex is seeing who has something to add… | Sam is writing… | Sam is getting to know you…",
+          "seconds": 63
+        },
+        {
+          "want": "talk",
+          "say": "I don't really know how apps work, I just know my customers keep calling to ask what's fresh today.",
+          "replies": [
+            "That's a great clue, because it tells us what the app is for. You don't need to know how apps work. A simple \"fresh today\" list people can check on their phone would answer those calls before they happen. One thing worth thinking about is that a list only helps if it's right. It has to be very quick to update each morning. If it goes stale, the calls come right back. Who would be updating it each day, you or someone at the counter?",
+            "Just check what \"fresh today\" means to you: if a customer reads it as made this morning, only list items that really are. And if allergens or sell-by dates matter for any item, show them too.",
+            "Start tiny: snap one photo of the counter each morning and post it, or a short list, to a free shared page or a group text. Skip building an app until that habit sticks.",
+            "Good catch, Robin. Let me look that up properly and get you an updated answer.",
+            "Yes, Robin's right: list only what's truly made that morning under \"fresh today\", and show allergens on anything that has them. Rules on \"fresh\" claims are mostly general advertising law, and day-old bread is usually fine if it's clearly labelled. UK complaints about \"baked fresh daily\" signs targeted re-baked products. In Wisconsin, clearly marked \"Day Old\" bread is exempt from labelling. Sell day-olds under their own heading, so \"fresh today\" stays honest. In the UK, the FSA says loose bakery items need allergen information. It can sit on a board or ticket, or staff can give it if a notice says to ask. Sources: sustainweb.org docs.legis.wisconsin.gov food.gov.uk I couldn't settle your own local rules, since I don't know where your bakery is. Rules on \"fresh\" claims are mostly general advertising law. From memory Check this",
+            "Just check where the bakery is, because the sources mix UK and Wisconsin rules, and Alex's \"fresh\" claims come from news and guidance, not the customer's own rules. Ask the country or state, then read that local food authority's page on bakery labelling and \"fresh\" claims.",
+            "Label them plainly: \"Fresh today\" for this morning's bakes, \"Day-old, half price\" for the rest. Customers who see the day-olds called what they are will trust the \"fresh\" tag more."
+          ],
+          "who": [
+            "Sam",
+            "Robin",
+            "Alex",
+            "Sam",
+            "Alex",
+            "Robin",
+            "Pat"
+          ],
+          "text": "That's a great clue, because it tells us what the app is for. You don't need to know how apps work. A simple \"fresh today\" list people can check on their phone would answer those calls before they happen. One thing worth thinking about is that a list only helps if it's right. It has to be very quick to update each morning. If it goes stale, the calls come right back. Who would be updating it each day, you or someone at the counter?\nJust check what \"fresh today\" means to you: if a customer reads it as made this morning, only list items that really are. And if allergens or sell-by dates matter for any item, show them too.\nStart tiny: snap one photo of the counter each morning and post it, or a short list, to a free shared page or a group text. Skip building an app until that habit sticks.\nGood catch, Robin. Let me look that up properly and get you an updated answer.\nYes, Robin's right: list only what's truly made that morning under \"fresh today\", and show allergens on anything that has them. Rules on \"fresh\" claims are mostly general advertising law, and day-old bread is usually fine if it's clearly labelled. UK complaints about \"baked fresh daily\" signs targeted re-baked products. In Wisconsin, clearly marked \"Day Old\" bread is exempt from labelling. Sell day-olds under their own heading, so \"fresh today\" stays honest. In the UK, the FSA says loose bakery items need allergen information. It can sit on a board or ticket, or staff can give it if a notice says to ask. Sources: sustainweb.org docs.legis.wisconsin.gov food.gov.uk I couldn't settle your own local rules, since I don't know where your bakery is. Rules on \"fresh\" claims are mostly general advertising law. From memory Check this\nJust check where the bakery is, because the sources mix UK and Wisconsin rules, and Alex's \"fresh\" claims come from news and guidance, not the customer's own rules. Ask the country or state, then read that local food authority's page on bakery labelling and \"fresh\" claims.\nLabel them plainly: \"Fresh today\" for this morning's bakes, \"Day-old, half price\" for the rest. Customers who see the day-olds called what they are will trust the \"fresh\" tag more.",
+          "worked": false,
+          "cards": 0,
+          "busy": "Sam is answering… | Sam is seeing who has something to add… | Robin is writing… | Alex is writing… | Alex is searching the web… | Alex is drawing it… | Robin is checking the claims… | Alex is seeing who has something to add… | Pat is writing… | Sam is getting to know you…",
+          "seconds": 77
+        }
+      ]
+    },
+    {
+      "at": "2026-11-16T14:52:11.572Z",
+      "label": "claude-sonnet-5-5",
+      "id": "engineer-named",
+      "mode": "developer",
+      "level": "seasoned",
+      "held": false,
+      "verdict": {
+        "one": true,
+        "builds": true,
+        "no-redundant": true
+      },
+      "pass": true,
+      "turns": [
+        {
+          "want": "build",
+          "say": "I'm a mobile engineer. Build a habit tracker in React Native with Expo for iOS and Android: a daily streak per habit, stored locally with AsyncStorage.",
+          "replies": [
+            "The request says enough to build from.",
+            "The plan, from your request: 6 requirements. The work goes round (build, prove, judge) until each is met, 3 rounds at most, and nothing lands by itself while one is not. What is not met goes round again FILES App.tsx src/storage.ts src/streak.ts package.json CASES first completion gives streak 1 second tap on the same day leaves streak unchanged completing on consecutive days gives streak 2 a skipped day resets streak to 0 data survives an app restart RISK The day-boundary streak calculation (timezone and midnight) is the step most likely to go wrong, and it is undone by reverting src/streak.ts to its last passing version. Waiting for a workspace. Nothing is built until there is a folder or a repository to build it in.",
+            "First, I read it as a local-first app: one habit list in AsyncStorage, streak computed from completion dates, not stored. 1. Steward writes the judge: a headless test on `streak(dates, today)` that fails on current code (consecutive days, missed-day reset, same-day idempotence). 2. Operations builds the Expo app against it. Ask designs the list and check-in screen. 3. I read the measure live. Measure: streak correctness after an app restart, 6 of 6 judge cases green, target 100%.",
+            "First judge: `streak([\"2026-11-14\",\"2026-11-15\",\"2026-11-16\"], \"2026-11-16\")` must return 3. It's the smallest case that separates counting from not counting, and I'd trace it by hand, one date at a time. It has to fail first because `streak` doesn't exist yet. A judge that passes with no implementation pins nothing. Open question: the measure says \"after restart\", but this judge never touches AsyncStorage. How do we know persistence is covered?",
+            "Run the judge first. It should fail on a missing `streak` export, not on a bad import. Then build `src/streak.ts`, pure over `YYYY-MM-DD` strings with no `Date` parsing, so timezone can't skew it. Storage goes in `src/store.ts`, a thin wrapper over AsyncStorage. I'd stub it in-memory to cover Steward's restart question. I haven't built or run anything yet.",
+            "Verdict: not landable yet, and nothing has been built or run. Before I land I need: - A receipt with 6 of 6 cases red at base and green after, on the same judge and the same bytes. - A restart case that writes through `src/store.ts`, rebuilds the module, reads back, and asserts the streak. Use the official `async-storage-mock`, not a hand-rolled stub. - A repo. This directory isn't git, so \"current head\" means nothing here. I'll also check every `streak` caller and the stored-date schema.",
+            "No workspace is connected. Choose a Git folder (a plain one is made a repository), or connect a repository on the Workspace page. Then I carry on with \"I'm a mobile engineer. Build a habit tracker in React Native with Expo for iOS and Android\"."
+          ],
+          "who": [
+            "Overseer",
+            "Overseer",
+            "Overseer",
+            "Steward",
+            "Operations",
+            "Master",
+            "Overseer"
+          ],
+          "text": "The request says enough to build from.\nThe plan, from your request: 6 requirements. The work goes round (build, prove, judge) until each is met, 3 rounds at most, and nothing lands by itself while one is not. What is not met goes round again FILES App.tsx src/storage.ts src/streak.ts package.json CASES first completion gives streak 1 second tap on the same day leaves streak unchanged completing on consecutive days gives streak 2 a skipped day resets streak to 0 data survives an app restart RISK The day-boundary streak calculation (timezone and midnight) is the step most likely to go wrong, and it is undone by reverting src/streak.ts to its last passing version. Waiting for a workspace. Nothing is built until there is a folder or a repository to build it in.\nFirst, I read it as a local-first app: one habit list in AsyncStorage, streak computed from completion dates, not stored. 1. Steward writes the judge: a headless test on `streak(dates, today)` that fails on current code (consecutive days, missed-day reset, same-day idempotence). 2. Operations builds the Expo app against it. Ask designs the list and check-in screen. 3. I read the measure live. Measure: streak correctness after an app restart, 6 of 6 judge cases green, target 100%.\nFirst judge: `streak([\"2026-11-14\",\"2026-11-15\",\"2026-11-16\"], \"2026-11-16\")` must return 3. It's the smallest case that separates counting from not counting, and I'd trace it by hand, one date at a time. It has to fail first because `streak` doesn't exist yet. A judge that passes with no implementation pins nothing. Open question: the measure says \"after restart\", but this judge never touches AsyncStorage. How do we know persistence is covered?\nRun the judge first. It should fail on a missing `streak` export, not on a bad import. Then build `src/streak.ts`, pure over `YYYY-MM-DD` strings with no `Date` parsing, so timezone can't skew it. Storage goes in `src/store.ts`, a thin wrapper over AsyncStorage. I'd stub it in-memory to cover Steward's restart question. I haven't built or run anything yet.\nVerdict: not landable yet, and nothing has been built or run. Before I land I need: - A receipt with 6 of 6 cases red at base and green after, on the same judge and the same bytes. - A restart case that writes through `src/store.ts`, rebuilds the module, reads back, and asserts the streak. Use the official `async-storage-mock`, not a hand-rolled stub. - A repo. This directory isn't git, so \"current head\" means nothing here. I'll also check every `streak` caller and the stored-date schema.\nNo workspace is connected. Choose a Git folder (a plain one is made a repository), or connect a repository on the Workspace page. Then I carry on with \"I'm a mobile engineer. Build a habit tracker in React Native with Expo for iOS and Android\".",
+          "worked": true,
+          "cards": 1,
+          "busy": "Overseer is reading the request… | Overseer is reading what it must do… | Overseer is planning… | Steward is writing the judge… | Operations is working out the build… | Master is weighing the proof… | Overseer is keeping what it learned about you…",
+          "seconds": 46
+        }
+      ]
+    },
+    {
+      "at": "2026-11-16T14:52:26.809Z",
+      "label": "claude-sonnet-5-5",
+      "id": "engineer-unnamed",
+      "mode": "developer",
+      "level": "seasoned",
+      "held": false,
+      "verdict": {
+        "one": true,
+        "builds": true,
+        "platform": true
+      },
+      "pass": true,
+      "turns": [
+        {
+          "want": "build",
+          "say": "Build a habit tracker app: a daily streak per habit, stored locally, with a reminder notification at 8pm.",
+          "replies": [
+            "Before we build, one question: 1. What should it run on: phones (iPhone, Android, or both), a computer (Mac or Windows), or a website anyone can open? Answer in one message, or say \"go\" to build it as it is written."
+          ],
+          "who": [
+            "Overseer"
+          ],
+          "text": "Before we build, one question: 1. What should it run on: phones (iPhone, Android, or both), a computer (Mac or Windows), or a website anyone can open? Answer in one message, or say \"go\" to build it as it is written.",
+          "worked": true,
+          "cards": 0,
+          "busy": "Overseer is reading the request… | Steward is weighing the questions…",
+          "seconds": 13
+        }
+      ]
+    }
+  ]
+}

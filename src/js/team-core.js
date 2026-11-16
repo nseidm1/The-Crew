@@ -18,9 +18,15 @@ import { forSharing } from './team/share.js';
 import { extrasOf } from './team/extras.js';
 import {
   EXACT,
+  GO_AHEAD,
+  NEW_THING,
   apartOn,
+  asksPlatform,
   destroysIn,
+  discussNote,
+  discussing,
   installManners,
+  PLATFORM,
   unseenIn,
   withoutRepeats,
   withoutSignOff,
@@ -958,6 +964,31 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
           !/\?\s*$/.test(body)
         )
           route = { ...route, kind: 'build' };
+        // AN IDEA BEING TALKED THROUGH IS TALKED THROUGH (team/manners.js: discussing). While it is, every message of theirs is kept,
+        // so that when they say to start, the team builds what was talked about and not the words "let's build it".
+        const talk = ctx.state.discuss && Date.now() - ctx.state.discuss.at < 45 * 60000 ? ctx.state.discuss : null;
+        const level = isSimple() ? 'new' : (ctx.state.dev && ctx.state.dev.level) || '';
+        let discuss = false;
+        let ask = body; // what a round is asked to build
+        if (
+          !named.length &&
+          ['build', 'question', 'talk'].includes(route.kind) &&
+          discussing(body, { level, simple: isSimple(), ongoing: !!talk && route.kind !== 'talk' })
+        ) {
+          discuss = true;
+          ctx.state.discuss = {
+            at: Date.now(),
+            said: [...((talk && talk.said) || []), body.slice(0, 600)].slice(-8),
+            askedPlatform: !!(talk && talk.askedPlatform),
+            named: !!(talk && talk.named) || PLATFORM.test(body),
+          };
+          route = { ...route, kind: 'question' };
+        } else if (talk && route.kind === 'build' && GO_AHEAD.test(body) && !NEW_THING.test(body)) {
+          // "let's build it": the it is what was talked through, in their own words (shown as the work's title, so nothing of ours is
+          // added to it), then what they said to start
+          ask = talk.said.join(' ') + ' (' + body + ')';
+          ctx.state.discuss = null;
+        } else if (route.kind === 'build') ctx.state.discuss = null;
         // AN EXACT FACT GETS A SECOND OPINION ON A LOCAL MODEL (Simple): see EXACT and apartOn in team/manners.js. The answer is given
         // from memory as before; the fact-checker is asked for the bare fact; and only if the two do not agree is it looked up.
         // Not when they are in a hurry, not when they spoke to one of the five by name, and not when there is nothing to look with.
@@ -976,7 +1007,7 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
         const visionBefore = ctx.visionShown;
         try {
           if (route.kind === 'draw' || route.kind === 'film') return await ctx.make(route.kind, body);
-          if (route.kind === 'build' && !named.length && !quoted) return await ctx.round(body.slice(0, 2400), opts); // the whole request: the team plans and builds from every word of it (it was once cut to 90 characters, and the cut was what got built)
+          if (route.kind === 'build' && !named.length && !quoted) return await ctx.round(ask.slice(0, 2400), opts); // the whole request: the team plans and builds from every word of it (it was once cut to 90 characters, and the cut was what got built)
           if (route.kind === 'research') return await ctx.research(body, who, opts);
           if (route.kind === 'qa') return await ctx.look(body, route, who, named.length > 0, opts);
           const lead =
@@ -995,21 +1026,29 @@ export function createTeamCore({ persist = true, speed = 1, demo = false } = {})
                 : '') +
             ': "' +
             body +
-            '". Answer them.';
+            '". Answer them.' +
+            (discuss
+              ? discussNote({
+                  askPlatform: !ctx.state.discuss.named && !ctx.state.discuss.askedPlatform,
+                  simple: isSimple(),
+                })
+              : '');
           let said = '';
           for (const id of who)
             said = await speak(id, lead, {
-              mode: route.kind === 'talk' ? 'talk' : 'answer',
+              // (a talk about an idea takes the shape the note gives it: not "the answer first, never a question back")
+              mode: route.kind === 'talk' || discuss ? 'talk' : 'answer',
               customer: body,
               about: body,
               lang: opts.lang,
-              max: route.kind === 'talk' ? 140 : 320,
+              max: route.kind === 'talk' ? 140 : discuss ? 240 : 320,
               // IN SIMPLE AN ANSWER IS NOT SHOWN WHILE IT IS WRITTEN: a card may be the whole of the reply, and words that appear and
               // are then replaced by a card are two replies where there should be one. The words are shown, whole, only when it is
               // settled that no card stands for them.
-              veil: isSimple() && route.kind !== 'talk',
+              veil: isSimple() && route.kind !== 'talk' && !discuss,
             });
-          const carded = isSimple() && route.kind !== 'talk' && cardWorthy(said) ? who[who.length - 1] : '';
+          if (discuss && asksPlatform(said)) ctx.state.discuss.askedPlatform = true;
+          const carded = isSimple() && route.kind !== 'talk' && !discuss && cardWorthy(said) ? who[who.length - 1] : '';
           const unveil = () => {
             let any = false;
             for (const msg of ctx.state.chat) if (msg.veil && !msg.live) any = delete msg.veil;

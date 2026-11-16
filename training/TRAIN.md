@@ -33,6 +33,7 @@ routing, its checks and what it shows.
 | `voices.mjs` | Whether five seats on one model are five voices | The local model; Claude Code when a voice was changed |
 | `knows.mjs`, `simple.mjs`, `soul.mjs`, `attached.mjs` | Memory, everyday requests, Soul and Hindsight, an attached ticket | When the round touched what they measure |
 | `plan.mjs`, `train.mjs` | The plan and the loop; Developer tickets against a hidden check | When the round touched building or proving |
+| `discuss.mjs` | Whether the team talks an idea through with someone who is thinking it over, and builds only when they say to start; asks what an app should run on (phones, a computer, the web) where nobody said; an engineer who asks outright is still built for | Both modes, when the round touched routing, the round's questions or how the team reads who it is talking to |
 
 ## Rules a round keeps
 
@@ -69,6 +70,8 @@ node training/substance.mjs --mode developer
 node training/manners.mjs --mode simple --setup '{"model":"nemotron35-30b"}'
 node training/manners.mjs --mode developer --setup '{"model":"nemotron35-30b"}'
 node training/voices.mjs
+node training/discuss.mjs --check                                    # its readers, against replies whose verdict is known
+node training/discuss.mjs --setup '{"engine":"claude"}' --claude-model claude-sonnet-5-5 --spend-claude
 node training/substance.mjs --mode simple --setup '{"engine":"claude"}' --claude-model claude-sonnet-5-5 --spend-claude
 node training/research/arxiv.mjs .work/research.json 'all:"prompt echoing" AND all:"small language models"'
 ```

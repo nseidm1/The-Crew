@@ -446,3 +446,54 @@ export function installManners(ctx) {
 
   Object.assign(ctx, { register, mannerNote, shapeNote, saidSoFar });
 }
+
+// ---- AN IDEA BEING TALKED THROUGH IS NOT WORK TO DO (found with a real person, 2026-11-16: someone who had never built anything was
+// talking an app idea over, and the team went straight into planning to build it when she wanted to keep talking). Whether to start
+// depends on who is talking as much as on what they said. An engineer who writes "build a habit tracker in Expo" wants it built. Someone
+// new who writes "make an app that waters my plants" is very often describing an idea, and wants to hear what the team thinks of it
+// first. So: an idea, said as one ("I have an idea", "what do you think?", "thinking out loud"), is talked through, whoever says it;
+// and from someone new (anyone in Simple, and in Developer anyone the team has not seen use the words of the trade) a NEW app, site or
+// game is talked through too, until they say to start. Saying to start ("let's build it", "I'm ready") always starts.
+export const IDEA =
+  /\b(an? (app|website|site|game) idea|an? idea for an?\b|i('ve| have) (got )?an idea|i('ve| have) been (thinking|dreaming|toying)|(dreaming|dreamed|dreamt) up|thinking (about|of) (making|building|an?)|thinking out loud|talk (it|this|that|them)? ?(through|over)|chat about|what do you (all |guys )?think|would (people|anyone|folks) (actually )?(use|want|like)|could there be an? (app|website|site)|is (that|this|it) (possible|doable|realistic|hard)|brainstorm|not sure (yet )?what (it|that) should|i('m| am) (just )?(thinking|wondering))\b/i;
+export const GO_AHEAD =
+  /\b(let'?s (start|go|do (it|this|that)|build (it|this|that)|make (it|this|that)|begin|get (started|going)|start building)|start (building|making|on it|work)|build it|go ahead|i('m| am) ready|ready (now|to (start|build|go))|get to work|make it happen|you can (start|begin|build))\b/i;
+// a new thing to make: an app, a site, a game (not a change to something that exists: "fix the login on my app" is not one)
+export const NEW_THING =
+  /\b((make|build|create|design|start|develop|code|write) (me |us )?(an?|my|our|a new|a little|a simple) [\w' -]{0,30}\b(app|application|website|site|game)|(an?|my|our) (new |little |simple |small )?(app|application|website|site|game) (that|where|for|which|to|idea)|idea for an? [\w' -]{0,20}\b(app|website|site|game))\b/i;
+// what it would run on, named
+export const PLATFORM =
+  /\b(i ?phones?|ios|android|ipads?|tablets?|phones?|mobile|computers?|desktops?|laptops?|mac(book|os)?|windows|linux|web ?sites?|web ?apps?|browsers?|on the web|react native|expo|flutter|swift ?ui|kotlin)\b/i;
+export const asksPlatform = (text) =>
+  String(text || '')
+    .split(/(?<=[.!?])\s+|\n+/)
+    .some((x) => /\?\s*$/.test(x) && PLATFORM.test(x));
+// discussing(text, { level, simple, ongoing }): is this message part of talking an idea through, not a request to start?
+// level: 'new' | 'seasoned' | '' (Developer's reading of who they are); ongoing: a talk about an idea is already under way
+// Who they are decides how much it takes: someone who said they are new (or anyone in Simple) is talked with about any new app until
+// they say to start; someone not read yet is talked with only where they hedge or ask ("I want to make...", "could you...?"), because
+// an outright "Build a habit tracker: a streak per habit, stored locally" is a request, whoever writes it (measured: talking that over
+// in place of building it was the one flip of the first fix); an engineer, only when they say it is an idea.
+export const HEDGES =
+  /\?|\b(i('d| would)? (want|like|love) to|i wanna|can you|could you|would you|would it|maybe|not sure|thinking|wondering|someday|perhaps|kind of|sort of)\b/i;
+export function discussing(text, { level = '', simple = false, ongoing = false } = {}) {
+  const t = String(text || '');
+  if (GO_AHEAD.test(t)) return false;
+  if (IDEA.test(t)) return true;
+  if (simple || level === 'new') return NEW_THING.test(t) || ongoing;
+  if (level === 'seasoned') return false;
+  return (NEW_THING.test(t) && HEDGES.test(t)) || (ongoing && !NEW_THING.test(t));
+}
+// what the seat is told, last, while an idea is being talked through. askPlatform: nobody has said what it should run on, and the
+// team has not asked yet
+export const discussNote = ({ askPlatform = false, simple = false } = {}) =>
+  '\n\nTHEY ARE THINKING AN IDEA THROUGH WITH YOU. THEY HAVE NOT ASKED YOU TO START. Talk it over the way a friend who builds apps would: what you like about it, and one thing worth thinking about, said as a statement and not as a question, in ' +
+  (simple ? 'everyday words' : 'plain words, none of the trade unless they used it first') +
+  '. Do not plan it, list steps, say who on the team would do what, or offer to start building: that waits until they say they are ready. Ask ONE question in the whole reply, as its last sentence, and no other' +
+  (askPlatform
+    ? ', and since nobody has said what it should run on, make it that one: on phones (iPhone, Android, or both), on a computer, or as a website?'
+    : ' that helps them shape the idea.') +
+  ' At most 110 words.';
+// the question about what it runs on, asked before building where nothing says
+export const PLATFORM_ASK =
+  'What should it run on: phones (iPhone, Android, or both), a computer (Mac or Windows), or a website anyone can open?';

@@ -409,6 +409,96 @@ check(
     asks.slice(-2).map((x) => x.ask.slice(-160)),
   );
 }
+
+// ---- AN IDEA TALKED THROUGH, NOT RUSHED INTO A BUILD (found with a real person, 2026-11-16; training/discuss.mjs measures it on a
+// real team). Someone new describing an app is talked with, asked what it should run on, and built for only when they say to start;
+// an engineer who asks for it outright is built for, and asked what it runs on only where nobody said.
+{
+  const { discussing, discussNote, asksPlatform, NEW_THING, PLATFORM_ASK } =
+    await import('../../src/js/team/manners.js');
+  check(
+    'an idea said as one is talked through whoever says it; a new app from someone new is talked through until they say to start; saying to start always starts; an engineer asking outright is built for; a change to something that exists is not an idea',
+    discussing('I have an idea for an app and wanted to chat about it first.', { level: 'seasoned' }) &&
+      discussing('Make an app that reminds people to water their plants.', { level: 'new' }) &&
+      discussing('I want to make an app where parents can swap clothes.', { simple: true }) &&
+      discussing('Do you think that would be hard?', { level: 'new', ongoing: true }) &&
+      !discussing("Okay, I think I'm ready now. Let's start building it!", { level: 'new', ongoing: true }) &&
+      !discussing('Build a habit tracker in React Native with Expo for iOS and Android.', { level: 'seasoned' }) &&
+      // someone not read yet: an outright request is built for (the flip the first fix made), a hedged one is talked through
+      !discussing('Build a habit tracker app: a daily streak per habit, stored locally, with a reminder at 8pm.', {
+        level: '',
+      }) &&
+      discussing('I want to make an app for my book club, maybe with votes?', { level: '' }) &&
+      !discussing('Fix the login button on my app, it is cut off.', { level: 'new' }) &&
+      NEW_THING.test('Build a habit tracker app: a daily streak per habit') &&
+      !NEW_THING.test('Fix the login button on my app'),
+    null,
+  );
+  check(
+    'what a seat is told while an idea is talked through: talk it over, plan nothing, offer nothing, end with one question, and that one is what it runs on where nobody said',
+    /THEY HAVE NOT ASKED YOU TO START/.test(discussNote({ askPlatform: true })) &&
+      /Do not plan it, list steps, say who on the team would do what, or offer to start building/.test(
+        discussNote({}),
+      ) &&
+      /Ask ONE question in the whole reply, as its last sentence/.test(discussNote({})) &&
+      /iPhone, Android, or both/.test(discussNote({ askPlatform: true })) &&
+      !/iPhone/.test(discussNote({ askPlatform: false })) &&
+      asksPlatform('Lovely idea. Should it be for phones (iPhone and Android) or a website?') &&
+      !asksPlatform('It could work on phones. What would you call it?') &&
+      asksPlatform(PLATFORM_ASK),
+    null,
+  );
+  // on the team itself: someone new in Developer talks an app over, then says to start
+  store.set('familyoffice.mode', 'developer');
+  const asks = [];
+  const posted = [];
+  const core = createTeamCore({ persist: false });
+  core.adopt({ kind: 'claude' });
+  core.useEngine({
+    route: async (t) => ({
+      kind: /let'?s start building|^make an app/i.test(t) ? 'build' : 'question',
+      seat: 'overseer',
+    }),
+    seat: async (o) => {
+      const ask = o.messages[o.messages.length - 1].content;
+      asks.push({ ask, system: o.system || '' });
+      const say = /Could a competent developer build this/.test(ask)
+        ? 'NO\nWho will use it most?'
+        : /KEEP or DROP/.test(ask)
+          ? '1 KEEP'
+          : /Would a small card help|anything LASTING|Would any of them|chiming in/.test(ask)
+            ? 'NONE'
+            : 'Love that idea: plants are easy to forget. Would you want it on phones (iPhone, Android, or both) or on a computer?';
+      if (o.onDelta) o.onDelta(say);
+      return {};
+    },
+  });
+  core.send("I've never built anything before, but I have an idea for an app and wanted to chat about it first.");
+  await wait(1200);
+  core.send('Make an app that reminds people to water their plants, with a little picture of each plant.');
+  await wait(1200);
+  const talkAsks = asks.filter((a) => /THEY ARE THINKING AN IDEA THROUGH/.test(a.ask));
+  const rushed = asks.some((a) => /Could a competent developer build this|Write the requirements/.test(a.ask));
+  core.send("Okay, I think I'm ready now. Let's start building it!");
+  await wait(2000);
+  const weigh = asks.find((a) => /Could a competent developer build this/.test(a.ask));
+  const chat = (core.state || core.getState?.() || {}).chat || [];
+  const before = chat.map((m) => m.text || '').find((t) => /^Before we build/.test(t)) || '';
+  check(
+    'on the team, in Developer: someone who has never built anything describes an app and is talked with, not planned for (no questions-before-building, no requirements), asked once what it runs on; when they say to start, the round is asked to build what was talked about (their words, not "let\'s build it"), and its questions begin with what it should run on',
+    talkAsks.length === 2 &&
+      !rushed &&
+      /make it that one: on phones/.test(talkAsks[0].ask) &&
+      !/make it that one: on phones/.test(talkAsks[1].ask) &&
+      !!weigh &&
+      /Make an app that reminds people to water their plants[\s\S]*\(Okay, I think I'm ready now\. Let's start building it!\)/.test(
+        weigh.ask,
+      ) &&
+      (before === '' || before.indexOf(PLATFORM_ASK) > 0),
+    { talk: talkAsks.length, rushed, weigh: weigh && weigh.ask.slice(0, 200), before },
+  );
+  store.set('familyoffice.mode', 'simple');
+}
 // ---- 5. substance on a local model: an exact fact is looked up, and what was never shown is not described
 {
   store.set('familyoffice.mode', 'simple');

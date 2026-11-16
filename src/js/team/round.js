@@ -3,6 +3,7 @@
 import { isSimple } from '../mode.js';
 import { UI_WORDS, short, unsaid } from './base.js';
 import { SHARED, directFrom, pushFrom } from './source.js';
+import { NEW_THING, PLATFORM, PLATFORM_ASK } from './manners.js';
 
 export function installRound(ctx) {
   async function simpleRound(title, o = {}) {
@@ -223,6 +224,16 @@ export function installRound(ctx) {
         );
         questions = questions.filter((_, i) => keep.has(i + 1));
       }
+      // AN APP HAS TO RUN ON SOMETHING. A new app, site or game, with nothing in the request, the ticket or the project saying what it
+      // runs on, is asked about first: a phone (iPhone, Android), a computer or a website are different builds, and guessing one is the
+      // commonest way to build the wrong thing. Asked by the app itself, so that no model's reading of the request can leave it out;
+      // not where a workspace is connected (the project there already says).
+      const said =
+        title +
+        ' ' +
+        (ctx.state.focus ? (ctx.state.focus.summary || '') + ' ' + (ctx.state.focus.description || '') : '');
+      if (NEW_THING.test(said) && !PLATFORM.test(said) && !(place && place.repo))
+        questions = [PLATFORM_ASK, ...questions.filter((q) => !PLATFORM.test(q))].slice(0, 3);
       const mine = { suggest: adv.offer, recommend: adv.recommend, pushes: adv.pushes, shared, on: branchNow };
       if (!questions.length && !adv.recommend) {
         // nothing to ask, and where it goes is already settled
