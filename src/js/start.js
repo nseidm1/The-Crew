@@ -2815,8 +2815,14 @@ function working() {
       if (!old) return void todo.append(li);
       if (old.className !== li.className) return void old.replaceWith(li);
       if (old.innerHTML === li.innerHTML) return;
+      // (the mark is never taken out of the page: replaceChildren(mark, ...) detached it and put it back, and an element taken out
+      // of the page loses its animation, so the turn started again from the top on every word of a timed reply. Everything but the
+      // mark is removed, and the new words are put after it)
       const mark = old.querySelector(':scope > .mark');
-      old.replaceChildren(mark, ...[...li.childNodes].filter((n) => !(n.classList && n.classList.contains('mark'))));
+      const words = [...li.childNodes].filter((n) => !(n.classList && n.classList.contains('mark')));
+      if (!mark) return void old.replaceChildren(...words);
+      for (const n of [...old.childNodes]) if (n !== mark) n.remove();
+      old.append(...words);
     });
     while (todo.children.length > fresh.length) todo.lastElementChild.remove();
     if (setup.error) {

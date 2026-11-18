@@ -257,8 +257,11 @@ const requests = () => {
   await p.locator('#setup').click();
   await p.locator('.todo li').first().waitFor({ timeout: 8000 });
   let steps = 0;
-  // the mark of the step under way must be the SAME element from one look to the next: drawn anew, its turning starts again each time
+  // the mark of the step under way must be the SAME element from one look to the next: drawn anew, its turning starts again each time.
+  // And its turning must go on: the same element taken out of the page and put back (replaceChildren(mark, ...)) passed the first
+  // check and still started its turn again on every word of a timed reply. So the animation's clock must not go back between looks
   let redrawn = 0;
+  let restarted = 0;
   let looks = 0;
   for (let i = 0; i < 200; i++) {
     steps = Math.max(steps, await p.locator('.todo > li').count());
@@ -269,21 +272,26 @@ const requests = () => {
       const title = li.querySelector('strong').textContent;
       const same = mark.__for === title;
       const was = document.__running;
+      const anim = mark.getAnimations()[0];
+      const t = anim ? Number(anim.currentTime) || 0 : 0;
+      const back = same && typeof mark.__t === 'number' && t < mark.__t;
       mark.__for = title;
+      mark.__t = t;
       document.__running = title;
-      return was === title ? same : null; // only where the same step was under way at the last look
+      return was === title ? { same, back } : null; // only where the same step was under way at the last look
     });
     if (kept !== null) {
       looks++;
-      if (!kept) redrawn++;
+      if (!kept.same) redrawn++;
+      if (kept.back) restarted++;
     }
     if (await p.locator('#meet').count()) break;
     await sleep(150);
   }
   check(
-    'setup: the turning mark of the step under way is never drawn again while that step runs',
-    looks > 0 && redrawn === 0,
-    { looks, redrawn },
+    'setup: the turning mark of the step under way is never drawn again while that step runs, and its turning never starts again',
+    looks > 0 && redrawn === 0 && restarted === 0,
+    { looks, redrawn, restarted },
   );
   const said = (await p.locator('[data-helper-said]').count())
     ? await flat(p.locator('[data-helper-said]').first())
