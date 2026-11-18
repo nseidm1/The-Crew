@@ -1,0 +1,458 @@
+{
+ "label": "llama-bonsai2-27b",
+ "mode": "simple",
+ "setup": {
+  "model": "llama-bonsai2-27b",
+  "mode": "simple"
+ },
+ "at": "2026-11-15T19:45:49.430Z",
+ "minutes": 9,
+ "good": 52,
+ "of": 52,
+ "checks": [
+  {
+   "id": "casual / register: a short casual message gets a short answer (at most 90 words from the first to answer)",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing stiff or form-letter in it",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: it answers before it asks back",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: hello is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody signs off or offers more help",
+   "ok": true
+  },
+  {
+   "id": "casual / register: no emoji for someone who uses none",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: once the chat is going, nobody greets again",
+   "ok": true
+  },
+  {
+   "id": "casual / register: still short (at most 90 words)",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: thanks gets a few words (at most 25, from one person)",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: and no new question or subject",
+   "ok": true
+  },
+  {
+   "id": "casual / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "casual / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "casual / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "formal / register: no slang for someone who writes formally",
+   "ok": true
+  },
+  {
+   "id": "formal / register: their spelling is kept (no American forms)",
+   "ok": true
+  },
+  {
+   "id": "formal / turns: nobody signs off or offers more help",
+   "ok": true
+  },
+  {
+   "id": "formal / register: no emoji",
+   "ok": true
+  },
+  {
+   "id": "formal / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "formal / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "formal / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: a kind word comes first (within the first 30 words)",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: and then it helps with what they asked",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: no jokes and no exclamation marks, from anyone",
+   "ok": true
+  },
+  {
+   "id": "heavy / room: nobody tells them how to feel",
+   "ok": true
+  },
+  {
+   "id": "heavy / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "heavy / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "heavy / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: the answer is in the first sentence",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: and it is brief (at most 60 words)",
+   "ok": true
+  },
+  {
+   "id": "hurry / turns: no greeting to someone in a hurry",
+   "ok": true
+  },
+  {
+   "id": "hurry / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "hurry / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "hurry / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody repeats a teammate (no two replies share most of their words)",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody opens by praising a teammate",
+   "ok": true
+  },
+  {
+   "id": "room / room: at most three people speak",
+   "ok": true
+  },
+  {
+   "id": "room / room: a second voice joins, with something of its own",
+   "ok": true
+  },
+  {
+   "id": "room / room: the warning is given plainly",
+   "ok": true
+  },
+  {
+   "id": "room / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "room / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "room / room: the one spoken to by name is the one who answers first",
+   "ok": true
+  },
+  {
+   "id": "room / room: and answers the question that was asked (it is enough: the reply does not open with \"No\")",
+   "ok": true
+  },
+  {
+   "id": "room / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "room / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "room / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-15T19:43:17.442Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "hey whats a good pasta for tonight",
+   "seconds": 22,
+   "level": "",
+   "replies": [
+    "Sam: Hey! For tonight, I'd go with cacio e pepe — it's quick, just pasta, cheese, and black pepper, so you're eating in like twenty minutes. If you've got some garlic and chili flakes, that makes it even better. Want me to put together the steps?",
+    "Robin: One thing first — pepper can be a bit rough on a sensitive stomach. Start light with the black pepper and build up as you go; no need for the full shaker unless your tummy agrees."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Pepper can irritate a sensitive stomach; start with less and add more.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "register: a short casual message gets a short answer (at most 90 words from the first to answer)": true,
+    "register: nothing stiff or form-letter in it": true,
+    "turns: it answers before it asks back": true,
+    "turns: hello is said back": true,
+    "turns: nobody signs off or offers more help": true,
+    "register: no emoji for someone who uses none": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:43:32.656Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "and what wine goes with it",
+   "seconds": 15,
+   "level": "",
+   "replies": [
+    "Sam: A crisp white like Vermentino or a dry Pinot Grigio works well — it keeps things light so the cheese and pepper stay front and centre. If you've got a glass of something heavier, save it for another night; this dish is too delicate to get buried under tannins.",
+    "Robin: One thing first: skip the oaked whites. Oak can overpower that delicate cheese and pepper, so stick to something crisp and un-oaked."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Avoid oaked whites; oak can overpower the delicate cheese and pepper.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "turns: once the chat is going, nobody greets again": true,
+    "register: still short (at most 90 words)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:43:40.253Z",
+   "mode": "simple",
+   "person": "casual",
+   "say": "thanks!",
+   "seconds": 8,
+   "level": "",
+   "replies": [
+    "Sam: You're welcome! Enjoy that pasta — hope it hits the spot."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Avoid oaked whites; oak can overpower the delicate cheese and pepper.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "turns: thanks gets a few words (at most 25, from one person)": true,
+    "turns: and no new question or subject": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:44:11.781Z",
+   "mode": "simple",
+   "person": "formal",
+   "say": "Good afternoon. I would like to organise a small dinner for twelve colleagues near the theatre district in Manchester next month; could you please advise on how to choose a venue?",
+   "seconds": 28,
+   "level": "",
+   "replies": [
+    "Sam: Good afternoon. First, I would fix the date and time so you have a firm target. Next, we would check which venues in the theatre district can seat twelve comfortably and allow private tables. Then we would look at the menu options and any dietary requirements your colleagues might have. After that, we would compare prices and how much notice each place needs for booking. Finally, I would put the top choices together so you can see what suits best. Could you tell me which days next month you are hoping to use? Booking venue for twelve Plan for theatre district venue Fix the date and time for a firm target Check venues in theatre district seating twelve comfortably Confirm private tables are allowed at each venue Look at menu options and dietary requirements Compare prices and notice needed for booking Put top choices together to see what suits best GOOD You get a firm target date and time",
+    "Robin: Just check the small print before you commit: watch for hidden service charges and any deposit terms that might cost you if plans change."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Check for hidden service charges and deposit terms before booking.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "register: no slang for someone who writes formally": true,
+    "register: their spelling is kept (no American forms)": true,
+    "turns: nobody signs off or offers more help": true,
+    "register: no emoji": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:44:46.191Z",
+   "mode": "simple",
+   "person": "heavy",
+   "say": "My dad passed away last week and I have to say a few words at the funeral. I don't know where to start.",
+   "seconds": 32,
+   "level": "",
+   "replies": [
+    "Sam: I'm so sorry about your dad. For the words, think of it as three small pieces rather than a speech. First, say his name and how you felt about him, keeping it to one or two lines. Then pick one memory that feels true — a habit, a joke, something he did — and tell it simply. Finally, close with what you want people to carry forward from him, or how you'll keep his spirit close. Write it down first, even if it's just bullet points, so your hands don't have to remember everything. If you'd like, I can help shape whatever comes into your head into something you feel right to say at the service. The answer offers to help shape it into something you feel right to say. Three pieces for his tribute Say his name and how you felt about him Pick one true memory: habit, joke or something he did Close with what you want people to carry forward Write it down first, even if just bullet points NOT SO GOOD It is still three pieces rather than a full speech The answer offers to help shape it into something you feel right to say.",
+    "Pat: I'm really sorry for your loss. Keep it under five minutes — shorter is kinder, and easier to say when you're up there."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"master\",\"point\":\"Keep it under five minutes; shorter is kinder and easier to deliver.\"}]",
+    "picked": [
+     "master"
+    ],
+    "said": [
+     "master: spoke"
+    ]
+   },
+   "checks": {
+    "register: a kind word comes first (within the first 30 words)": true,
+    "register: and then it helps with what they asked": true,
+    "register: no jokes and no exclamation marks, from anyone": true,
+    "room: nobody tells them how to feel": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:45:03.012Z",
+   "mode": "simple",
+   "person": "hurry",
+   "say": "quick - how long do I boil an egg for a soft yolk? running late",
+   "seconds": 14,
+   "level": "",
+   "replies": [
+    "Sam: Six to seven minutes from the moment the water starts boiling. Drop them in gently, pull them out, and straight into cold water so they stop cooking. You're set! From memory Check this",
+    "Robin: One thing first: use room-temp eggs so they don't crack when they hit the water. Saves you from a messy pan while you're already late!"
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Use room-temperature eggs to avoid cracking and ensure even cooking.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "register: the answer is in the first sentence": true,
+    "register: and it is brief (at most 60 words)": true,
+    "turns: no greeting to someone in a hurry": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:45:24.303Z",
+   "mode": "simple",
+   "person": "room",
+   "say": "Is it safe to leave my dog in the car for ten minutes while I pop into a shop on a warm day?",
+   "seconds": 18,
+   "level": "",
+   "replies": [
+    "Sam: No, please don't. Even ten minutes in a warm car can be deadly; temperatures inside a closed vehicle climb fast enough to cause heatstroke quickly. Dogs can't cool themselves like we do, and windows or sunshades won't save them. If you must step away, bring the dog with you—leash on their back if they're small—or keep them in the car only when it's cool and shaded, never on a warm day. From memory · checked",
+    "Robin: One quick addition: watch for heavy panting, drooling or collapse — those are heatstroke red flags. If you see any, get to an emergency vet straight away; don't wait to see if it settles."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Watch for heatstroke signs like heavy panting; seek emergency vet care if seen.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "room: nobody repeats a teammate (no two replies share most of their words)": true,
+    "room: nobody opens by praising a teammate": true,
+    "room: at most three people speak": true,
+    "room: a second voice joins, with something of its own": true,
+    "room: the warning is given plainly": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:45:46.267Z",
+   "mode": "simple",
+   "person": "room",
+   "say": "Robin, is ten minutes really enough to hurt a dog?",
+   "seconds": 22,
+   "level": "",
+   "replies": [
+    "Robin: Yeah, ten minutes is genuinely enough to hurt them. In direct sun, a parked car can hit 45°C or more within minutes, even if it’s only warm outside. A dog’s body temperature climbs quickly because they rely on panting and their paws to cool down, which doesn’t work well in a hot, closed space. Even with the windows cracked, it barely slows things down. If you’re ever stuck in that situation, bring them in or get them out immediately—don’t gamble on it. ! Careful: Don't gamble on it; bring them in or get them out immediately if stuck. Pictures: Wikipedia From memory Check this Hot car danger for dogs 45°C in minutes Ten minutes is enough to hurt them Temperature reached 45°C or more Cooling method failed Panting and paws Cracked windows effect Barely slows things down NOT SO GOOD Body temperature climbs quickly in closed space ! Careful: Don't gamble on it; bring them in or get them out immediately if stuck. Pictures: Wikipedia"
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Watch for heatstroke signs like heavy panting; seek emergency vet care if seen.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "room: the one spoken to by name is the one who answers first": true,
+    "room: and answers the question that was asked (it is enough: the reply does not open with \"No\")": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true
+   }
+  }
+ ]
+}

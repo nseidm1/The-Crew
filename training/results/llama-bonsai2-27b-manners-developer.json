@@ -1,0 +1,200 @@
+{
+ "label": "llama-bonsai2-27b",
+ "mode": "developer",
+ "setup": {
+  "model": "llama-bonsai2-27b",
+  "mode": "developer"
+ },
+ "at": "2026-11-15T19:55:19.115Z",
+ "minutes": 9.5,
+ "good": 23,
+ "of": 23,
+ "checks": [
+  {
+   "id": "engineer / kind: an engineer is not explained the basics",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: and gets no pep talk",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: the answer is exact: a file, a command or a term of the trade",
+   "ok": true
+  },
+  {
+   "id": "engineer / turns: no greeting and no sign-off in a team channel",
+   "ok": true
+  },
+  {
+   "id": "engineer / register: brief (at most 130 words from the first to answer)",
+   "ok": true
+  },
+  {
+   "id": "engineer / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "engineer / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "engineer / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "engineer / kind: the team read them as an engineer",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: a beginner is not buried in the words of the trade (none used)",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: and is told what happens next",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: nothing is called simple or easy to someone who has not done it",
+   "ok": true
+  },
+  {
+   "id": "beginner / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "beginner / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "beginner / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "beginner / kind: the team read them as someone starting out",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: nothing is made up: no button or page it was not shown",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: the term they asked about is explained in plain words",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: and no other word of the trade is dropped on them unexplained (at most one besides the two they used)",
+   "ok": true
+  },
+  {
+   "id": "says-so / turns: nobody opens with praise for the question",
+   "ok": true
+  },
+  {
+   "id": "says-so / register: nothing the team was told is said back",
+   "ok": true
+  },
+  {
+   "id": "says-so / room: nobody says again a sentence already said in this chat",
+   "ok": true
+  },
+  {
+   "id": "says-so / kind: the team read them as someone starting out",
+   "ok": true
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-15T19:54:37.841Z",
+   "mode": "developer",
+   "person": "engineer",
+   "say": "Our CI is flaky: the checkout e2e test in tests/checkout.spec.ts times out one run in five on the staging pipeline. Where would you look first?",
+   "seconds": 23,
+   "level": "seasoned",
+   "replies": [
+    "Steward: First I'd pull the five failing traces and diff them against passing ones, focusing on the step where the timer expires in `tests/checkout.spec.ts`. A timeout one-in-five is a race or shared state until shown otherwise. The exact line to inspect: the first assertion after navigation that waits for an element — if it's a fixed wait or implicit timeout, that's the suspect. I'd look at the staging pipeline config for parallel worker count and whether `tests/checkout.spec.ts` runs against a shared checkout session; if so, the state is contended between workers. A longer timeout hides the fault; I wouldn't offer one as the fix.",
+    "Operations: Check if staging reuses a cached checkout session across parallel workers. Shared state between runs causes exactly this flakiness pattern. I would isolate that before touching any waits."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"operations\",\"point\":\"Check if staging uses a cached checkout session that persists between parallel workers.\"}]",
+    "picked": [
+     "operations"
+    ],
+    "said": [
+     "operations: spoke"
+    ]
+   },
+   "checks": {
+    "kind: an engineer is not explained the basics": true,
+    "kind: and gets no pep talk": true,
+    "kind: the answer is exact: a file, a command or a term of the trade": true,
+    "turns: no greeting and no sign-off in a team channel": true,
+    "register: brief (at most 130 words from the first to answer)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as an engineer": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:54:56.422Z",
+   "mode": "developer",
+   "person": "beginner",
+   "say": "I have never made a website before. Is it hard to make one for my bakery, with our opening hours and a few photos?",
+   "seconds": 16,
+   "level": "new",
+   "replies": [
+    "Overseer: No. A simple bakery site with hours and a few photos is one of the easier kinds of work. You do not need to know how to build it yourself; that is what we are for. First: tell us your opening hours, your address, and whether you want to show any photos. Then we can shape the page and you will see what it looks like before anything goes live.",
+    "Operations: Photos must be compressed for fast loading on mobile networks. We will resize them before upload. Send originals; we handle the compression so they stay sharp but load quickly."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"operations\",\"point\":\"Photos must be compressed for fast loading; ask before we resize them.\"}]",
+    "picked": [
+     "operations"
+    ],
+    "said": [
+     "operations: spoke"
+    ]
+   },
+   "checks": {
+    "kind: a beginner is not buried in the words of the trade (none used)": true,
+    "kind: and is told what happens next": true,
+    "kind: nothing is called simple or easy to someone who has not done it": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as someone starting out": true
+   }
+  },
+  {
+   "at": "2026-11-15T19:55:16.948Z",
+   "mode": "developer",
+   "person": "says-so",
+   "say": "I am not a developer, a friend set up the repo for me. What does \"deploy\" actually mean for my site?",
+   "seconds": 18,
+   "level": "new",
+   "replies": [
+    "Operations: Deploy means taking your code and putting it somewhere people can visit. Think of it as moving a house from a blueprint to a real address. Right now your work lives in the repo, which is just a storage place for the files. Deploying sends those files to a web host so your site has a live link. For you, it usually means clicking a button or running one command that pushes everything up. After it finishes, you get a URL. That is where visitors go. Your next step: tell me what platform the repo was set up on, and I can show you exactly which button to click.",
+    "Steward: Before you pay for hosting, check who owns the billing. The repo owner set up the account; confirm they are the payer or transfer ownership so a future change in access doesn't lock you out of your own site's bill."
+   ],
+   "chime": {
+    "raw": "[{\"seat\":\"steward\",\"point\":\"Check who owns the billing before you pay for hosting.\"}]",
+    "picked": [
+     "steward"
+    ],
+    "said": [
+     "steward: spoke"
+    ]
+   },
+   "checks": {
+    "kind: nothing is made up: no button or page it was not shown": true,
+    "kind: the term they asked about is explained in plain words": true,
+    "kind: and no other word of the trade is dropped on them unexplained (at most one besides the two they used)": true,
+    "turns: nobody opens with praise for the question": true,
+    "register: nothing the team was told is said back": true,
+    "room: nobody says again a sentence already said in this chat": true,
+    "kind: the team read them as someone starting out": true
+   }
+  }
+ ]
+}

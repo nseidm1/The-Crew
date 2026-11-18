@@ -1,0 +1,45 @@
+{
+ "label": "llama-bonsai2-27b",
+ "kind": "soul",
+ "setup": {
+  "model": "llama-bonsai2-27b"
+ },
+ "at": "2026-11-15T20:21:15.820Z",
+ "minutes": 19,
+ "note": "",
+ "total": {
+  "checks": 32,
+  "good": 30
+ },
+ "bySystem": {
+  "soul": {
+   "checks": 17,
+   "good": 17
+  },
+  "hindsight": {
+   "checks": 7,
+   "good": 7
+  },
+  "vision": {
+   "checks": 4,
+   "good": 4
+  },
+  "flow": {
+   "checks": 4,
+   "good": 2
+  }
+ },
+ "misses": [
+  {
+   "mode": "developer",
+   "id": "flow.the-change-is-proven",
+   "detail": "ks fail before the change and pass after it. 3 further checks, written to challenge it, also pass. The proof image is below.\nRound 1: all 4 requirements are met.\nIt is checked, not proven, so it waits for your yes. Say \"land it\" (it goes on the branch team/fix-pay-button-cut-off) or \"throw it away\"."
+  },
+  {
+   "mode": "developer",
+   "id": "flow.the-second-change-is-proven",
+   "detail": "efore the change and pass after it. 3 further checks, written to challenge it, also pass. The proof image is below.\nRound 1: all 6 requirements are met.\nIt is checked, not proven, so it waits for your yes. Say \"land it\" (it goes on the branch team/fix-discount-codes-unknown-code) or \"throw it away\"."
+  }
+ ],
+ "stopped": []
+}

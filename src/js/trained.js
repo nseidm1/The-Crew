@@ -33,4 +33,30 @@ export const TRAINED = {
       falseGreen: 2,
     },
   },
+  'llama-bonsai2-27b': {
+    at: '2026-11-15',
+    machine: 'Apple M2 Ultra, 64 GB',
+    kinds: 5,
+    answers: {
+      good: 23,
+      of: 24,
+    },
+    manners: {
+      good: 75,
+      of: 75,
+    },
+    voices: {
+      good: 14,
+      of: 14,
+    },
+    memory: {
+      good: 30,
+      of: 32,
+    },
+    tickets: {
+      good: 7,
+      of: 8,
+      falseGreen: 0,
+    },
+  },
 };

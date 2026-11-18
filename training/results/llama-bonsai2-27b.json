@@ -1,0 +1,239 @@
+{
+ "label": "llama-bonsai2-27b",
+ "setup": {
+  "model": "llama-bonsai2-27b"
+ },
+ "at": "2026-11-15T21:15:01.105Z",
+ "machine": "Apple M2 Ultra, 64 GB",
+ "rounds": 1,
+ "minutes": 40,
+ "note": "",
+ "total": {
+  "runs": 8,
+  "good": 7,
+  "proven-right": 5,
+  "found": 2,
+  "false-green": 0,
+  "right-unproven": 0,
+  "wrong": 1,
+  "no-change": 0,
+  "not-found": 0
+ },
+ "byLang": {
+  "python": {
+   "runs": 4,
+   "good": 4,
+   "falseGreen": 0
+  },
+  "javascript": {
+   "runs": 3,
+   "good": 3,
+   "falseGreen": 0
+  },
+  "typescript": {
+   "runs": 1,
+   "good": 0,
+   "falseGreen": 0
+  }
+ },
+ "byKind": {
+  "fix": {
+   "runs": 4,
+   "good": 3,
+   "falseGreen": 0
+  },
+  "improve": {
+   "runs": 1,
+   "good": 1,
+   "falseGreen": 0
+  },
+  "find": {
+   "runs": 2,
+   "good": 2,
+   "falseGreen": 0
+  },
+  "enhance": {
+   "runs": 1,
+   "good": 1,
+   "falseGreen": 0
+  }
+ },
+ "room": {
+  "asked": 0,
+  "good": 0,
+  "off": false
+ },
+ "media": {
+  "runs": 0,
+  "saw": 0
+ },
+ "challenge": {
+  "put": 6,
+  "found": 1,
+  "fixed": 0
+ },
+ "scenarios": [
+  {
+   "id": "pay-button",
+   "lang": "python",
+   "kind": "fix",
+   "shape": "one function, a clamp",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 487,
+   "proofS": 40,
+   "loops": 0
+  },
+  {
+   "id": "slug",
+   "lang": "python",
+   "kind": "fix",
+   "shape": "one function, text rules",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 23,
+   "proofS": 61,
+   "loops": 1
+  },
+  {
+   "id": "py-ship-check",
+   "lang": "python",
+   "kind": "improve",
+   "shape": "same answers, far less work",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 154,
+   "proofS": 57,
+   "loops": 0
+  },
+  {
+   "id": "py-where-levy",
+   "lang": "python",
+   "kind": "find",
+   "shape": "find it: four files, one answer",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 0,
+   "found": 1,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 20,
+   "proofS": 0,
+   "loops": 0
+  },
+  {
+   "id": "js-basket",
+   "lang": "javascript",
+   "kind": "fix",
+   "shape": "one function, a missing factor",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 23,
+   "proofS": 35,
+   "loops": 0
+  },
+  {
+   "id": "js-search",
+   "lang": "javascript",
+   "kind": "enhance",
+   "shape": "one function, wider matching",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 1,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 345,
+   "proofS": 44,
+   "loops": 0
+  },
+  {
+   "id": "js-where-shipping",
+   "lang": "javascript",
+   "kind": "find",
+   "shape": "find it: four files, one answer",
+   "runs": 1,
+   "good": 1,
+   "proven-right": 0,
+   "found": 1,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 0,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 26,
+   "proofS": 0,
+   "loops": 0
+  },
+  {
+   "id": "ts-coupon",
+   "lang": "typescript",
+   "kind": "fix",
+   "shape": "two files: the same wrong sum written twice",
+   "runs": 1,
+   "good": 0,
+   "proven-right": 0,
+   "found": 0,
+   "false-green": 0,
+   "right-unproven": 0,
+   "wrong": 1,
+   "no-change": 0,
+   "not-found": 0,
+   "taskS": 495,
+   "proofS": 363,
+   "loops": 4
+  }
+ ],
+ "misses": [
+  {
+   "scenario": "ts-coupon",
+   "round": 1,
+   "verdict": "wrong",
+   "says": "The team could not settle it by itself: a further check, written from the task to challenge the change, fails: \"a $15 gift coupon on a $10 order shows a total of zero, not below nothing\" (orderTotal(order) must give 0 by the task's rule, and the code gives 50). It took 5 rounds: the proof was written again, and the change was put right where a check showed it wrong, and what was mistaken in the pr",
+   "oracle": [
+    "a percent coupon comes off the goods only",
+    "a fixed coupon never takes more than the goods",
+    "a fixed coupon smaller than the goods comes off whole",
+    "the invoice shows what was taken off",
+    "the invoice of a coupon bigger than the goods",
+    "no coupon is as before"
+   ],
+   "missing": [],
+   "stuck": "a further check, written from the task to challenge the change, fails: \"a $15 gift coupon on a $10 order shows a total of zero, not below nothing\" (orderTotal(order) must give 0 by the task's rule, and the code gives 50)"
+  }
+ ]
+}

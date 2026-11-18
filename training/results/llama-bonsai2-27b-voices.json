@@ -1,0 +1,304 @@
+{
+ "label": "llama-bonsai2-27b",
+ "setup": {
+  "model": "llama-bonsai2-27b"
+ },
+ "at": "2026-11-15T20:01:47.539Z",
+ "minutes": 6.5,
+ "good": 14,
+ "of": 14,
+ "checks": [
+  {
+   "id": "simple.every-seat-answered",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "simple.no-two-seats-say-the-same",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "simple.their-tastes-are-told-apart",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "simple.each-voice-keeps-its-way-of-speaking",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "simple.a-reader-can-tell-who-said-what",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "simple.no-seat-uses-a-developer-word",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "developer.every-seat-answered",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "developer.no-two-seats-say-the-same",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "developer.a-reader-can-tell-who-said-what",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "developer.each-keeps-to-its-length",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "room.the-seats-answer-in-the-form-asked",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "room.more-than-one-idea-comes-back",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "room.it-blames-the-code-here",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "id": "room.it-works-the-value-out",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "rows": [
+  {
+   "at": "2026-11-15T20:00:45.200Z",
+   "label": "llama-bonsai2-27b",
+   "mode": "simple",
+   "ask": "I have a free Saturday and no plans at all. What would you do with it?",
+   "said": [
+    {
+     "id": "overseer",
+     "name": "Sam",
+     "text": "First, grab the good coffee and make a list of three things that would actually light your up this weekend. Then pick just one so it stays simple and doable. After that, block out a couple of hours for it so you can really sink in without rushing. Last thing, set a soft stop time so Saturday doesn't swallow Sunday. I'd say: what are the three things on your mind right now?"
+    },
+    {
+     "id": "steward",
+     "name": "Robin",
+     "text": "One thing first: \"free\" is the good part, but don't let the day turn into scrolling or chores just because nobody asked for anything. I'd keep it light. Morning coffee outside if the weather's kind, then a slow walk to somewhere new in town—library, park, little museum. No list, no destination. Afternoon: bake something simple that makes the house smell nice, maybe call an old friend just to hear their voice. Evening: pick a film you've been meaning to see and actually sit down with it. The trick is saying \"no\" to the default—no errands, no cleaning, no \"I should really...\" The day is yours by accident, so spend it like a treat, not a task."
+    },
+    {
+     "id": "operations",
+     "name": "Alex",
+     "text": "Grab the good coffee maker, fill the kettle, and make a batch of that dark roast while you clean out the pantry. It’s a weird combo, but the smell makes the whole kitchen feel like a new place. Try one recipe you’ve been putting off for months. No fancy plating needed; just eat it standing up at the counter. The mess is half the fun when nobody’s waiting on dinner. If the weather is decent, skip the gym and do a long walk around a neighborhood you don’t know well. Find the weird little shops or that park with the best benches. It costs nothing and usually gives you three new ideas for your week."
+    },
+    {
+     "id": "ask",
+     "name": "Jamie",
+     "text": "I'd make the whole day feel like a little adventure without spending a dime. First, I’d find one \"hidden gem\" spot nearby—a weird park, an old bookshop, or a quiet street with cool graffiti—and walk there just to see what’s around the corner. Maybe we’d bring a sketchbook and try to draw something that doesn’t look like it’s supposed to exist yet. Afterwards, I’d cook something messy and fun: maybe a big pot of pasta where we let the kids (or you) help stir until it looks like spaghetti confetti. Then we’d sit on the floor with a blanket and watch a movie that starts off slow but turns into pure magic. What’s one thing you’ve been meaning to try but haven’t yet?"
+    },
+    {
+     "id": "master",
+     "name": "Pat",
+     "text": "A slow morning, a long walk, and nothing else booked. It’s the rare kind of luxury that doesn’t need a receipt, so just let the day drift without forcing a purpose on it."
+    }
+   ],
+   "pairs": [
+    {
+     "a": "Sam",
+     "b": "Robin",
+     "share": 0.11
+    },
+    {
+     "a": "Sam",
+     "b": "Alex",
+     "share": 0.04
+    },
+    {
+     "a": "Sam",
+     "b": "Jamie",
+     "share": 0.03
+    },
+    {
+     "a": "Sam",
+     "b": "Pat",
+     "share": 0.02
+    },
+    {
+     "a": "Robin",
+     "b": "Alex",
+     "share": 0.08
+    },
+    {
+     "a": "Robin",
+     "b": "Jamie",
+     "share": 0.12
+    },
+    {
+     "a": "Robin",
+     "b": "Pat",
+     "share": 0.08
+    },
+    {
+     "a": "Alex",
+     "b": "Jamie",
+     "share": 0.09
+    },
+    {
+     "a": "Alex",
+     "b": "Pat",
+     "share": 0.04
+    },
+    {
+     "a": "Jamie",
+     "b": "Pat",
+     "share": 0.08
+    }
+   ],
+   "right": 5,
+   "guess": "A: Jamie B: Sam C: Pat D: Robin E: Alex"
+  },
+  {
+   "at": "2026-11-15T20:01:20.910Z",
+   "label": "llama-bonsai2-27b",
+   "mode": "developer",
+   "ask": "Our checkout page feels slow on phones. What is the first thing you would do about it?",
+   "said": [
+    {
+     "id": "overseer",
+     "name": "Overseer",
+     "text": "I would not touch the page yet. First, I would read what \"slow\" means in numbers. We need a baseline: which phones, which network speeds, and which metric—time to first paint or time to interactive. Without those, we are guessing. Then I would ask Operations to pull the live checkout timing from the last hundred phone sessions and split it by device class. That gives us a fact before any change. If the slow part is server response, Ask may not be involved; if it is asset weight, Ask owns the fix. The first thing is measurement, not repair."
+    },
+    {
+     "id": "steward",
+     "name": "Steward",
+     "text": "I would not touch code yet. First I need the actual numbers: time to first byte, first meaningful paint, and largest contentful paint on a throttled mid-range phone, plus the network waterfall for that page. Without that I am guessing at whether the slowness is server response, JavaScript blocking render, or image weight. I would also pull the exact checkout URL and the specific mobile viewport you are testing from, because \"phones\" covers many devices and networks. If you can share a trace of one real slow session, I can name the single largest offender before anyone writes a fix."
+    },
+    {
+     "id": "operations",
+     "name": "Operations",
+     "text": "I would measure it. Open the phone, load the checkout, and read the network waterfall. I need numbers before changes. Look for a big image, a heavy script, or a long server response. Then fix that one thing. Small change first. If you can, send me the page URL or a screenshot of the slow step."
+    },
+    {
+     "id": "ask",
+     "name": "Ask",
+     "text": "I’d sit with the phone’s actual screen — no browser, no laptop pretending to be one. I’d open the checkout and let my eye land where a person’s thumb lands: the button, the field, the thing that says “you’re not there yet.” Then I’d ask what the first paint looks like before anything else finishes loading, because if the big button is ghosting in while the form skeleton spins, the slowness isn’t real lag, it’s a layout shift stealing trust. That tells me whether to fix the picture or chase the engine — and those are two very different fights."
+    },
+    {
+     "id": "master",
+     "name": "Master",
+     "text": "I have not seen the checkout page or any timing data, so I cannot name a specific bottleneck yet. The first thing I would do is measure the phone's real load path: open the live page on an actual device over mobile network and record total time to interactive, plus the largest resource and its wait reason. That tells us whether the delay is in our code or upstream. If you can paste that timing data here, I will read it against what we already know about the checkout stack."
+    }
+   ],
+   "pairs": [
+    {
+     "a": "Overseer",
+     "b": "Steward",
+     "share": 0.23
+    },
+    {
+     "a": "Overseer",
+     "b": "Operations",
+     "share": 0.21
+    },
+    {
+     "a": "Overseer",
+     "b": "Ask",
+     "share": 0.1
+    },
+    {
+     "a": "Overseer",
+     "b": "Master",
+     "share": 0.14
+    },
+    {
+     "a": "Steward",
+     "b": "Operations",
+     "share": 0.18
+    },
+    {
+     "a": "Steward",
+     "b": "Ask",
+     "share": 0.11
+    },
+    {
+     "a": "Steward",
+     "b": "Master",
+     "share": 0.16
+    },
+    {
+     "a": "Operations",
+     "b": "Ask",
+     "share": 0.09
+    },
+    {
+     "a": "Operations",
+     "b": "Master",
+     "share": 0.13
+    },
+    {
+     "a": "Ask",
+     "b": "Master",
+     "share": 0.09
+    }
+   ],
+   "right": 3,
+   "guess": "A: Ask B: Overseer C: Steward D: Master E: Operations"
+  },
+  {
+   "at": "2026-11-15T20:01:46.733Z",
+   "label": "llama-bonsai2-27b",
+   "mode": "room",
+   "answers": [
+    {
+     "seat": "overseer",
+     "also": [],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "Change the return to min(400, screen_width - 32). The task says a margin of 16 on each side, which is 32 total subtracted from the screen width. Then cap at 400 for wider screens."
+    },
+    {
+     "seat": "steward",
+     "also": [
+      "operations"
+     ],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "Change return min(400, screen_width - 16) to return min(400, screen_width - 32). This subtracts the 16px margin from both sides as required."
+    },
+    {
+     "seat": "ask",
+     "also": [],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "The button needs 16px space on each side. So take the screen width and subtract both margins: 360 minus 16 on the left and 16 on the right. Change the return to min(400, screen_width - 32)."
+    },
+    {
+     "seat": "master",
+     "also": [],
+     "blame": "CODE",
+     "value": "328",
+     "idea": "Change the return to min(400, screen_width - 32) so both edges keep a 16px margin. The current formula subtracts only one margin, which makes the button wider than allowed on narrow screens."
+    }
+   ],
+   "tally": {
+    "code": 5,
+    "check": 0,
+    "task": 0,
+    "of": 5,
+    "value": "328",
+    "agree": 5,
+    "gave": 5
+   }
+  }
+ ]
+}
