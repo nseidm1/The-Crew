@@ -99,7 +99,7 @@ const text =
   "// trained.js - WHAT TRAINING HAS SHOWN OF EACH LOCAL MODEL. Written by training/publish.mjs from the trainers' own result files;\n" +
   '// not edited by hand. For each model: the day of its newest result, the machine, and for each kind of measurement how many it\n' +
   '// got right of how many (tickets also count a change passed as proven that was wrong). A model that is not here has not been\n' +
-  '// trained, and the model page says so.\n' +
+  '// trained: Choose your model lists it dimmed, it cannot be chosen, and Simple never chooses it, until it is here.\n' +
   'export const TRAINED = ' +
   JSON.stringify(TRAINED, null, 2) +
   ';\n';

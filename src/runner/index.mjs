@@ -9,7 +9,8 @@
 // Loopback only, and a browser page on another site cannot drive it: the Host must be this server and a POST must come from this origin.
 // State (sizes, measurements, Pi, the agent's work folders) lives in .runner/ beside this file's folder (or where FO_STATE_DIR says), which is never served and never committed.
 import path from 'node:path';
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
+import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import {
   MODELS,
   STRATA,
@@ -24,6 +25,7 @@ import {
   llamaFit,
   llamaOptions,
 } from '../js/catalog.js';
+import { TRAINED } from '../js/trained.js';
 import { haveLlamaModel } from './llama.mjs';
 import { stopStrata, strataVersion as strataThere } from './strata.mjs';
 import { createEyes } from './eyes.mjs';
@@ -268,13 +270,49 @@ export function createRunner({ root, port }) {
     await save();
     return out;
   }
-  // the one recommended on a machine that can run both kinds: the first in MAC_ORDER that its memory can hold
-  const bestFirst = (all) => {
-    const pick = MAC_ORDER.map((id) => all.find((m) => m.id === id)).find((m) => m && m.fits);
-    return all.map((m) => ({ ...m, recommended: !!pick && m.id === pick.id }));
+  // A LOCAL MODEL IS OFFERED ONCE IT HAS BEEN THROUGH THE TRAINER. It is in js/trained.js, which training/publish.mjs writes from
+  // the trainers' own results: a model is there from the day it has one. Until then the page lists it dimmed and it cannot be
+  // chosen, and it is never the one recommended, so Simple, which takes the recommended one, never starts a team on a model
+  // nothing of ours has measured. Nothing else decides it: publish a model's results and it is offered, with no other change.
+  // FO_ALL_MODELS=1 offers every model (the checks that click through them all, and a person trying one knowingly). The
+  // trainers themselves do not come through here: they ask for a model by its id, and /api/setup takes any id in the catalogue.
+  const everyModel = () => process.env.FO_ALL_MODELS === '1';
+  // THE RECORD IS READ AGAIN WHEN ITS FILE HAS CHANGED, so a model trained while the runner is up (a training session ends by
+  // publishing: training/local-session.sh) is offered on the next look at the models, with no restart. Where it cannot be read
+  // again, the copy read last stands.
+  // (FO_TRAINED_FILE: another file to read the record from, in its place. The checks use it to train a model under a running runner.)
+  let trainedSeen = { at: '', map: TRAINED };
+  const trainedNow = async () => {
+    try {
+      const f = process.env.FO_TRAINED_FILE
+        ? pathToFileURL(path.resolve(process.env.FO_TRAINED_FILE))
+        : new URL('../js/trained.js', import.meta.url);
+      const st = await stat(f);
+      const at = st.mtimeMs + ':' + st.size;
+      if (at !== trainedSeen.at)
+        trainedSeen = { at, map: (await import(f.href + '?at=' + at)).TRAINED || trainedSeen.map };
+    } catch {
+      /* the copy read last stands */
+    }
+    return trainedSeen.map;
+  };
+  const isTrained = (trained, id) => Object.prototype.hasOwnProperty.call(trained, id);
+  const offered = (trained, m) => everyModel() || isTrained(trained, m.id);
+  // each model says whether it has been trained, and the one recommended is one that is offered: the one already marked where it
+  // is offered, else the first that fits and is. Where none is, none is recommended
+  const offeredFirst = (all, trained) => {
+    const ok = (m) => m.fits && offered(trained, m);
+    const pick = all.find((m) => m.recommended && ok(m)) || all.find(ok) || null;
+    return all.map((m) => ({ ...m, trained: isTrained(trained, m.id), recommended: !!pick && m.id === pick.id }));
+  };
+  // the one recommended on a machine that can run both kinds: the first in MAC_ORDER that its memory can hold and that is offered
+  const bestFirst = (all, trained) => {
+    const pick = MAC_ORDER.map((id) => all.find((m) => m.id === id)).find((m) => m && m.fits && offered(trained, m));
+    return all.map((m) => ({ ...m, trained: isTrained(trained, m.id), recommended: !!pick && m.id === pick.id }));
   };
   async function models() {
     if (!runner.host) runner.host = await measureHost(stateDir);
+    const trained = await trainedNow(); // which models have been through the trainer, as the record stands this minute
     // THE WATERFALL, AS THE PAGE SEES IT. Strata's models are offered where Strata is the engine. llama.cpp's small ones are offered
     // where it is the only engine, and below Strata's once Strata has said here that it cannot be installed or cannot run a model.
     const engs = runner.host.engines || [runner.host.engine];
@@ -300,7 +338,8 @@ export function createRunner({ root, port }) {
       }
       return {
         host: runner.host,
-        models: out,
+        all: everyModel(),
+        models: offeredFirst(out, trained),
         fellBack:
           engs.includes('strata') && runner.disk.strataFailed
             ? { from: STRATA.name, to: LLAMA.name, why: runner.disk.strataFailed.why }
@@ -329,16 +368,19 @@ export function createRunner({ root, port }) {
       }));
     return {
       host: runner.host,
-      all: process.env.FO_ALL_MODELS === '1',
-      models: bestFirst([
-        ...optionsFor(runner.host, sz, runner.disk.measured).map((m) => ({
-          ...m,
-          plan: planFor(m, runner.host, sz[m.id]),
-          running: !!(runner.disk.engine && runner.disk.engine.model === m.id),
-          proofs: (runner.disk.proofs || {})[m.id] || null,
-        })),
-        ...bonsai,
-      ]),
+      all: everyModel(),
+      models: bestFirst(
+        [
+          ...optionsFor(runner.host, sz, runner.disk.measured).map((m) => ({
+            ...m,
+            plan: planFor(m, runner.host, sz[m.id]),
+            running: !!(runner.disk.engine && runner.disk.engine.model === m.id),
+            proofs: (runner.disk.proofs || {})[m.id] || null,
+          })),
+          ...bonsai,
+        ],
+        trained,
+      ),
     }; // proofs: { runs, proven, rounds } on this machine, counted as the team works
   }
 

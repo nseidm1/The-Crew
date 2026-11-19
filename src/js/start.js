@@ -360,12 +360,21 @@ async function simple() {
   }
   if (!lic) await readLic().catch(() => null); // what the plan allows is part of the choice
   if (mine !== simpleSeq || chosenMode() !== 'simple' || runner.state().busy) return; // the person moved on while this was being read
-  const best = got ? got.models.find((m) => m.recommended && m.fits) || got.models.find((m) => m.fits) || null : null;
+  // THE MIND SIMPLE CHOOSES HAS BEEN THROUGH THE TRAINER (offeredHere): the recommended one, else the first that fits and has.
+  // Simple chooses for the person, so it never chooses a model nothing of ours has measured. Where the only models that fit
+  // have not been trained yet, a mind on this computer is not offered, and the choice says why; the day one is trained it is.
+  const usable = (m) => m.fits && offeredHere(got, m);
+  const best = got ? got.models.find((m) => m.recommended && usable(m)) || got.models.find(usable) || null : null;
   const sizeGb = best ? best.sizeGb || best.estGb || 0 : 0;
   const onHand = !!(best && (best.cached || best.running));
   const why = !got
     ? 'This computer could not be read just now.'
-    : (got.host.blockers || [])[0] || 'This computer does not have the memory for one.';
+    : (got.host.blockers || [])[0] ||
+      (got.models.some((m) => m.fits)
+        ? 'The models that fit ' +
+          HERE() +
+          ' have not been through our training yet. One is offered here as soon as it has.'
+        : 'This computer does not have the memory for one.');
   // WHICH IS CHOSEN. What the person chose before is kept only while the machine and the plan still allow it: a mind on this computer
   // that the plan no longer covers (a code was switched off, a paid month ran out) is not left chosen. Until they press one themself
   // on this visit, the choice follows the two: on this computer where both allow it, Claude otherwise. It is settled again on every
@@ -1736,8 +1745,12 @@ async function models() {
       ...(MODELS.find((x) => x.id === m.id) || {}),
       ...m,
       leftGb: m.leftGb != null ? m.leftGb : Math.round((host.memoryGb - m.needGb) * 10) / 10,
+      // (offered: it has been through the trainer, so it can be chosen. One that has not is listed dimmed: offeredHere)
+      offered: offeredHere(got, m),
     }));
-  picked = (list.find((m) => m.recommended) || list.find((m) => m.fits) || {}).id || null;
+  // chosen to begin with: the recommended one, else the first that fits. Never one that cannot be chosen
+  const choosable = (m) => m.fits && m.offered;
+  picked = (list.find((m) => m.recommended && choosable(m)) || list.find(choosable) || {}).id || null;
   try {
     addons = (await runner.addons()).list || [];
   } catch {
@@ -1775,8 +1788,11 @@ function avatar(option) {
     const ang = i * 2.39996;
     return [Math.cos(ang) * r, y, Math.sin(ang) * r];
   });
-  const lit = option.fits ? [95, 227, 184] : [255, 93, 87];
   const dim = [190, 205, 228];
+  // (a model that fits and has not been through the trainer yet is drawn unlit and in no colour: it cannot be chosen, and no
+  // point of it is at work. One too big for the machine is red, as before)
+  const waits = option.fits && option.offered === false;
+  const lit = !option.fits ? [255, 93, 87] : waits ? dim : [95, 227, 184];
   return {
     cv,
     draw(time, on) {
@@ -1798,13 +1814,14 @@ function avatar(option) {
           const z0 = -p[0] * sn + p[2] * cs;
           const y = p[1] * ct - z0 * st2;
           const z = p[1] * st2 + z0 * ct;
-          const act = !option.fits
-            ? 0.16
-            : dense
-              ? 0.5 + 0.5 * Math.sin(time * 2.2 + i * 0.37)
-              : (i * 0.618034 + time * 0.28) % 1 < share
-                ? 1
-                : 0.08;
+          const act =
+            !option.fits || waits
+              ? 0.16
+              : dense
+                ? 0.5 + 0.5 * Math.sin(time * 2.2 + i * 0.37)
+                : (i * 0.618034 + time * 0.28) % 1 < share
+                  ? 1
+                  : 0.08;
           return { x: 160 + x * R, y: 160 + y * R, z, act };
         })
         .sort((p, q) => p.z - q.z);
@@ -1862,6 +1879,16 @@ const speedSteps = (m) => {
   return a <= 3 ? 4 : a <= 10 ? 3 : 2;
 };
 const isSimpleNow = () => chosenMode() === 'simple'; // (Developer lists every model the machine's engines can run, and the person chooses)
+// A LOCAL MODEL IS OFFERED ONCE IT HAS BEEN THROUGH THE TRAINER. It is in trained.js, which training/publish.mjs writes from the
+// trainers' own results: a model is there from the day it has one. Until then its card is listed dimmed and cannot be chosen,
+// in Simple and in Developer alike, and Simple, which chooses for the person, never chooses it. Nothing else decides it: the day
+// a model's results are published it can be chosen, with no other change here. The runner says of each model whether it has
+// been trained (trained); a runner from before it said so is read against this page's own copy of the record. got.all (the
+// runner was started with FO_ALL_MODELS=1) offers every model: the checks that walk them all, and a person trying one knowingly.
+const isTrained = (m) =>
+  typeof m.trained === 'boolean' ? m.trained : Object.prototype.hasOwnProperty.call(TRAINED, m.id);
+const offeredHere = (got, m) => !!(got && got.all) || isTrained(m);
+const NOT_TRAINED = 'Not trained yet';
 const CAN = {
   talk: ['Not suited to it', 'Short, simple answers', 'Good', 'Good'],
   find: ['Not suited to it', 'Simple lookups', 'Good', 'Good'],
@@ -1907,12 +1934,20 @@ function paintModels() {
     h(
       'button',
       {
-        class: 'av',
+        // (untrained: it fits, and has not been through the trainer yet. Dimmed, and it cannot be chosen: offeredHere)
+        class: 'av' + (o.fits && !o.offered ? ' untrained' : ''),
         type: 'button',
         'aria-pressed': String(o.id === picked),
-        disabled: !o.fits,
+        disabled: !o.fits || !o.offered,
         'data-id': o.id,
-        'aria-label': o.name + ', ' + (o.fits ? o.badge : 'too big for ' + HERE()),
+        'aria-label':
+          o.name +
+          ', ' +
+          (!o.fits ? 'too big for ' + HERE() : !o.offered ? 'not trained yet, so it cannot be chosen' : o.badge),
+        title:
+          o.fits && !o.offered
+            ? 'Not trained yet. It can be chosen as soon as it has been through our training.'
+            : null,
         onclick: () => select(o.id),
       },
       av.cv,
@@ -1927,7 +1962,13 @@ function paintModels() {
       h(
         'span',
         { class: 'tags' },
-        o.fits ? (o.recommended ? tag('ok', 'Recommended') : tag('', o.badge)) : tag('bad', 'Too big for ' + HERE()),
+        !o.fits
+          ? tag('bad', 'Too big for ' + HERE())
+          : !o.offered
+            ? tag('', NOT_TRAINED)
+            : o.recommended
+              ? tag('ok', 'Recommended')
+              : tag('', o.badge),
         o.running ? tag('ok', 'Running') : null,
       ),
     );
@@ -2340,6 +2381,8 @@ function paintModels() {
   // choosing a model changes two things only: which avatar is lit, and the panel beside them. Nothing else is redrawn.
   const select = (id) => {
     if (id === picked) return;
+    const o = list.find((x) => x.id === id);
+    if (!o || !o.fits || !o.offered) return; // (one too big for the machine, or not trained yet, is not chosen by any road)
     picked = id;
     $$('.av', stage).forEach((el) => el.setAttribute('aria-pressed', String(el.dataset.id === picked)));
     paintDetail();
@@ -2369,6 +2412,24 @@ function paintModels() {
               ', so each answer takes a while. An Apple silicon Mac, or a Linux machine with a graphics card, runs larger ones faster.',
           )
         : null;
+  // MODELS THAT HAVE NOT BEEN THROUGH THE TRAINER are listed, dimmed, and cannot be chosen (offeredHere): said once, above them,
+  // with what changes it. Where none of the models that fit has been trained, that is said, with the ways there still are.
+  const waiting = list.filter((m) => m.fits && !m.offered);
+  const untrainedNote = () =>
+    !waiting.length
+      ? null
+      : h(
+          'p',
+          { class: 'note', id: 'untrained-note' },
+          list.some((m) => m.fits && m.offered)
+            ? (waiting.length === 1
+                ? 'The dimmed model has not been through our training yet, so it cannot be chosen. It can be'
+                : 'The dimmed models have not been through our training yet, so they cannot be chosen. Each can be') +
+                ', as soon as it has.'
+            : 'None of the models that fit ' +
+                HERE() +
+                ' has been through our training yet, so none can be chosen. Each can be, as soon as it has. Until then, go back: your team can think with Claude, or with a model you already serve.',
+        );
   // A MACHINE A MODEL WOULD STRAIN (js/catalog.js localStrain): said before anything is fetched, with the way over to Claude Code.
   // The models stay below it: this discourages, it does not forbid.
   const strainNote = () => {
@@ -2452,6 +2513,7 @@ function paintModels() {
         { class: 'lede' },
         'Pick the mind your team thinks with. A bigger one thinks harder and answers slower. The lit points are the part of it at work on each word.',
       ),
+      untrainedNote(),
       waterNote(),
       strainNote(),
       wslOffer(),

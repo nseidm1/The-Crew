@@ -4,7 +4,7 @@
 // Start. State goes to a throwaway folder inside .runner/, never the real one.
 import { spawn } from 'node:child_process';
 import http from 'node:http';
-import { chmodSync, readFileSync, rmSync } from 'node:fs';
+import { chmodSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -54,6 +54,9 @@ async function withServer(env, fn) {
       FO_BILLING: '{"enforce":false}',
       HF_HUB_CACHE: path.join(state, 'hub'),
       FO_CLONE_ALLOW_FILE: '1',
+      // (every model of the catalogue is offered here, trained or not: these checks are of the pipeline, and of which model a
+      // machine's memory holds best. What is offered as the app ships is checked in its own block, which turns this off)
+      FO_ALL_MODELS: '1',
       ...env,
     },
     stdio: 'ignore',
@@ -86,6 +89,62 @@ async function setup(model) {
     await sleep(100);
   }
   return { timeout: true };
+}
+
+// ---- A LOCAL MODEL IS OFFERED ONCE IT HAS BEEN THROUGH THE TRAINER: the runner says of each model whether it has, recommends none
+// that has not, and reads the record again when it changes, so a model trained while it is up is offered with no restart
+{
+  const record = path.join(WORK, 'selftest-trained.mjs');
+  const train = async (ids) => {
+    writeFileSync(
+      record,
+      'export const TRAINED = ' + JSON.stringify(Object.fromEntries(ids.map((id) => [id, { kinds: 1 }]))) + ';\n',
+    );
+    await sleep(30);
+  };
+  await train([]);
+  await withServer({ FO_ALL_MODELS: '0', FO_TRAINED_FILE: record }, async () => {
+    const none = await (await fetch(base + '/api/models')).json();
+    const fit = none.models.filter((m) => m.fits);
+    check(
+      'with nothing trained, every model says it is not, and none is recommended',
+      none.all === false && none.models.every((m) => m.trained === false && !m.recommended),
+      none.models.map((m) => [m.id, m.trained, m.recommended]),
+    );
+    if (fit.length) {
+      const last = fit[fit.length - 1];
+      await train([last.id]);
+      const one = await (await fetch(base + '/api/models')).json();
+      check(
+        'a model trained while the runner is up is said to be trained on the next look, and is the one recommended, whatever fits better and is not trained',
+        one.models
+          .filter((m) => m.trained)
+          .map((m) => m.id)
+          .join() === last.id &&
+          one.models
+            .filter((m) => m.recommended)
+            .map((m) => m.id)
+            .join() === last.id,
+        one.models.map((m) => [m.id, m.trained, m.recommended]),
+      );
+      const v = await setup(fit[0].id === last.id ? last.id : fit[0].id);
+      check(
+        'a model can still be set up by its id whether or not it is trained: that is how a trainer reaches one',
+        !v.refused,
+        v.refused,
+      );
+    }
+  });
+  await withServer({ FO_TRAINED_FILE: record }, async () => {
+    const all = await (await fetch(base + '/api/models')).json();
+    check(
+      'FO_ALL_MODELS=1 offers every model: the page is told so, and the one recommended is the best that fits, trained or not',
+      all.all === true && all.models.filter((m) => m.recommended).length <= 1,
+      [all.all, all.models.map((m) => [m.id, m.trained, m.recommended])],
+    );
+  });
+  rmSync(record, { force: true });
+  rmSync(state, { recursive: true, force: true });
 }
 
 await withServer({}, async () => {

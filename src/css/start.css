@@ -806,6 +806,11 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+/* a model that has not been through the trainer yet: listed, dimmed as one too big for the machine is, drawn in no colour, and
+   not to be chosen (js/start.js offeredHere). It is offered from the day its results are published */
+.av.untrained canvas {
+  filter: grayscale(1) brightness(0.8);
+}
 .av h3 {
   margin: 0;
   font: 600 16px/1.25 var(--body);

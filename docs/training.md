@@ -53,6 +53,25 @@ node training/simple.mjs --only table-for-four,dentist --rounds 2            # o
 - A language whose tools are not on the machine is skipped and said so. It is never counted as passed or failed.
 - Rows go to `.work/train/` (ignored by git); the summary of each run to `training/results/`.
 
+## What training opens
+
+A local model is offered once it has been through these scripts. `training/local-session.sh` ends by running
+`training/publish.mjs`, which writes `src/js/trained.js` from the result files: a model is in it from the day it has a result.
+
+- **Choose your model** lists a model that fits the machine and is not in that record dimmed, marked "Not trained yet", and
+  it cannot be chosen. The one chosen to begin with, and the one recommended, is always a trained one.
+- **Simple** chooses for the person, so it only ever chooses a trained model. Where none that fits has been trained, a mind
+  on this computer is not offered and the choice says why; Claude is.
+- **It opens by itself.** The runner reads the record again when the file changes, so a model published while the app is up
+  can be chosen on the next look, with nothing restarted. A bundled app carries the record it was bundled with.
+- **The trainers are not locked out.** They ask for a model by its id (`--setup '{"model":"..."}'`), and `/api/setup` takes
+  any id in the catalogue. `FO_ALL_MODELS=1` on the runner offers every model in the page too, for the checks that walk
+  them all and for trying one knowingly.
+
+Today the record holds Nemotron 3.5 Lightning 30B and Bonsai 2 27B. Qwen3.8-27B and Bonsai 2 9B, 4B and 2B are listed and
+cannot be chosen yet, and none of Strata's models has been trained, so a machine whose only engine is Strata is offered no
+local model until one has.
+
 ## Results
 
 Measured on one machine (Apple M2 Ultra), on 12 to 14 November 2026. "Right" is proven-right, or found for a ticket that only

@@ -1,7 +1,7 @@
 // trained.js - WHAT TRAINING HAS SHOWN OF EACH LOCAL MODEL. Written by training/publish.mjs from the trainers' own result files;
 // not edited by hand. For each model: the day of its newest result, the machine, and for each kind of measurement how many it
 // got right of how many (tickets also count a change passed as proven that was wrong). A model that is not here has not been
-// trained, and the model page says so.
+// trained: Choose your model lists it dimmed, it cannot be chosen, and Simple never chooses it, until it is here.
 export const TRAINED = {
   'nemotron35-30b': {
     at: '2026-11-15',
