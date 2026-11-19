@@ -9,10 +9,11 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { SRC, FAKES, WORK, PLAYWRIGHT_FROM } from '../support/paths.mjs';
+import { SHIFT } from '../support/ports.mjs';
 const require = createRequire(PLAYWRIGHT_FROM);
 const { chromium } = require('playwright');
 const OUT = path.join(WORK, 'under-a-reply');
-const PORT = 5279;
+const PORT = 5279 + SHIFT;
 const B = 'http://127.0.0.1:' + PORT;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const state = path.join(OUT, 'state');
@@ -36,7 +37,7 @@ const srv = spawn(process.execPath, [path.join(SRC, 'server.mjs')], {
     FO_BILLING: '{"enforce":false}',
     FO_BIN_CLAUDE: path.join(FAKES, 'fake-claude.mjs'),
     FO_CLAUDE_ROOT: path.join(state, 'claude'),
-    FO_LINK_PORT: '47889',
+    FO_LINK_PORT: String(47889 + SHIFT),
   },
 });
 process.on('exit', () => {

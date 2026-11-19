@@ -193,7 +193,9 @@ const teamOn = (world) => {
 // 2. the folder window closed with nothing chosen
 {
   const t = teamOn({ cancel: true });
+  // (someone new is talked with first; the folder is asked for when they say to start, as in 1)
   await t.go('I want to make a website for my band');
+  await t.go("Okay, let's start building it");
   const card = t.cards('folder')[0];
   await t.core.setupDo(card.id, 'choose');
   const after = t.cards('folder')[0];
@@ -234,7 +236,9 @@ const teamOn = (world) => {
 {
   const world = { repo: 'steps-app', page: false, phones: [] };
   const t = teamOn(world);
+  // (someone new is talked with first; the team builds, and looks for a phone, when they say to start, as in 1)
   await t.go('I want to make an Android app that counts my steps');
+  await t.go("Okay, let's start building it");
   const card = t.cards('phone')[0];
   check(
     'an Android app, with no phone plugged in: the message says so and how to switch on USB debugging, step by step',

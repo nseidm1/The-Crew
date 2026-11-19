@@ -25,3 +25,4 @@ src/js/pulse.js
 
 # The publisher's own values, which the owner's tools edit in place
 .owner/
+tests/runner/.self-test-shard-*.mjs

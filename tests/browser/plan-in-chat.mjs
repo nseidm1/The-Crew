@@ -8,13 +8,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SRC, FAKES, WORK, PLAYWRIGHT_FROM } from '../support/paths.mjs';
+import { SHIFT } from '../support/ports.mjs';
 const require = createRequire(PLAYWRIGHT_FROM);
 const { chromium } = require('playwright');
 const ROOT = SRC;
 const T = FAKES;
 const state = path.join(WORK, 'plan-state');
 const OUT = path.join(WORK, 'plan');
-const PORT = 5239;
+const PORT = 5239 + SHIFT;
 const B = 'http://127.0.0.1:' + PORT;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 for (const d of [state, OUT]) fs.rmSync(d, { recursive: true, force: true });
@@ -66,7 +67,7 @@ const srv = spawn(process.execPath, [path.join(ROOT, 'server.mjs')], {
     FO_CLAUDE_ROOT: path.join(state, 'claude'),
     FO_BIN_GH: path.join(state, 'no-gh'),
     FO_BIN_ADB: path.join(state, 'no-adb'),
-    FO_LINK_PORT: '47899',
+    FO_LINK_PORT: String(47899 + SHIFT),
   },
 });
 process.on('exit', () => {

@@ -8,11 +8,12 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SRC, FAKES, WORK, PLAYWRIGHT_FROM } from '../support/paths.mjs';
+import { SHIFT } from '../support/ports.mjs';
 
 const ROOT = SRC;
 const T = FAKES;
-const PORT = 5233;
-const MP = 5234;
+const PORT = 5233 + SHIFT;
+const MP = 5234 + SHIFT;
 const B = 'http://127.0.0.1:' + PORT;
 const J = { 'content-type': 'application/json' };
 const state = path.join(WORK, 'ticket-media-state');

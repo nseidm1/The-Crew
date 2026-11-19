@@ -32,3 +32,4 @@ Thumbs.db
 # What the publisher set on the owner's panel: plans, access codes, the GitHub Client ID, switches.
 # The source carries neutral values; these are read by the bundle and by the server when it is run for the publisher.
 .owner/
+tests/runner/.self-test-shard-*.mjs

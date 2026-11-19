@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { REPO_ROOT, SRC, FAKES, WORK, PLAYWRIGHT_FROM } from '../support/paths.mjs';
+import { SHIFT } from '../support/ports.mjs';
 import { PRODUCT_REMOTE_ON } from '../support/product.mjs';
 
 process.env.FO_ALL_MODELS = '1'; // the checks walk every model in the catalogue, the shelved ones too
@@ -50,7 +51,7 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 const state = path.join(WORK, 'qa-state' + (process.env.QA_OFF || ''));
 fs.rmSync(state, { recursive: true, force: true });
-const OFF = Number(process.env.QA_OFF) || 0;
+const OFF = (Number(process.env.QA_OFF) || 0) + SHIFT;
 const GP = 5262 + OFF;
 const LP = 5261 + OFF;
 const HOSTED = 'http://myfamilyoffice.localhost:' + GP + '/';
@@ -82,7 +83,7 @@ const GITROOT = path.join(state, 'gh-remotes');
   }
 }
 // a stand-in for GitHub's device sign-in and its repository list: nothing of the real GitHub is reached
-const GH = 5248 + (Number(process.env.QA_OFF) || 0);
+const GH = 5248 + (Number(process.env.QA_OFF) || 0) + SHIFT;
 let ghAsked = 0;
 const ghStub = (await import('http')).createServer(async (req, res) => {
   for await (const c of req) void c;

@@ -8,6 +8,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SRC, FAKES } from '../support/paths.mjs';
+import { SHIFT } from '../support/ports.mjs';
 const ROOT = SRC;
 const T = FAKES;
 const tmp = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'fo-host-'));
@@ -96,7 +97,7 @@ fs.writeFileSync(path.join(plain, '.env'), 'SECRET=1');
 fs.writeFileSync(path.join(tmp, 'outside.txt'), 'not yours');
 
 await withServer(
-  5297,
+  5297 + SHIFT,
   { FO_BIN_ADB: path.join(T, 'fake-adb.mjs'), FO_PICK_FOLDER: empty },
   async ({ B, state, get, post }) => {
     const no = await post('/api/workspace/folder', { path: plain });
@@ -236,7 +237,7 @@ await withServer(
   },
 );
 await withServer(
-  5298,
+  5298 + SHIFT,
   { FO_BIN_ADB: path.join(tmp, 'no-adb-here'), FO_SITE_IDLE_MS: '1200' },
   async ({ get, post }) => {
     const d = await get('/api/devices');

@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SRC, FAKES, WORK, PLAYWRIGHT_FROM } from '../support/paths.mjs';
+import { SHIFT } from '../support/ports.mjs';
 import { PRODUCT_REMOTE_ON } from '../support/product.mjs';
 process.env.FO_ALL_MODELS = '1'; // the checks walk every model in the catalogue, the shelved ones too
 const require = createRequire(PLAYWRIGHT_FROM);
@@ -35,8 +36,8 @@ const ROOT = SRC;
 const T = FAKES;
 const state = path.join(WORK, 'ui2-state');
 const OUT = path.join(WORK, 'ui2');
-const PORT = 5279;
-const HFP = 5282;
+const PORT = 5279 + SHIFT;
+const HFP = 5282 + SHIFT;
 const B = 'http://127.0.0.1:' + PORT;
 const J = { 'content-type': 'application/json' };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -124,7 +125,7 @@ const srv = spawn(process.execPath, [path.join(ROOT, 'server.mjs')], {
     FO_FAKE_BREW_LLAMA: llama,
     FO_BIN_BROWSER: path.join(T, 'fake-browser.mjs'),
     FO_WEB_ANY: '1',
-    FO_LINK_PORT: '47898',
+    FO_LINK_PORT: String(47898 + SHIFT),
     FO_BIN_GH: path.join(state, 'no-gh'),
     FO_BIN_ADB: path.join(state, 'no-adb'),
     FO_PICK_FOLDER: GF,

@@ -9,10 +9,11 @@ import fs from 'fs';
 import http from 'http';
 import path from 'path';
 import { SRC, FAKES, WORK, PLAYWRIGHT_FROM } from '../support/paths.mjs';
+import { SHIFT } from '../support/ports.mjs';
 
 const require = createRequire(PLAYWRIGHT_FROM);
 const { chromium } = require('playwright');
-const PORT = 5283;
+const PORT = 5283 + SHIFT;
 const B = 'http://127.0.0.1:' + PORT;
 const state = path.join(WORK, 'restart-state');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -37,7 +38,7 @@ const startApp = async () => {
       FO_BILLING: '{"enforce":false}',
       FO_BIN_CLAUDE: path.join(FAKES, 'fake-claude.mjs'),
       FO_CLAUDE_ROOT: path.join(state, 'claude'),
-      FO_LINK_PORT: '47883',
+      FO_LINK_PORT: String(47883 + SHIFT),
     },
   });
   for (let i = 0; i < 80; i++) {
